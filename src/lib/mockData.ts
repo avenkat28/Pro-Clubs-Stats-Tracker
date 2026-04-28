@@ -8,20 +8,72 @@ export const featuredStats = [
 export const features = [
   {
     title: "Advanced Club Analytics",
-    description: "Track win rate, form, goals per match, skill rating trends, and more.",
+    description:
+      "Track win rate, form, goals per match, skill rating trends, and more.",
   },
   {
     title: "Player Performance Ratings",
-    description: "Compare goals, assists, match ratings, consistency, and impact scores.",
+    description:
+      "Compare goals, assists, match ratings, consistency, and impact scores.",
   },
   {
     title: "Leaderboards",
-    description: "Find the top clubs, players, attackers, midfielders, defenders, and goalkeepers.",
+    description:
+      "Find the top clubs, players, attackers, midfielders, defenders, and goalkeepers.",
   },
 ];
 
-export const sampleClubs = [
-  { id: "3456623", name: "Elite XI", record: "88W - 12D - 20L", rating: 1820 },
-  { id: "778899", name: "North London FC", record: "74W - 18D - 25L", rating: 1715 },
-  { id: "112233", name: "Final Third FC", record: "63W - 20D - 31L", rating: 1642 },
-];
+export const mockClub = {
+  id: "3456623",
+  name: "Elite XI",
+  platform: "Gen 5",
+  record: {
+    wins: 88,
+    draws: 12,
+    losses: 20,
+  },
+  skillRating: 1820,
+  division: "Division 1",
+  goalsFor: 312,
+  goalsAgainst: 118,
+  cleanSheets: 34,
+  recentForm: ["W", "W", "D", "L", "W"],
+  squad: [
+    {
+      id: "1",
+      name: "Arya",
+      position: "ST",
+      matches: 120,
+      goals: 146,
+      assists: 52,
+      rating: 8.7,
+    },
+    {
+      id: "2",
+      name: "Safwan",
+      position: "CAM",
+      matches: 115,
+      goals: 64,
+      assists: 91,
+      rating: 8.5,
+    },
+    {
+      id: "3",
+      name: "Lockdown",
+      position: "CB",
+      matches: 108,
+      goals: 6,
+      assists: 14,
+      rating: 7.9,
+    },
+    {
+      id: "4",
+      name: "Wall",
+      position: "GK",
+      matches: 96,
+      goals: 0,
+      assists: 2,
+      rating: 8.1,
+    },
+  ],
+};
