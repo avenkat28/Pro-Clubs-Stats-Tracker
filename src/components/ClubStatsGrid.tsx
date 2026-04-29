@@ -18,13 +18,15 @@ export default function ClubStatsGrid({
   const matches = wins + draws + losses;
   const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
   const goalDifference = goalsFor - goalsAgainst;
+  const formattedGoalDifference =
+    goalDifference > 0 ? `+${goalDifference}` : goalDifference.toString();
 
   const stats = [
     { label: "Record", value: `${wins}W - ${draws}D - ${losses}L` },
     { label: "Win Rate", value: `${winRate}%` },
     { label: "Goals For", value: goalsFor.toString() },
     { label: "Goals Against", value: goalsAgainst.toString() },
-    { label: "Goal Difference", value: `+${goalDifference}` },
+    { label: "Goal Difference", value: formattedGoalDifference },
     { label: "Clean Sheets", value: cleanSheets.toString() },
   ];
 
