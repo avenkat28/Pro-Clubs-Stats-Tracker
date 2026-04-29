@@ -4,9 +4,17 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "db:test": "tsx scripts/test-db.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "@tailwindcss/postcss": "^4.2.4",
     "next": "^16.2.4",
     "postcss": "^8.5.12",
@@ -17,6 +25,9 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
+    "dotenv": "^17.4.2",
+    "prisma": "^6.19.3",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
