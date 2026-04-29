@@ -59,17 +59,19 @@ const mockPlayer = {
   ],
 };
 
-export default function PlayerPage({
+export default async function PlayerPage({
   params,
 }: {
-  params: { playerId: string };
+  params: Promise<{ playerId: string }>;
 }) {
+  const { playerId } = await params;
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10">
-        <p className="text-sm text-gray-500">Player ID: {params.playerId}</p>
+        <p className="text-sm text-gray-500">Player ID: {playerId}</p>
 
         <PlayerHeader
           name={mockPlayer.name}

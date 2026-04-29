@@ -1,5 +1,5 @@
 {
-  "/compare/page": "app/compare/page.js",
+  "/club/[clubId]/page": "app/club/[clubId]/page.js",
   "/leaderboards/page": "app/leaderboards/page.js",
-  "/page": "app/page.js"
+  "/search/page": "app/search/page.js"
 }

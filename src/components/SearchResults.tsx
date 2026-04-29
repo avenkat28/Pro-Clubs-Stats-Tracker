@@ -42,7 +42,7 @@ export default function SearchResults({
       <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-white">
         <h2 className="text-2xl font-bold">No results found</h2>
         <p className="mt-2 text-gray-400">
-          Try searching for a club name, player name, or club ID.
+          Try searching for a live club name from FC 26 rankings or paste a club ID.
         </p>
       </div>
     );
@@ -50,30 +50,9 @@ export default function SearchResults({
 
   return (
     <div className="space-y-10">
-      {showPlayers && players.length > 0 && (
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-white">Players</h2>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {players.map((player) => (
-              <SearchResultCard
-                key={player.id}
-                type="player"
-                title={player.name}
-                subtitle={`${player.position} • ${player.club}`}
-                meta={`${player.platform} • ${player.goals}G / ${player.assists}A`}
-                href={`/player/${player.id}`}
-                statLabel="Avg Rating"
-                statValue={player.rating}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
       {showClubs && clubs.length > 0 && (
         <section>
-          <h2 className="mb-4 text-2xl font-bold text-white">Clubs</h2>
+          <h2 className="mb-4 text-2xl font-bold text-white">Live Clubs</h2>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {clubs.map((club) => (
@@ -83,9 +62,9 @@ export default function SearchResults({
                 title={club.name}
                 subtitle={`${club.division} • ${club.platform}`}
                 meta={club.record}
-                href={`/club/${club.id}`}
+                href={`/club/${club.id}?platform=${club.platform}`}
                 statLabel="Skill Rating"
-                statValue={club.skillRating}
+                statValue={club.skillRating || "Open"}
               />
             ))}
           </div>
