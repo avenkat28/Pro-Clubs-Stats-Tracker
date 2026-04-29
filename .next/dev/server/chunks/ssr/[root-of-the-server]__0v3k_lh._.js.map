@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/aryavenkat/Downloads/pro-clubs-stats-tracker/src/app/page.tsx"],"sourcesContent":["export default function Home() {\n  return (\n    <main className=\"min-h-screen bg-black text-white flex flex-col items-center justify-center px-6\">\n      <h1 className=\"text-5xl font-bold mb-4 text-center\">\n        EA FC 26 Pro Clubs Stats Tracker\n      </h1>\n\n      <p className=\"text-gray-400 text-lg text-center max-w-2xl mb-8\">\n        Advanced club and player analytics beyond the official EA stats.\n      </p>\n\n      <div className=\"flex gap-4\">\n        <button className=\"bg-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-500 transition\">\n          Search Clubs\n        </button>\n\n        <button className=\"border border-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition\">\n          View Leaderboards\n        </button>\n      </div>\n    </main>\n  );\n}"],"names":["Home","className"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBACE,8OAAC;QAAKC,WAAU;;0BACd,8OAAC;gBAAGA,WAAU;0BAAsC;;;;;;0BAIpD,8OAAC;gBAAEA,WAAU;0BAAmD;;;;;;0BAIhE,8OAAC;gBAAIA,WAAU;;kCACb,8OAAC;wBAAOA,WAAU;kCAA8E;;;;;;kCAIhG,8OAAC;wBAAOA,WAAU;kCAAyF;;;;;;;;;;;;;;;;;;AAMnH"}}]
-}
