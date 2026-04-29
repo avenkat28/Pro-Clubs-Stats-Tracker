@@ -1,6 +1,22 @@
+"use client";
+
+import { useState } from "react";
+
 export default function SearchPanel() {
+  const [query, setQuery] = useState("");
+
+  function handleSearch() {
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      return;
+    }
+
+    window.location.href = `/search?q=${encodeURIComponent(trimmedQuery)}&type=all`;
+  }
+
   return (
-    <section className="mx-auto max-w-3xl px-6">
+    <section className="mx-auto max-w-4xl px-6 pb-10">
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="mb-4 text-2xl font-bold text-white">
           Search Club or Player
@@ -9,11 +25,21 @@ export default function SearchPanel() {
         <div className="flex flex-col gap-3 md:flex-row">
           <input
             type="text"
+            value={query}
             placeholder="Enter club name, club ID, or player name"
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleSearch();
+              }
+            }}
             className="flex-1 rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-gray-500"
           />
 
-          <button className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500">
+          <button
+            onClick={handleSearch}
+            className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500"
+          >
             Search
           </button>
         </div>
