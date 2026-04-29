@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Club {
+  id           String   @id @default(cuid())
+  eaClubId     String   @unique
+  name         String
+  platform     String
+  region       String?
+  division     String?
+  skillRating  Int?
+  wins         Int      @default(0)
+  draws        Int      @default(0)
+  losses       Int      @default(0)
+  goalsFor     Int      @default(0)
+  goalsAgainst Int      @default(0)
+  cleanSheets  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  players   Player[]
+  matches   Match[]
+  snapshots ClubSnapshot[]
+
+  @@index([eaClubId])
+  @@index([name])
+  @@index([platform])
+  @@index([skillRating])
+}
+
+model Player {
+  id                String   @id @default(cuid())
+  eaPlayerId        String   @unique
+  name              String
+  position          String?
+  platform          String
+  region            String?
+  clubId            String?
+  games             Int      @default(0)
+  goals             Int      @default(0)
+  assists           Int      @default(0)
+  averageRating     Float?
+  winRate           Float?
+  redCards          Int      @default(0)
+  tackles           Int?
+  tackleSuccessRate Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  club       Club?             @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  matchStats PlayerMatchStat[]
+  snapshots  PlayerSnapshot[]
+
+  @@index([eaPlayerId])
+  @@index([name])
+  @@index([clubId])
+  @@index([position])
+  @@index([platform])
+  @@index([averageRating])
+  @@index([goals])
+  @@index([assists])
+}
+
+model Match {
+  id               String    @id @default(cuid())
+  eaMatchId        String?   @unique
+  clubId           String
+  opponentName     String
+  opponentEaClubId String?
+  result           String
+  goalsFor         Int
+  goalsAgainst     Int
+  playedAt         DateTime?
+  createdAt        DateTime  @default(now())
+
+  club        Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  playerStats PlayerMatchStat[]
+
+  @@index([eaMatchId])
+  @@index([clubId])
+  @@index([playedAt])
+  @@index([result])
+}
+
+model PlayerMatchStat {
+  id           String   @id @default(cuid())
+  playerId     String
+  matchId      String
+  rating       Float?
+  goals        Int      @default(0)
+  assists      Int      @default(0)
+  tackles      Int?
+  passAccuracy Float?
+  redCards     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([matchId])
+  @@index([rating])
+  @@index([goals])
+  @@index([assists])
+}
+
+model ClubSnapshot {
+  id           String   @id @default(cuid())
+  clubId       String
+  wins         Int
+  draws        Int
+  losses       Int
+  goalsFor     Int
+  goalsAgainst Int
+  cleanSheets  Int?
+  skillRating  Int?
+  capturedAt   DateTime @default(now())
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@index([capturedAt])
+  @@index([skillRating])
+}
+
+model PlayerSnapshot {
+  id                String   @id @default(cuid())
+  playerId          String
+  games             Int
+  goals             Int
+  assists           Int
+  averageRating     Float?
+  winRate           Float?
+  redCards          Int
+  tackles           Int?
+  tackleSuccessRate Float?
+  capturedAt        DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([capturedAt])
+  @@index([goals])
+  @@index([assists])
+  @@index([averageRating])
+}
