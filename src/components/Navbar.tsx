@@ -7,7 +7,10 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/90 text-white backdrop-blur">
+    <nav
+      aria-label="Primary navigation"
+      className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/90 text-white backdrop-blur"
+    >
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <a href="/" className="text-2xl font-black tracking-tight">
           FC26 Tracker
