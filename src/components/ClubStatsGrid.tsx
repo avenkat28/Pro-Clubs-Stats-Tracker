@@ -65,16 +65,16 @@ export default function ClubStatsGrid({
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
           Performance
         </p>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_8.5rem] sm:items-start">
+          <div className="min-w-0 pr-2">
             <p className="text-sm text-white/50">Record</p>
-            <p className="mt-2 text-4xl font-black tracking-[-0.04em]">
+            <p className="mt-2 whitespace-nowrap text-[clamp(1rem,2.45vw,3rem)] font-black tracking-[-0.07em] leading-none">
               {wins}W <span className="text-white/35">-</span> {draws}D{" "}
               <span className="text-white/35">-</span> {losses}L
             </p>
           </div>
 
-          <div className="sm:text-right">
+          <div className="w-[8.5rem] justify-self-end sm:text-right">
             <p className="text-sm text-white/50">Win Rate</p>
             <p className={`mt-2 text-4xl font-black tracking-[-0.04em] ${winRateTone}`}>
               {winRate}%
