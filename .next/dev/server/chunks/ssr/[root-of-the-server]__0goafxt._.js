@@ -16,13 +16,13 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 ;
 function Navbar() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
-        className: "w-full border-b border-white/10 bg-black/80 px-6 py-4 text-white",
+        className: "w-full border-b border-white/10 bg-black text-white",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "mx-auto flex max-w-7xl items-center justify-between",
+            className: "mx-auto flex max-w-7xl items-center justify-between px-6 py-4",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
                     href: "/",
-                    className: "text-xl font-bold",
+                    className: "text-2xl font-bold",
                     children: "FC26 Tracker"
                 }, void 0, false, {
                     fileName: "[project]/src/components/Navbar.tsx",
@@ -33,12 +33,30 @@ function Navbar() {
                     className: "flex gap-6 text-sm text-gray-300",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                            href: "/",
+                            className: "hover:text-white",
+                            children: "Home"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/Navbar.tsx",
+                            lineNumber: 10,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                            href: "/search",
+                            className: "hover:text-white",
+                            children: "Search"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/Navbar.tsx",
+                            lineNumber: 14,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
                             href: "/leaderboards",
                             className: "hover:text-white",
                             children: "Leaderboards"
                         }, void 0, false, {
                             fileName: "[project]/src/components/Navbar.tsx",
-                            lineNumber: 10,
+                            lineNumber: 18,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -47,7 +65,7 @@ function Navbar() {
                             children: "Compare"
                         }, void 0, false, {
                             fileName: "[project]/src/components/Navbar.tsx",
-                            lineNumber: 13,
+                            lineNumber: 22,
                             columnNumber: 11
                         }, this)
                     ]
