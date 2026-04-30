@@ -5,6 +5,9 @@ type ClubStatsGridProps = {
   goalsFor: number;
   goalsAgainst: number;
   cleanSheets: number;
+  recentMatches: {
+    result: "W" | "D" | "L";
+  }[];
 };
 
 export default function ClubStatsGrid({
@@ -14,6 +17,7 @@ export default function ClubStatsGrid({
   goalsFor,
   goalsAgainst,
   cleanSheets,
+  recentMatches,
 }: ClubStatsGridProps) {
   const matches = wins + draws + losses;
   const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
@@ -44,16 +48,29 @@ export default function ClubStatsGrid({
     cleanSheets > 0 ? "text-cyan-300" : "text-white";
 
   const attackStrength =
-    matches > 0 ? Math.max(0, Math.min(100, Math.round((goalsFor / matches) * 24))) : 0;
+    matches > 0 ? Math.min(100, Math.round((goalsFor / matches) * 24)) : 0;
   const defenseStrength =
     matches > 0
-      ? Math.max(0, Math.min(100, Math.round(100 - (goalsAgainst / matches) * 18)))
+      ? Math.max(0, Math.min(100, Math.round(100 - (goalsAgainst / matches) * 20)))
       : 0;
+  const lastTenResults = recentMatches.slice(0, 10);
+  const formPoints = lastTenResults.reduce((total, match) => {
+    if (match.result === "W") {
+      return total + 3;
+    }
+
+    if (match.result === "D") {
+      return total + 1;
+    }
+
+    return total;
+  }, 0);
+  const formMaxPoints = lastTenResults.length * 3;
   const formStrength =
-    Math.max(
-      0,
-      Math.min(100, Math.round(winRate * 0.65 + drawRate * 0.2 + (goalDifference > 0 ? 18 : 6))),
-    );
+    formMaxPoints > 0 ? Math.round((formPoints / formMaxPoints) * 100) : 0;
+  const recentWins = lastTenResults.filter((match) => match.result === "W").length;
+  const recentDraws = lastTenResults.filter((match) => match.result === "D").length;
+  const recentLosses = lastTenResults.filter((match) => match.result === "L").length;
 
   const winBarWidth = matches > 0 ? (wins / matches) * 100 : 0;
   const drawBarWidth = matches > 0 ? (draws / matches) * 100 : 0;
@@ -219,8 +236,11 @@ export default function ClubStatsGrid({
           <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
             <p className="text-sm text-white/50">Storyline</p>
             <p className="mt-3 text-sm leading-6 text-white/70">
-              Live club stats are loaded, but match-form trend data is not wired
-              yet. This is the space for streaks, last-five results, and momentum next.
+              Form is based on the club's last {lastTenResults.length || 10} matches:
+              {" "}
+              {recentWins}W - {recentDraws}D - {recentLosses}L for {formPoints}
+              {" "}
+              points.
             </p>
           </div>
         </div>

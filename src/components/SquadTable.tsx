@@ -12,9 +12,11 @@ type SquadPlayer = {
 
 type SquadTableProps = {
   players: SquadPlayer[];
+  clubId: string;
+  platform: string;
 };
 
-export default function SquadTable({ players }: SquadTableProps) {
+export default function SquadTable({ players, clubId, platform }: SquadTableProps) {
   const hasUsablePlayers = players.some(
     (player) => player.name !== "Unknown" || player.matches > 0,
   );
@@ -69,7 +71,12 @@ export default function SquadTable({ players }: SquadTableProps) {
 
           <tbody>
             {players.map((player) => (
-              <PlayerStatRow key={player.id} {...player} />
+              <PlayerStatRow
+                key={player.id}
+                {...player}
+                clubId={clubId}
+                platform={platform}
+              />
             ))}
           </tbody>
         </table>
