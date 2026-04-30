@@ -94,7 +94,7 @@ export default function LeaderboardsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black/35 text-white">
       <Navbar />
 
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
