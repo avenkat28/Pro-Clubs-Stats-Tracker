@@ -1,3 +1,5 @@
+import { StatLabel } from "./StatIcon";
+
 type SearchResultCardProps = {
   type: "player" | "club";
   title: string;
@@ -35,7 +37,9 @@ export default function SearchResultCard({
         </div>
 
         <div className="rounded-xl bg-black/40 px-4 py-3 text-right">
-          <p className="text-xs text-gray-500">{statLabel}</p>
+          <p className="text-xs text-gray-500">
+            <StatLabel label={statLabel} className="justify-end" />
+          </p>
           <p className="text-xl font-bold text-blue-400">{statValue}</p>
         </div>
       </div>

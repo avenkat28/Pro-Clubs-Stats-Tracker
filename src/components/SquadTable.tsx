@@ -1,4 +1,5 @@
 import PlayerStatRow from "./PlayerStatRow";
+import { StatLabel } from "./StatIcon";
 
 type SquadPlayer = {
   id: string;
@@ -22,7 +23,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
   );
 
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-6 shadow-[0_22px_45px_rgba(0,0,0,0.2)]">
+    <section className="min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
@@ -56,16 +57,26 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
         </div>
       ) : null}
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      <div className="mt-6 overflow-x-auto overscroll-x-contain">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="text-white/45">
             <tr className="border-b border-white/10">
-              <th className="pb-4">Player</th>
+              <th className="pb-4">
+                <StatLabel label="Player" />
+              </th>
               <th className="pb-4">POS</th>
-              <th className="pb-4 text-right">Matches</th>
-              <th className="pb-4 text-right">Goals</th>
-              <th className="pb-4 text-right">Assists</th>
-              <th className="pb-4 text-right">Rating</th>
+              <th className="pb-4 text-right">
+                <StatLabel label="Matches" className="justify-end" />
+              </th>
+              <th className="pb-4 text-right">
+                <StatLabel label="Goals" className="justify-end" />
+              </th>
+              <th className="pb-4 text-right">
+                <StatLabel label="Assists" className="justify-end" />
+              </th>
+              <th className="pb-4 text-right">
+                <StatLabel label="Rating" className="justify-end" />
+              </th>
             </tr>
           </thead>
 

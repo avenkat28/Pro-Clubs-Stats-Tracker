@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StatLabel } from "./StatIcon";
 
 type ClubStatsGridProps = {
   wins: number;
@@ -73,31 +74,31 @@ function getOverallStoryline({
     winRate >= 65
       ? "The overall record points to a dominant side that turns most matches into wins."
       : winRate >= 50
-      ? "The overall record is strong, with enough wins to keep the club clearly above water."
-      : winRate >= 35
-      ? "The overall record is mixed, with results still swinging week to week."
-      : "The overall record is under pressure, and the club needs a steadier route to wins.";
+        ? "The overall record is strong, with enough wins to keep the club clearly above water."
+        : winRate >= 35
+          ? "The overall record is mixed, with results still swinging week to week."
+          : "The overall record is under pressure, and the club needs a steadier route to wins.";
 
   const attackNote =
     goalsPerMatch >= 2.5
       ? "The attack is the main strength, producing goals at a high clip."
       : goalsPerMatch >= 1.5
-      ? "The attack is serviceable and gives the team a platform most nights."
-      : "Chance creation looks like the biggest area to improve.";
+        ? "The attack is serviceable and gives the team a platform most nights."
+        : "Chance creation looks like the biggest area to improve.";
 
   const defenseNote =
     concededPerMatch <= 1
       ? "Defensively, they are keeping matches controlled."
       : concededPerMatch <= 2
-      ? "Defensively, they are competitive but still giving opponents chances."
-      : "Defensive stability is the clearest concern.";
+        ? "Defensively, they are competitive but still giving opponents chances."
+        : "Defensive stability is the clearest concern.";
 
   const balanceNote =
     goalDifference > 20
       ? "That production is showing up in the margins too."
       : goalDifference >= 0
-      ? "The margins are manageable, but there is not much cushion yet."
-      : "The negative margin shows the performances are not matching the target yet.";
+        ? "The margins are manageable, but there is not much cushion yet."
+        : "The negative margin shows the performances are not matching the target yet.";
 
   const formattedGoalDifference =
     goalDifference > 0 ? `+${goalDifference}` : goalDifference.toString();
@@ -135,12 +136,11 @@ export default function ClubStatsGrid({
 
   const goalDifferenceTone =
     goalDifference > 0
-      ? "text-emerald-400"
+      ? "text-emerald-300"
       : goalDifference < 0
-      ? "text-red-400"
-      : "text-amber-300";
-  const cleanSheetTone =
-    cleanSheets > 0 ? "text-cyan-300" : "text-white";
+        ? "text-red-300"
+        : "text-lime-200";
+  const cleanSheetTone = cleanSheets > 0 ? "text-emerald-300" : "text-white";
 
   const attackStrength =
     matches > 0 ? Math.min(100, Math.round((goalsFor / matches) * 24)) : 0;
@@ -236,24 +236,21 @@ export default function ClubStatsGrid({
     activeMatches > 0 ? (activeStats.goalsAgainst / activeMatches).toFixed(2) : "0.00";
   const activeWinRateTone =
     activeWinRate >= 60
-      ? "text-emerald-400"
+      ? "text-emerald-300"
       : activeWinRate >= 40
-        ? "text-amber-300"
-        : "text-red-400";
+        ? "text-lime-200"
+        : "text-red-300";
   const strengthMeters = [
     {
       label: "Attack",
       value: attackStrength,
       tone: "bg-emerald-400",
-      details: [
-        `Goals scored: ${goalsFor}`,
-        `Goals scored per match: ${goalsPerMatch}`,
-      ],
+      details: [`Goals scored: ${goalsFor}`, `Goals scored per match: ${goalsPerMatch}`],
     },
     {
       label: "Defense",
       value: defenseStrength,
-      tone: "bg-cyan-300",
+      tone: "bg-lime-300",
       details: [
         `Goals conceded: ${goalsAgainst}`,
         `Goals conceded per match: ${concededPerMatch}`,
@@ -262,7 +259,7 @@ export default function ClubStatsGrid({
     {
       label: "Form",
       value: formStrength,
-      tone: "bg-amber-300",
+      tone: "bg-green-500",
       details: [
         `Last 10 record: ${recentWins}W - ${recentDraws}D - ${recentLosses}L`,
         `Goals scored: ${recentGoals.goalsFor}`,
@@ -271,15 +268,19 @@ export default function ClubStatsGrid({
       ],
     },
   ];
+  const panelClassName =
+    "min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,0.22)] ring-1 ring-white/[0.03] sm:p-5";
+  const tileClassName =
+    "min-w-0 rounded-2xl border border-white/[0.06] bg-black/25 p-3 ring-1 ring-white/[0.02] sm:p-4";
 
   return (
-    <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_1fr_0.9fr]">
-      <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 text-white shadow-[0_22px_45px_rgba(0,0,0,0.22)]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+    <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.12fr_0.88fr_0.9fr]">
+      <div className={panelClassName}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
             Performance
           </p>
-          <div className="inline-flex w-fit rounded-xl border border-white/10 bg-black/30 p-1">
+          <div className="inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
             {[
               { label: "Overall", value: "overall" as const },
               { label: "Last 10", value: "last10" as const },
@@ -291,10 +292,10 @@ export default function ClubStatsGrid({
                   key={tab.value}
                   type="button"
                   onClick={() => setActivePerformanceTab(tab.value)}
-                  className={`rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${
+                  className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition ${
                     isActive
-                      ? "bg-white text-black"
-                      : "text-white/50 hover:text-white"
+                      ? "bg-emerald-300 text-black shadow-[0_0_24px_rgba(110,231,183,0.22)]"
+                      : "text-white/45 hover:text-emerald-100"
                   }`}
                 >
                   {tab.label}
@@ -303,110 +304,108 @@ export default function ClubStatsGrid({
             })}
           </div>
         </div>
-        <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_8.5rem] sm:items-start">
-          <div className="min-w-0 pr-2">
-            <p className="text-sm text-white/50">{activeTabLabel} Record</p>
-            <p className="mt-2 whitespace-nowrap text-[clamp(1rem,2.45vw,3rem)] font-black tracking-[-0.07em] leading-none">
-              {activeStats.wins}W <span className="text-white/35">-</span>{" "}
-              {activeStats.draws}D <span className="text-white/35">-</span>{" "}
-              {activeStats.losses}L
+
+        <div className="club-record-row mt-5">
+          <div className="min-w-0">
+            <p className="text-sm text-white/45">{activeTabLabel} Record</p>
+            <p className="club-record-value mt-2">
+              {activeStats.wins}W <span className="text-white/25">/</span> {activeStats.draws}D{" "}
+              <span className="text-white/25">/</span> {activeStats.losses}L
             </p>
           </div>
-
-          <div className="w-[8.5rem] justify-self-end sm:text-right">
-            <p className="text-sm text-white/50">Win Rate</p>
-            <p className={`mt-2 text-4xl font-black tracking-[-0.04em] ${activeWinRateTone}`}>
+          <div className="sm:text-right">
+            <p className="text-sm text-white/45">Win Rate</p>
+            <p className={`club-win-rate-value mt-2 ${activeWinRateTone}`}>
               {activeWinRate}%
             </p>
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-full bg-white/10">
-          <div className="flex h-3 w-full" aria-label="Wins, draws, and losses split">
-            <div
-              className="h-full bg-emerald-400"
-              style={{ width: `${activeWinBarWidth}%` }}
-            />
-            <div
-              className="h-full bg-white/45"
-              style={{ width: `${activeDrawBarWidth}%` }}
-            />
-            <div
-              className="h-full bg-red-400"
-              style={{ width: `${activeLossBarWidth}%` }}
-            />
+        <div className="mt-5 overflow-hidden rounded-full bg-white/10">
+          <div className="flex h-2.5 w-full" aria-label="Wins, draws, and losses split">
+            <div className="h-full bg-emerald-400" style={{ width: `${activeWinBarWidth}%` }} />
+            <div className="h-full bg-white/35" style={{ width: `${activeDrawBarWidth}%` }} />
+            <div className="h-full bg-red-400" style={{ width: `${activeLossBarWidth}%` }} />
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">
           <span className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Wins {activeWinRate}%
           </span>
           <span className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/45" />
+            <span className="h-2 w-2 rounded-full bg-white/35" />
             Draws {activeDrawRate}%
           </span>
           <span className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+            <span className="h-2 w-2 rounded-full bg-red-400" />
             Losses {activeLossRate}%
           </span>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-white/45">Matches</p>
-            <p className="mt-1 text-2xl font-bold">{activeMatches}</p>
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <div className={tileClassName}>
+            <p className="text-xs text-white/45">
+              <StatLabel label="Matches" iconClassName="h-3.5 w-3.5" />
+            </p>
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em]">{activeMatches}</p>
           </div>
-          <div className="group relative rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-white/45">GF</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{activeStats.goalsFor}</p>
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-3 w-44 -translate-x-1/2 rounded-xl border border-white/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
-              <p className="font-semibold text-white">Goals For</p>
-              <p className="mt-1">{activeGoalsForPerMatch} per match</p>
-            </div>
+          <div className={tileClassName}>
+            <p className="text-xs text-white/45">
+              <StatLabel label="GF" iconClassName="h-3.5 w-3.5" />
+            </p>
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] text-emerald-300">
+              {activeStats.goalsFor}
+            </p>
+            <p className="mt-1 text-xs text-white/35">{activeGoalsForPerMatch}/match</p>
           </div>
-          <div className="group relative rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-white/45">GA</p>
-            <p className="mt-1 text-2xl font-bold text-red-400">{activeStats.goalsAgainst}</p>
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-3 w-44 -translate-x-1/2 rounded-xl border border-white/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
-              <p className="font-semibold text-white">Goals Against</p>
-              <p className="mt-1">{activeGoalsAgainstPerMatch} per match</p>
-            </div>
+          <div className={tileClassName}>
+            <p className="text-xs text-white/45">
+              <StatLabel label="GA" iconClassName="h-3.5 w-3.5" />
+            </p>
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] text-red-300">
+              {activeStats.goalsAgainst}
+            </p>
+            <p className="mt-1 text-xs text-white/35">{activeGoalsAgainstPerMatch}/match</p>
           </div>
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-white/45">GD</p>
-            <p className={`mt-1 text-2xl font-bold ${
-              activeStats.goalDifference >= 0 ? "text-emerald-400" : "text-red-400"
-            }`}>
+          <div className={tileClassName}>
+            <p className="text-xs text-white/45">
+              <StatLabel label="GD" iconClassName="h-3.5 w-3.5" />
+            </p>
+            <p
+              className={`mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] ${
+                activeStats.goalDifference >= 0 ? "text-emerald-300" : "text-red-300"
+              }`}
+            >
               {activeGoalDifference}
             </p>
           </div>
         </div>
 
         {activePerformanceTab === "overall" ? (
-          <div className="mt-5 grid gap-3 rounded-2xl border border-white/8 bg-black/20 p-4 text-sm">
-            <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
-              <p className="text-white/55">League Appearances</p>
-              <p className="text-2xl font-black tracking-[-0.04em] text-white">
+          <div className="mt-5 grid gap-3 border-t border-white/[0.07] pt-4 sm:grid-cols-3">
+            <div>
+              <p className="text-xs text-white/40">League Apps</p>
+              <p className="mt-1 text-2xl font-black tracking-[-0.04em]">
                 {appearanceBreakdown.league}
               </p>
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-white/55">Playoff Appearances</p>
-              <p className="text-2xl font-black tracking-[-0.04em] text-white">
+            <div>
+              <p className="text-xs text-white/40">Playoff Apps</p>
+              <p className="mt-1 text-2xl font-black tracking-[-0.04em]">
                 {appearanceBreakdown.playoff}
               </p>
             </div>
-            <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-3">
-              <p className="text-white/55">Best Playoff Finish</p>
-              <div className="flex items-center gap-3 text-right">
+            <div>
+              <p className="text-xs text-white/40">Best Finish</p>
+              <div className="mt-1 flex items-center gap-2">
                 {appearanceBreakdown.bestPlayoffFinish.badgeLevel ? (
-                  <div className="flex h-12 w-10 items-center justify-center rounded-[0.9rem] border border-amber-200/50 bg-[linear-gradient(145deg,#3b3325,#d6b65b_45%,#181818_48%,#101827)] text-xl font-black text-amber-100 shadow-[0_10px_24px_rgba(214,182,91,0.22)]">
+                  <span className="flex h-8 w-7 items-center justify-center rounded-lg border border-lime-200/30 bg-lime-300/15 text-sm font-black text-lime-100">
                     {appearanceBreakdown.bestPlayoffFinish.badgeLevel}
-                  </div>
+                  </span>
                 ) : null}
-                <p className="text-xl font-black tracking-[-0.04em] text-white">
+                <p className="min-w-0 text-base font-black tracking-[-0.04em] text-white sm:text-lg">
                   {appearanceBreakdown.bestPlayoffFinish.label}
                 </p>
               </div>
@@ -415,57 +414,66 @@ export default function ClubStatsGrid({
         ) : null}
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 text-white shadow-[0_22px_45px_rgba(0,0,0,0.22)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+      <div className={panelClassName}>
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
           Attack / Defense
         </p>
-        <div className="mt-5 grid gap-4">
-          <div className="flex items-end justify-between gap-4 rounded-2xl border border-white/8 bg-black/20 p-4">
-            <div>
-              <p className="text-sm text-white/50">Goals For</p>
-              <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-emerald-400">
-                {goalsFor}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300/70">
-                Attack
-              </p>
-              <p className="mt-2 text-sm text-white/45">{goalsPerMatch}/match</p>
-            </div>
-          </div>
-
-          <div className="flex items-end justify-between gap-4 rounded-2xl border border-white/8 bg-black/20 p-4">
-            <div>
-              <p className="text-sm text-white/50">Goals Against</p>
-              <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-red-400">
-                {goalsAgainst}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-300/70">
-                Defense
-              </p>
-              <p className="mt-2 text-sm text-white/45">{concededPerMatch}/match</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-sm text-white/50">Goal Difference</p>
-            <p className={`mt-2 text-4xl font-black tracking-[-0.04em] ${goalDifferenceTone}`}>
-              {formattedGoalDifference}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <div className="flex items-end justify-between gap-4">
+        <div className="mt-5 grid gap-3">
+          <div className="rounded-2xl bg-emerald-400/[0.06] p-4 ring-1 ring-emerald-300/10">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm text-white/50">Clean Sheets</p>
-                <p className={`mt-2 text-4xl font-black tracking-[-0.04em] ${cleanSheetTone}`}>
-                  {cleanSheets}
+                <p className="text-sm text-white/50">
+                  <StatLabel label="Goals For" />
+                </p>
+                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black tracking-[-0.07em] text-emerald-300">
+                  {goalsFor}
                 </p>
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
+              <div className="text-right">
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-200/70">
+                  Attack
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white/45">{goalsPerMatch}/match</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-red-400/[0.055] p-4 ring-1 ring-red-300/10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm text-white/50">
+                  <StatLabel label="Goals Against" />
+                </p>
+                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black tracking-[-0.07em] text-red-300">
+                  {goalsAgainst}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-red-200/70">
+                  Defense
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white/45">{concededPerMatch}/match</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className={tileClassName}>
+              <p className="text-xs text-white/45">
+                <StatLabel label="Goal Difference" iconClassName="h-3.5 w-3.5" />
+              </p>
+              <p className={`mt-2 text-3xl font-black tracking-[-0.06em] ${goalDifferenceTone}`}>
+                {formattedGoalDifference}
+              </p>
+            </div>
+            <div className={tileClassName}>
+              <p className="text-xs text-white/45">
+                <StatLabel label="Clean Sheets" iconClassName="h-3.5 w-3.5" />
+              </p>
+              <p className={`mt-2 text-3xl font-black tracking-[-0.06em] ${cleanSheetTone}`}>
+                {cleanSheets}
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-emerald-200/50">
                 {cleanSheetRate}% rate
               </p>
             </div>
@@ -473,44 +481,38 @@ export default function ClubStatsGrid({
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 text-white shadow-[0_22px_45px_rgba(0,0,0,0.22)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+      <div className={panelClassName}>
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
           Team Strength
         </p>
-        <div className="mt-5 space-y-5">
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <div className="space-y-4">
-              {strengthMeters.map((meter) => (
-                <div key={meter.label} className="group relative">
-                  <div className="flex items-center justify-between text-sm">
-                    <p className="text-white/60">{meter.label}</p>
-                    <p className="font-semibold text-white/80">{meter.value}</p>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8">
-                    <div
-                      className={`h-full rounded-full ${meter.tone}`}
-                      style={{ width: `${meter.value}%` }}
-                    />
-                  </div>
-                  <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-xl border border-white/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
-                    <p className="font-semibold text-white">{meter.label}</p>
-                    <div className="mt-2 space-y-1">
-                      {meter.details.map((detail) => (
-                        <p key={detail}>{detail}</p>
-                      ))}
-                    </div>
-                  </div>
+        <div className="mt-5 space-y-4">
+          {strengthMeters.map((meter) => (
+            <div key={meter.label} className="group relative">
+              <div className="flex items-center justify-between text-sm">
+                <p className="font-semibold text-white/68">{meter.label}</p>
+                <p className="font-black text-white">{meter.value}</p>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={`h-full rounded-full ${meter.tone} shadow-[0_0_20px_rgba(52,211,153,0.3)]`}
+                  style={{ width: `${meter.value}%` }}
+                />
+              </div>
+              <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-2xl border border-emerald-300/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
+                <p className="font-semibold text-white">{meter.label}</p>
+                <div className="mt-2 space-y-1">
+                  {meter.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-sm text-white/50">Storyline</p>
-            <p className="mt-3 text-sm leading-6 text-white/70">
-              {overallStoryline}
-            </p>
-          </div>
+        <div className="mt-6 border-t border-white/[0.07] pt-4">
+          <p className="text-sm font-semibold text-white/55">Storyline</p>
+          <p className="mt-3 text-sm leading-6 text-white/62">{overallStoryline}</p>
         </div>
       </div>
     </section>

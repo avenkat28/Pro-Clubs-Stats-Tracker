@@ -2,6 +2,7 @@ import type { TopClub, TopPlayer } from "../lib/mockData";
 import type { SortKey } from "./LeaderboardFilters";
 import LeaderboardRow, { MobileLeaderboardCard } from "./LeaderboardRow";
 import type { LeaderboardTab } from "./LeaderboardTabs";
+import { StatLabel } from "./StatIcon";
 
 type LeaderboardTableProps = {
   activeTab: LeaderboardTab;
@@ -83,13 +84,13 @@ export default function LeaderboardTable({
                         sortBy === column.sortKey ? "text-blue-300" : ""
                       }`}
                     >
-                      {column.label}
+                      <StatLabel label={column.label} />
                       <span className="text-[10px]">
                         {sortBy === column.sortKey ? "DESC" : "SORT"}
                       </span>
                     </button>
                   ) : (
-                    column.label
+                    <StatLabel label={column.label} />
                   )}
                 </th>
               ))}

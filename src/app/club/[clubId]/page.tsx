@@ -28,21 +28,21 @@ export default async function ClubPage({
     const profile = await getEaClubProfile(clubId, platform);
 
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen overflow-x-hidden bg-black text-white">
         <Navbar />
 
-        <section className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10">
-          <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-5 shadow-[0_18px_38px_rgba(0,0,0,0.18)]">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:py-10">
+          <div className="rounded-[1.25rem] border border-emerald-300/10 bg-[#07100c]/70 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.18)] ring-1 ring-white/[0.03]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-200/50">
                   Club Control
                 </p>
-                <p className="mt-2 text-base text-white/55">Club ID {clubId}</p>
+                <p className="mt-1 text-sm text-white/45">Club ID {clubId}</p>
               </div>
             </div>
 
-            <div className="mt-5 inline-flex flex-wrap rounded-2xl border border-white/10 bg-black/35 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="mt-4 flex w-full flex-wrap rounded-[1.25rem] border border-emerald-300/12 bg-black/35 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:inline-flex sm:w-auto sm:rounded-full">
               {eaPlatforms.map((platformOption) => {
                 const isActive = platformOption === platform;
 
@@ -50,10 +50,10 @@ export default async function ClubPage({
                   <a
                     key={platformOption}
                     href={`/club/${clubId}?platform=${platformOption}`}
-                    className={`rounded-[1rem] px-4 py-3 text-sm font-semibold transition ${
+                    className={`flex-1 rounded-full px-3 py-2 text-center text-sm font-bold transition sm:flex-none sm:px-4 ${
                       isActive
-                        ? "bg-[linear-gradient(180deg,#3b82f6,#2563eb)] text-white shadow-[0_8px_24px_rgba(37,99,235,0.4)]"
-                        : "text-white/60 hover:text-white"
+                        ? "bg-emerald-300 text-black shadow-[0_8px_24px_rgba(16,185,129,0.25)]"
+                        : "text-white/55 hover:text-emerald-100"
                     }`}
                   >
                     {eaPlatformLabels[platformOption]}
@@ -92,7 +92,7 @@ export default async function ClubPage({
       error instanceof Error ? error.message : "Unable to load live EA stats.";
 
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen overflow-x-hidden bg-black text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
@@ -115,8 +115,8 @@ export default async function ClubPage({
                     href={`/club/${clubId}?platform=${platformOption}`}
                     className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
                       isActive
-                        ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-white/10 bg-black/40 text-gray-300 hover:border-blue-500/60 hover:text-white"
+                        ? "border-emerald-400 bg-emerald-500 text-black"
+                        : "border-white/10 bg-black/40 text-gray-300 hover:border-emerald-400/60 hover:text-white"
                     }`}
                   >
                     Retry {eaPlatformLabels[platformOption]}

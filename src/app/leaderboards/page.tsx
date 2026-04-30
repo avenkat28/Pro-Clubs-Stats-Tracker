@@ -12,6 +12,7 @@ import LeaderboardTable from "../../components/LeaderboardTable";
 import LeaderboardTabs, {
   type LeaderboardTab,
 } from "../../components/LeaderboardTabs";
+import { StatLabel } from "../../components/StatIcon";
 import TopThreePodium from "../../components/TopThreePodium";
 import {
   topClubs,
@@ -104,21 +105,31 @@ export default function LeaderboardsPage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-sm text-gray-400">Top Player</p>
+            <p className="text-sm text-gray-400">
+              <StatLabel label="Top Player" />
+            </p>
             <p className="mt-2 text-2xl font-black text-white">
               {featuredPlayer.name}
             </p>
             <p className="mt-1 text-sm font-semibold text-green-400">
-              {featuredPlayer.goals + featuredPlayer.assists} G/A
+              <StatLabel
+                label={`${featuredPlayer.goals + featuredPlayer.assists} G/A`}
+                iconClassName="text-yellow-300"
+              />
             </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-sm text-gray-400">Best Club</p>
+            <p className="text-sm text-gray-400">
+              <StatLabel label="Best Club" />
+            </p>
             <p className="mt-2 text-2xl font-black text-white">
               {featuredClub.name}
             </p>
             <p className="mt-1 text-sm font-semibold text-blue-300">
-              {featuredClub.skillRating} Skill Rating
+              <StatLabel
+                label={`${featuredClub.skillRating} Skill Rating`}
+                iconClassName="text-yellow-300"
+              />
             </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">

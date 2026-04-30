@@ -16,18 +16,18 @@ export default function ClubHeader({
   badgeUrl,
 }: ClubHeaderProps) {
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.22),_transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-8 text-white shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-      <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-blue-200/90">
-        <span className="rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1">
+    <section className="min-w-0 overflow-hidden rounded-[1.5rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_34%),linear-gradient(135deg,rgba(9,18,13,0.96),rgba(3,5,4,0.94))] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.03] sm:p-6">
+      <div className="flex flex-wrap items-center gap-3 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-100/75">
+        <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5">
           {platform}
         </span>
-        <span className="text-white/35">/</span>
-        <span className="text-white/55">Club ID {clubId}</span>
+        <span className="text-white/25">/</span>
+        <span className="text-white/45">Club ID {clubId}</span>
       </div>
 
-      <div className="mt-6 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-[1.75rem] border border-white/10 bg-black/35 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+      <div className="mt-6 flex min-w-0 flex-col justify-between gap-6 lg:flex-row lg:items-end">
+        <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.25rem] border border-white/[0.08] bg-black/30 p-2 ring-1 ring-emerald-300/10 sm:h-28 sm:w-28">
             {badgeUrl ? (
               <img
                 src={badgeUrl}
@@ -41,21 +41,25 @@ export default function ClubHeader({
             )}
           </div>
 
-          <div>
-            <h1 className="max-w-4xl text-5xl font-black tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
+          <div className="min-w-0">
+            <h1 className="max-w-4xl text-[clamp(2.75rem,12vw,4.5rem)] font-black leading-[0.9] tracking-[-0.06em] text-white break-words">
               {name}
             </h1>
             {division !== "Division Unavailable" ? (
-              <p className="mt-4 text-lg text-white/65 sm:text-2xl">{division}</p>
+              <p className="mt-3 text-lg font-semibold text-emerald-100/55 sm:text-2xl">
+                {division}
+              </p>
             ) : null}
           </div>
         </div>
 
-        <div className="min-w-52 rounded-[1.5rem] border border-blue-400/30 bg-[linear-gradient(180deg,rgba(37,99,235,0.95),rgba(37,99,235,0.72))] px-6 py-5 text-center shadow-[0_18px_40px_rgba(37,99,235,0.35)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-100/90">
+        <div className="w-full rounded-[1.25rem] border border-emerald-300/20 bg-emerald-300/[0.09] px-6 py-5 text-center shadow-[0_18px_40px_rgba(16,185,129,0.16)] sm:w-auto sm:min-w-48">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-100/65">
             Skill Rating
           </p>
-          <p className="mt-3 text-5xl font-black tracking-[-0.05em]">{skillRating}</p>
+          <p className="mt-2 text-5xl font-black tracking-[-0.06em] text-emerald-200">
+            {skillRating}
+          </p>
         </div>
       </div>
     </section>

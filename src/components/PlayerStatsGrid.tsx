@@ -1,3 +1,5 @@
+import { StatLabel } from "./StatIcon";
+
 type PlayerStatsGridProps = {
   games: number;
   goals: number;
@@ -65,7 +67,9 @@ export default function PlayerStatsGrid({
           key={stat.label}
           className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white"
         >
-          <p className="text-sm text-gray-400">{stat.label}</p>
+          <p className="text-sm text-gray-400">
+            <StatLabel label={stat.label} />
+          </p>
           <p className="mt-2 text-3xl font-bold">{stat.value}</p>
         </div>
       ))}

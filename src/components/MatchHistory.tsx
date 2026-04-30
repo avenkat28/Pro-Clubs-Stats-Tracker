@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StatLabel } from "./StatIcon";
 
 type Match = {
   id: string;
@@ -90,27 +91,37 @@ export default function MatchHistory({
               {isOpen && (
                 <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 md:grid-cols-5">
                   <div>
-                    <p className="text-xs text-gray-500">Goals</p>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Goals" />
+                    </p>
                     <p className="font-bold">{match.goals}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Assists</p>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Assists" />
+                    </p>
                     <p className="font-bold">{match.assists}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Tackles</p>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Tackles" />
+                    </p>
                     <p className="font-bold">{match.tackles}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Pass Accuracy</p>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Pass Accuracy" />
+                    </p>
                     <p className="font-bold">{match.passAccuracy}%</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Red Cards</p>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Red Cards" />
+                    </p>
                     <p className="font-bold">{match.redCards}</p>
                   </div>
                 </div>

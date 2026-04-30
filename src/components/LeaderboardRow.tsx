@@ -1,5 +1,6 @@
 import type { TopClub, TopPlayer } from "../lib/mockData";
 import type { LeaderboardTab } from "./LeaderboardTabs";
+import { StatLabel } from "./StatIcon";
 
 type LeaderboardRowProps =
   | {
@@ -235,7 +236,9 @@ function StatPill({
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/30 px-2 py-2">
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-xs text-gray-500">
+        <StatLabel label={label} iconClassName="h-3.5 w-3.5" />
+      </p>
       <p className={`text-sm font-black ${valueClassName}`}>{value}</p>
     </div>
   );

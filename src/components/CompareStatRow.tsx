@@ -1,3 +1,5 @@
+import { StatLabel } from "./StatIcon";
+
 type CompareStatRowProps = {
   label: string;
   leftValue: string | number;
@@ -38,7 +40,7 @@ export default function CompareStatRow({
         </span>
       </td>
       <td className="px-4 py-4 text-center text-xs font-black uppercase tracking-[0.16em] text-gray-500">
-        {label}
+        <StatLabel label={label} className="justify-center" />
       </td>
       <td
         className={`px-4 py-4 text-right font-black transition ${
