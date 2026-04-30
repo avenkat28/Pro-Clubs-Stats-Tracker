@@ -80,6 +80,7 @@ export default async function ClubPage({
             goalsAgainst={profile.club.goalsAgainst}
             cleanSheets={profile.club.cleanSheets}
             recentMatches={profile.recentClubMatches}
+            appearanceBreakdown={profile.club.appearanceBreakdown}
           />
 
           <SquadTable players={profile.squad} clubId={clubId} platform={platform} />

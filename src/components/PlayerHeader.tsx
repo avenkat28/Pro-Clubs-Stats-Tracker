@@ -1,3 +1,5 @@
+import { capitalizeWords } from "../lib/format";
+
 type PlayerHeaderProps = {
   name: string;
   club: string;
@@ -18,7 +20,7 @@ export default function PlayerHeader({
       <div className="mt-3">
         <h1 className="text-5xl font-bold">{name}</h1>
         <p className="mt-2 text-gray-400">
-          {position} • {club}
+          {capitalizeWords(position)} • {club}
         </p>
       </div>
     </section>

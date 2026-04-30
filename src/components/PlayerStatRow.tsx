@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { capitalizeWords } from "../lib/format";
 
 type PlayerStatRowProps = {
   id: string;
@@ -44,7 +45,7 @@ export default function PlayerStatRow({
           </Link>
         </div>
       </td>
-      <td className="py-4 text-white/55">{position}</td>
+      <td className="py-4 text-white/55">{capitalizeWords(position)}</td>
       <td className="py-4 text-right">{matches}</td>
       <td className="py-4 text-right">{goals}</td>
       <td className="py-4 text-right">{assists}</td>
