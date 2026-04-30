@@ -16,6 +16,8 @@ const DEFAULT_EA_PLATFORM = process.env.EA_PLATFORM ?? "common-gen5";
 const DEFAULT_EA_API_BASE_URL =
   process.env.EA_API_BASE_URL ?? "https://proclubs.ea.com/api/fc";
 const DEFAULT_REVALIDATE_SECONDS = 300;
+const RECENT_PLAYER_MATCH_COUNT = 10;
+const RECENT_CLUB_MATCH_SCAN_COUNT = 10;
 
 type PrimitiveRecord = Record<string, unknown>;
 
@@ -23,6 +25,7 @@ export type EaClubSummary = {
   id: string;
   name: string;
   platform: string;
+  badgeUrl: string | null;
   division: string;
   skillRating: number;
   wins: number;
@@ -41,11 +44,40 @@ export type EaSquadMember = {
   goals: number;
   assists: number;
   rating: number;
+  winRate: number;
+  redCards: number;
+  tackles: number;
+  tackleSuccessRate: number;
+  passAccuracy: number;
+  manOfTheMatch: number;
+};
+
+export type EaPlayerMatch = {
+  id: string;
+  matchIndex: number;
+  opponent: string;
+  result: "W" | "D" | "L";
+  score: string;
+  rating: number;
+  goals: number;
+  assists: number;
+  tackles: number;
+  passAccuracy: number;
+  redCards: number;
+};
+
+export type EaClubRecentMatch = {
+  id: string;
+  result: "W" | "D" | "L";
+  score: string;
+  opponent: string;
 };
 
 export type EaClubProfile = {
   club: EaClubSummary;
   squad: EaSquadMember[];
+  recentMatches: unknown[];
+  recentClubMatches: EaClubRecentMatch[];
 };
 
 export function isEaPlatform(value: string | undefined | null): value is EaPlatform {
@@ -84,6 +116,7 @@ async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
+      Referer: "https://www.ea.com/",
     },
     next: {
       revalidate: DEFAULT_REVALIDATE_SECONDS,
@@ -97,6 +130,17 @@ async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
   }
 
   return (await response.json()) as T;
+}
+
+async function fetchOptionalEaJson<T>(
+  pathname: string,
+  searchParams: URLSearchParams,
+) {
+  try {
+    return await fetchEaJson<T>(pathname, searchParams);
+  } catch {
+    return null;
+  }
 }
 
 function asRecord(value: unknown): PrimitiveRecord | null {
@@ -120,6 +164,18 @@ function asArray(value: unknown): unknown[] {
 
   if (Array.isArray(record.items)) {
     return record.items;
+  }
+
+  if (Array.isArray(record.members)) {
+    return record.members;
+  }
+
+  if (Array.isArray(record.clubs)) {
+    return record.clubs;
+  }
+
+  if (Array.isArray(record.matches)) {
+    return record.matches;
   }
 
   return Object.values(record);
@@ -199,6 +255,18 @@ function getNumber(value: unknown, paths: string[], fallback = 0) {
   return fallback;
 }
 
+function getBestNumber(value: unknown, paths: string[], fallback = 0) {
+  return paths.reduce((bestValue, path) => {
+    const candidate = getNumber(value, [path], Number.NaN);
+
+    if (!Number.isFinite(candidate)) {
+      return bestValue;
+    }
+
+    return Math.max(bestValue, candidate);
+  }, fallback);
+}
+
 function getRoundedRating(value: unknown) {
   const rating = getNumber(value, [
     "averageRating",
@@ -209,6 +277,30 @@ function getRoundedRating(value: unknown) {
   ]);
 
   return Math.round(rating * 10) / 10;
+}
+
+function getPercentage(numerator: number, denominator: number) {
+  if (denominator <= 0) {
+    return 0;
+  }
+
+  return Math.round((numerator / denominator) * 100);
+}
+
+function getClubBadgeUrl(info: PrimitiveRecord | null) {
+  const crestAssetId = getString(info, [
+    "customKit.crestAssetId",
+    "crestAssetId",
+    "details.customKit.crestAssetId",
+  ], "");
+
+  const badgeId = crestAssetId || getString(info, ["teamId", "TEAM", "details.teamId"], "");
+
+  if (!badgeId) {
+    return null;
+  }
+
+  return `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${badgeId}.png`;
 }
 
 function getDivisionLabel(value: unknown) {
@@ -243,6 +335,7 @@ function normalizeClub(
     id: clubId,
     name,
     platform,
+    badgeUrl: getClubBadgeUrl(info),
     division:
       getString(info, ["division", "currentDivision", "details.division"], "") ||
       getString(overall, ["division", "currentDivision", "details.division"], "Division Unavailable"),
@@ -275,57 +368,248 @@ function normalizeClub(
   };
 }
 
-function normalizeSquad(membersPayload: unknown): EaSquadMember[] {
-  return asArray(membersPayload)
-    .map((member) => {
-      const record = asRecord(member);
+function normalizeMember(record: PrimitiveRecord): EaSquadMember {
+  const matches = getBestNumber(record, [
+    "gamesPlayed",
+    "matches",
+    "appearances",
+    "stats.gamesPlayed",
+    "proStats.gamesPlayed",
+  ]);
+  const wins = getNumber(record, ["wins", "stats.wins", "proStats.wins"]);
+  const tackles = getBestNumber(record, [
+    "tackles",
+    "tacklesMade",
+    "stats.tackles",
+    "proStats.tackles",
+  ]);
+  const tacklesWon = getBestNumber(record, [
+    "tacklesWon",
+    "tackleSuccesses",
+    "stats.tacklesWon",
+    "proStats.tacklesWon",
+  ]);
+  const passes = getBestNumber(record, ["passes", "stats.passes", "proStats.passes"]);
+  const passesMade = getBestNumber(record, [
+    "passesMade",
+    "passesCompleted",
+    "stats.passesMade",
+    "proStats.passesMade",
+  ]);
+  const id =
+    getString(record, ["id", "memberId", "proId", "playerId", "playername", "name"], "").trim() ||
+    crypto.randomUUID();
+
+  return {
+    id,
+    name: getString(record, [
+      "name",
+      "proName",
+      "playerName",
+      "playername",
+      "personaName",
+      "userClubList.0.name",
+    ]),
+    position: getString(record, [
+      "position",
+      "favoritePosition",
+      "favPosition",
+      "proPos",
+      "pos",
+    ], "N/A"),
+    matches,
+    goals: getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]),
+    assists: getBestNumber(record, [
+      "assists",
+      "stats.assists",
+      "proStats.assists",
+    ]),
+    rating: getRoundedRating(record),
+    winRate: getPercentage(wins, matches),
+    redCards: getBestNumber(record, [
+      "redCards",
+      "redcards",
+      "stats.redCards",
+      "proStats.redCards",
+    ]),
+    tackles,
+    tackleSuccessRate: getPercentage(tacklesWon, tackles),
+    passAccuracy: getPercentage(passesMade, passes),
+    manOfTheMatch: getBestNumber(record, [
+      "manOfTheMatch",
+      "motm",
+      "mom",
+      "stats.manOfTheMatch",
+      "proStats.manOfTheMatch",
+    ]),
+  };
+}
+
+function mergeSquadMembers(members: EaSquadMember[]) {
+  const membersByKey = new Map<string, EaSquadMember>();
+
+  for (const member of members) {
+    const key = `${member.id}:${member.name}`.toLowerCase();
+    const existing = membersByKey.get(key);
+
+    if (!existing) {
+      membersByKey.set(key, member);
+      continue;
+    }
+
+    membersByKey.set(key, {
+      ...existing,
+      name: existing.name !== "Unknown" ? existing.name : member.name,
+      position: existing.position !== "N/A" ? existing.position : member.position,
+      matches: Math.max(existing.matches, member.matches),
+      goals: Math.max(existing.goals, member.goals),
+      assists: Math.max(existing.assists, member.assists),
+      rating: Math.max(existing.rating, member.rating),
+      winRate: Math.max(existing.winRate, member.winRate),
+      redCards: Math.max(existing.redCards, member.redCards),
+      tackles: Math.max(existing.tackles, member.tackles),
+      tackleSuccessRate: Math.max(existing.tackleSuccessRate, member.tackleSuccessRate),
+      passAccuracy: Math.max(existing.passAccuracy, member.passAccuracy),
+      manOfTheMatch: Math.max(existing.manOfTheMatch, member.manOfTheMatch),
+    });
+  }
+
+  return Array.from(membersByKey.values());
+}
+
+function normalizeSquad(...membersPayloads: unknown[]): EaSquadMember[] {
+  const members = membersPayloads.flatMap((membersPayload) =>
+    asArray(membersPayload)
+      .map((member) => {
+        const record = asRecord(member);
+
+        if (!record) {
+          return null;
+        }
+
+        return normalizeMember(record);
+      })
+      .filter((member): member is EaSquadMember => Boolean(member)),
+  );
+
+  return mergeSquadMembers(members).sort((left, right) => {
+    if (right.matches !== left.matches) {
+      return right.matches - left.matches;
+    }
+
+    return right.rating - left.rating;
+  });
+}
+
+function normalizePlayerRecentMatches(
+  matchesPayload: unknown,
+  clubId: string,
+  playerId: string,
+  playerName: string,
+): EaPlayerMatch[] {
+  return asArray(matchesPayload)
+    .slice(0, RECENT_CLUB_MATCH_SCAN_COUNT)
+    .map((match, index) => {
+      const record = asRecord(match);
 
       if (!record) {
         return null;
       }
 
-      const id =
-        getString(record, ["id", "memberId", "proId", "playerId", "name"], "").trim() ||
-        crypto.randomUUID();
+      const clubs = asRecord(record.clubs);
+      const players = asRecord(record.players);
+      const ourClub = asRecord(clubs?.[clubId]);
+      const ourPlayers = asRecord(players?.[clubId]);
+      const playerRecord =
+        asRecord(ourPlayers?.[playerId]) ??
+        asArray(ourPlayers).map(asRecord).find((candidate) => {
+          if (!candidate) {
+            return false;
+          }
 
-      return {
-        id,
-        name: getString(record, [
-          "name",
-          "proName",
-          "playerName",
-          "personaName",
-          "userClubList.0.name",
-        ]),
-        position: getString(record, [
-          "position",
-          "favoritePosition",
-          "favPosition",
-          "proPos",
-        ], "N/A"),
-        matches: getNumber(record, [
-          "gamesPlayed",
-          "matches",
-          "appearances",
-          "stats.gamesPlayed",
-        ]),
-        goals: getNumber(record, ["goals", "stats.goals", "proStats.goals"]),
-        assists: getNumber(record, [
-          "assists",
-          "stats.assists",
-          "proStats.assists",
-        ]),
-        rating: getRoundedRating(record),
-      };
-    })
-    .filter((member): member is EaSquadMember => Boolean(member))
-    .sort((left, right) => {
-      if (right.matches !== left.matches) {
-        return right.matches - left.matches;
+          return getString(candidate, ["playername", "name", "playerName"], "")
+            .toLowerCase() === playerName.toLowerCase();
+        });
+
+      if (!clubs || !ourClub || !playerRecord) {
+        return null;
       }
 
-      return right.rating - left.rating;
-    });
+      const opponentEntry = Object.entries(clubs).find(([entryClubId]) => entryClubId !== clubId);
+      const opponent = asRecord(opponentEntry?.[1]);
+      const ourScore = getNumber(ourClub, ["score"]);
+      const opponentScore = getNumber(opponent, ["score"]);
+      const result =
+        getNumber(ourClub, ["wins"]) > 0
+          ? "W"
+          : getNumber(ourClub, ["ties", "draws"]) > 0
+            ? "D"
+            : "L";
+
+      return {
+        id: getString(record, ["matchId", "id", "timestamp"], crypto.randomUUID()),
+        matchIndex: RECENT_CLUB_MATCH_SCAN_COUNT - index,
+        opponent: getString(opponent, ["details.name", "name", "clubName"], "Unknown Club"),
+        result,
+        score: `${ourScore}-${opponentScore}`,
+        rating: getRoundedRating(playerRecord),
+        goals: getNumber(playerRecord, ["goals"]),
+        assists: getNumber(playerRecord, ["assists"]),
+        tackles: getNumber(playerRecord, ["tackles"]),
+        passAccuracy: getNumber(
+          playerRecord,
+          ["passAccuracy"],
+          getPercentage(
+            getNumber(playerRecord, ["passesmade", "passesMade"]),
+            getNumber(playerRecord, ["passes"]),
+          ),
+        ),
+        redCards: getNumber(playerRecord, ["redcards", "redCards"]),
+      };
+    })
+    .filter((match): match is EaPlayerMatch => Boolean(match))
+    .slice(0, RECENT_PLAYER_MATCH_COUNT);
+}
+
+function normalizeClubRecentMatches(
+  matchesPayload: unknown,
+  clubId: string,
+): EaClubRecentMatch[] {
+  return asArray(matchesPayload)
+    .slice(0, RECENT_CLUB_MATCH_SCAN_COUNT)
+    .map((match) => {
+      const record = asRecord(match);
+
+      if (!record) {
+        return null;
+      }
+
+      const clubs = asRecord(record.clubs);
+      const ourClub = asRecord(clubs?.[clubId]);
+
+      if (!clubs || !ourClub) {
+        return null;
+      }
+
+      const opponentEntry = Object.entries(clubs).find(([entryClubId]) => entryClubId !== clubId);
+      const opponent = asRecord(opponentEntry?.[1]);
+      const ourScore = getNumber(ourClub, ["score"]);
+      const opponentScore = getNumber(opponent, ["score"]);
+      const result =
+        getNumber(ourClub, ["wins"]) > 0
+          ? "W"
+          : getNumber(ourClub, ["ties", "draws"]) > 0
+            ? "D"
+            : "L";
+
+      return {
+        id: getString(record, ["matchId", "id", "timestamp"], crypto.randomUUID()),
+        result,
+        score: `${ourScore}-${opponentScore}`,
+        opponent: getString(opponent, ["details.name", "name", "clubName"], "Unknown Club"),
+      };
+    })
+    .filter((match): match is EaClubRecentMatch => Boolean(match));
 }
 
 function normalizeLeaderboardClub(
@@ -456,7 +740,7 @@ export async function getEaClubProfile(
     platform,
   });
 
-  const [infoPayload, overallPayload, membersPayload] = await Promise.all([
+  const [infoPayload, overallPayload, membersPayload, careerMembersPayload, recentMatchesPayload] = await Promise.all([
     fetchEaJson("/clubs/info", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
       clubIds: clubId,
@@ -465,14 +749,48 @@ export async function getEaClubProfile(
       ...Object.fromEntries(baseParams.entries()),
       clubIds: clubId,
     })),
-    fetchEaJson("/members/stats", new URLSearchParams({
+    fetchOptionalEaJson("/members/stats", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
       clubId,
+    })),
+    fetchOptionalEaJson("/members/career/stats", new URLSearchParams({
+      ...Object.fromEntries(baseParams.entries()),
+      clubId,
+    })),
+    fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
+      ...Object.fromEntries(baseParams.entries()),
+      clubIds: clubId,
+      matchType: "leagueMatch",
+      maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
     })),
   ]);
 
   return {
     club: normalizeClub(clubId, platform, infoPayload, overallPayload),
-    squad: normalizeSquad(membersPayload),
+    squad: normalizeSquad(careerMembersPayload, membersPayload),
+    recentMatches: asArray(recentMatchesPayload),
+    recentClubMatches: normalizeClubRecentMatches(recentMatchesPayload, clubId),
+  };
+}
+
+export async function getEaPlayerProfile(
+  clubId: string,
+  playerId: string,
+  platform = DEFAULT_EA_PLATFORM,
+) {
+  const profile = await getEaClubProfile(clubId, platform);
+  const player = profile.squad.find((member) => member.id === playerId);
+
+  return {
+    club: profile.club,
+    player: player ?? null,
+    recentMatches: player
+      ? normalizePlayerRecentMatches(
+          profile.recentMatches,
+          clubId,
+          playerId,
+          player.name,
+        )
+      : [],
   };
 }

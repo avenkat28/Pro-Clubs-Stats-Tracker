@@ -17,14 +17,39 @@ type Match = {
 
 type MatchHistoryProps = {
   matches: Match[];
+  matchWindow?: number;
 };
 
-export default function MatchHistory({ matches }: MatchHistoryProps) {
+function ratingClassName(value: number) {
+  if (value < 6) return "text-red-400";
+  if (value < 8) return "text-yellow-300";
+  return "text-green-400";
+}
+
+function formatRating(value: number) {
+  return value.toFixed(1);
+}
+
+export default function MatchHistory({
+  matches,
+  matchWindow = 10,
+}: MatchHistoryProps) {
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
       <h2 className="mb-6 text-2xl font-bold">Recent Matches</h2>
+
+      {matches.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/40 p-8 text-center">
+          <p className="text-base font-semibold text-white/80">
+            No appearances in the latest match window
+          </p>
+          <p className="mt-2 text-sm text-gray-400">
+            This player was not featured in the club's last {matchWindow} matches.
+          </p>
+        </div>
+      ) : null}
 
       <div className="space-y-3">
         {matches.map((match) => {
@@ -56,7 +81,9 @@ export default function MatchHistory({ matches }: MatchHistoryProps) {
                     {match.result}
                   </span>
 
-                  <p className="font-bold text-blue-400">{match.rating}</p>
+                  <p className={`font-bold ${ratingClassName(match.rating)}`}>
+                    {formatRating(match.rating)}
+                  </p>
                 </div>
               </div>
 

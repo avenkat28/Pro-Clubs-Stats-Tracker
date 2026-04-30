@@ -69,6 +69,7 @@ export default async function ClubPage({
             division={profile.club.division}
             skillRating={profile.club.skillRating}
             clubId={clubId}
+            badgeUrl={profile.club.badgeUrl}
           />
 
           <ClubStatsGrid
@@ -78,9 +79,10 @@ export default async function ClubPage({
             goalsFor={profile.club.goalsFor}
             goalsAgainst={profile.club.goalsAgainst}
             cleanSheets={profile.club.cleanSheets}
+            recentMatches={profile.recentClubMatches}
           />
 
-          <SquadTable players={profile.squad} />
+          <SquadTable players={profile.squad} clubId={clubId} platform={platform} />
         </section>
       </main>
     );
