@@ -25,7 +25,7 @@ export default function PlayerStatRow({
   platform,
 }: PlayerStatRowProps) {
   const ratingTone =
-    rating >= 8 ? "text-emerald-400" : rating >= 7 ? "text-amber-300" : "text-blue-400";
+    rating >= 8 ? "text-emerald-400" : rating >= 6 ? "text-yellow-300" : "text-red-400";
   const playerHref = `/player/${encodeURIComponent(id)}?clubId=${encodeURIComponent(
     clubId,
   )}&platform=${encodeURIComponent(platform)}`;
