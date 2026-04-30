@@ -26,8 +26,8 @@ export default function ClubHeader({
       </div>
 
       <div className="mt-6 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.5rem] border border-white/10 bg-black/35 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-[1.75rem] border border-white/10 bg-black/35 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             {badgeUrl ? (
               <img
                 src={badgeUrl}
@@ -35,7 +35,7 @@ export default function ClubHeader({
                 className="h-full w-full object-contain"
               />
             ) : (
-              <span className="text-3xl font-black uppercase text-white/75">
+              <span className="text-4xl font-black uppercase text-white/75">
                 {name.slice(0, 2)}
               </span>
             )}

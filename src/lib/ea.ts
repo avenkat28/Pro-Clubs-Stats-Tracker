@@ -34,6 +34,13 @@ export type EaClubSummary = {
   goalsFor: number;
   goalsAgainst: number;
   cleanSheets: number;
+  appearanceBreakdown: EaClubAppearanceBreakdown;
+};
+
+export type EaClubAppearanceBreakdown = {
+  total: number;
+  league: number;
+  playoff: number;
 };
 
 export type EaSquadMember = {
@@ -331,6 +338,58 @@ function normalizeClub(
     getString(info, ["name", "clubName", "details.name"], "") ||
     getString(overall, ["name", "clubName", "details.name"], "Unknown Club");
 
+  const wins = getNumber(overall, ["wins", "overall.wins", "stats.wins"]);
+  const draws = getNumber(overall, ["draws", "overall.draws", "stats.draws", "ties"]);
+  const losses = getNumber(overall, ["losses", "overall.losses", "stats.losses"]);
+  const goalsFor = getNumber(overall, [
+    "goals",
+    "goalsFor",
+    "goalsScored",
+    "overall.goals",
+    "stats.goals",
+  ]);
+  const goalsAgainst = getNumber(overall, [
+    "goalsAgainst",
+    "goalsConceded",
+    "overall.goalsAgainst",
+    "stats.goalsAgainst",
+  ]);
+  const matches = wins + draws + losses;
+  const playoffAppearances = getBestNumber(overall, [
+    "playoffAppearances",
+    "playoffMatches",
+    "playoffGames",
+    "playoffsAppearances",
+    "stats.playoffAppearances",
+    "stats.playoffMatches",
+    "stats.playoffGames",
+    "playoff.appearances",
+    "playoff.matches",
+    "playoff.games",
+    "playoffs.appearances",
+    "playoffs.matches",
+    "playoffs.games",
+  ]);
+  const leagueAppearances = getBestNumber(overall, [
+    "leagueAppearances",
+    "leagueMatches",
+    "leagueGames",
+    "stats.leagueAppearances",
+    "stats.leagueMatches",
+    "stats.leagueGames",
+    "league.appearances",
+    "league.matches",
+    "league.games",
+  ]);
+  const normalizedLeagueAppearances =
+    leagueAppearances > 0
+      ? Math.min(leagueAppearances, matches)
+      : Math.max(0, matches - Math.min(playoffAppearances, matches));
+  const normalizedPlayoffAppearances =
+    playoffAppearances > 0
+      ? Math.min(playoffAppearances, matches)
+      : Math.max(0, matches - normalizedLeagueAppearances);
+
   return {
     id: clubId,
     name,
@@ -344,27 +403,21 @@ function normalizeClub(
       ["skillRating", "skillPoints", "starRating", "details.skillRating"],
       getNumber(overall, ["skillRating", "skillPoints", "details.skillRating"]),
     ),
-    wins: getNumber(overall, ["wins", "overall.wins", "stats.wins"]),
-    draws: getNumber(overall, ["draws", "overall.draws", "stats.draws", "ties"]),
-    losses: getNumber(overall, ["losses", "overall.losses", "stats.losses"]),
-    goalsFor: getNumber(overall, [
-      "goals",
-      "goalsFor",
-      "goalsScored",
-      "overall.goals",
-      "stats.goals",
-    ]),
-    goalsAgainst: getNumber(overall, [
-      "goalsAgainst",
-      "goalsConceded",
-      "overall.goalsAgainst",
-      "stats.goalsAgainst",
-    ]),
+    wins,
+    draws,
+    losses,
+    goalsFor,
+    goalsAgainst,
     cleanSheets: getNumber(overall, [
       "cleanSheets",
       "overall.cleanSheets",
       "stats.cleanSheets",
     ]),
+    appearanceBreakdown: {
+      total: matches,
+      league: normalizedLeagueAppearances,
+      playoff: normalizedPlayoffAppearances,
+    },
   };
 }
 
@@ -740,7 +793,13 @@ export async function getEaClubProfile(
     platform,
   });
 
-  const [infoPayload, overallPayload, membersPayload, careerMembersPayload, recentMatchesPayload] = await Promise.all([
+  const [
+    infoPayload,
+    overallPayload,
+    membersPayload,
+    careerMembersPayload,
+    leagueMatchesPayload,
+  ] = await Promise.all([
     fetchEaJson("/clubs/info", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
       clubIds: clubId,
@@ -766,10 +825,15 @@ export async function getEaClubProfile(
   ]);
 
   return {
-    club: normalizeClub(clubId, platform, infoPayload, overallPayload),
+    club: normalizeClub(
+      clubId,
+      platform,
+      infoPayload,
+      overallPayload,
+    ),
     squad: normalizeSquad(careerMembersPayload, membersPayload),
-    recentMatches: asArray(recentMatchesPayload),
-    recentClubMatches: normalizeClubRecentMatches(recentMatchesPayload, clubId),
+    recentMatches: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
+    recentClubMatches: normalizeClubRecentMatches(leagueMatchesPayload, clubId),
   };
 }
 

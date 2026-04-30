@@ -14,6 +14,45 @@ function ratingColor(value: number) {
   return "#22c55e";
 }
 
+function ratingBand(value: number) {
+  if (value < 6) return "red";
+  if (value < 8) return "yellow";
+  return "green";
+}
+
+function getRatingGradientStops(startRating: number, endRating: number) {
+  const colors = {
+    red: "#ef4444",
+    yellow: "#facc15",
+    green: "#22c55e",
+  };
+  const startBand = ratingBand(startRating);
+  const endBand = ratingBand(endRating);
+
+  if (startBand === endBand) {
+    return [
+      { offset: 0, color: colors[startBand] },
+      { offset: 1, color: colors[endBand] },
+    ];
+  }
+
+  if (
+    (startBand === "red" && endBand === "green") ||
+    (startBand === "green" && endBand === "red")
+  ) {
+    return [
+      { offset: 0, color: colors[startBand] },
+      { offset: 0.5, color: colors.yellow },
+      { offset: 1, color: colors[endBand] },
+    ];
+  }
+
+  return [
+    { offset: 0, color: colors[startBand] },
+    { offset: 1, color: colors[endBand] },
+  ];
+}
+
 function ratingTextClassName(value: number) {
   if (value < 6) return "text-red-400";
   if (value < 8) return "text-yellow-300";
@@ -55,7 +94,8 @@ export default function PerformanceChart({
         entry.rating > 0 &&
         entry.matchIndex >= 1 &&
         entry.matchIndex <= matchWindow,
-    );
+    )
+    .sort((a, b) => a.matchIndex - b.matchIndex);
 
   if (visibleRatings.length === 0) {
     return (
@@ -153,6 +193,12 @@ export default function PerformanceChart({
     const y = chart.top + ((ratingCeiling - rating) / ratingRange) * plotHeight;
     return { x, y, rating };
   });
+  const lineSegments = points.slice(0, -1).map((point, index) => ({
+    start: point,
+    end: points[index + 1],
+    gradientId: `rating-line-gradient-${index}`,
+    stops: getRatingGradientStops(point.rating, points[index + 1].rating),
+  }));
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
@@ -212,15 +258,41 @@ export default function PerformanceChart({
             );
           })}
 
+          <defs>
+            {lineSegments.map((segment) => (
+              <linearGradient
+                key={segment.gradientId}
+                id={segment.gradientId}
+                x1={segment.start.x}
+                y1={segment.start.y}
+                x2={segment.end.x}
+                y2={segment.end.y}
+                gradientUnits="userSpaceOnUse"
+              >
+                {segment.stops.map((stop, stopIndex) => (
+                  <stop
+                    key={`${segment.gradientId}-${stopIndex}`}
+                    offset={`${stop.offset * 100}%`}
+                    stopColor={stop.color}
+                  />
+                ))}
+              </linearGradient>
+            ))}
+          </defs>
+
           {/* line */}
-          <polyline
-            fill="none"
-            stroke="#2563eb"
-            strokeWidth="4"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-          />
+          {lineSegments.map((segment) => (
+            <line
+              key={segment.gradientId}
+              x1={segment.start.x}
+              y1={segment.start.y}
+              x2={segment.end.x}
+              y2={segment.end.y}
+              stroke={`url(#${segment.gradientId})`}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          ))}
 
           {/* dots */}
           {points.map((p, i) => (
