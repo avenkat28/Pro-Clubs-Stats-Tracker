@@ -1,11 +1,10 @@
-node_modules
-.next
+node_modules/
+.next/
 .env
 .env.local
-dist
-coverage
+dist/
+coverage/
 .DS_Store
-tsconfig.tsbuildinfo
 *.tsbuildinfo
 
 # Local AI/editor agent files
