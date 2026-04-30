@@ -960,6 +960,7 @@ export async function getEaPlayerProfile(
   return {
     club: profile.club,
     player: player ?? null,
+    squad: profile.squad,
     recentMatches: player
       ? normalizePlayerRecentMatches(
           profile.recentMatches,

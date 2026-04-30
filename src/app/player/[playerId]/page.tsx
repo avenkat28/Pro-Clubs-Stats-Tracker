@@ -1,13 +1,100 @@
 import Navbar from "../../../components/Navbar";
 import PlayerHeader from "../../../components/PlayerHeader";
-import PlayerStatsGrid from "../../../components/PlayerStatsGrid";
+import PlayerStatsGrid, {
+  type PlayerAwardBadge,
+} from "../../../components/PlayerStatsGrid";
 import MatchHistory from "../../../components/MatchHistory";
 import PerformanceChart from "../../../components/PerformanceChart";
 import {
+  type EaSquadMember,
   eaPlatformLabels,
   getEaPlayerProfile,
   isEaPlatform,
 } from "../../../lib/ea";
+
+function isClubLeader(
+  player: EaSquadMember,
+  squad: EaSquadMember[],
+  metric: (member: EaSquadMember) => number,
+  requirePositive = false,
+) {
+  const best = Math.max(...squad.map(metric));
+
+  if (requirePositive && best <= 0) {
+    return false;
+  }
+
+  return metric(player) === best;
+}
+
+function getPlayerAwardBadges(
+  player: EaSquadMember,
+  squad: EaSquadMember[],
+): PlayerAwardBadge[] {
+  const badgeDefinitions: Array<{
+    label: string;
+    symbol: string;
+    className: string;
+    metric: (member: EaSquadMember) => number;
+    requirePositive?: boolean;
+  }> = [
+    {
+      label: "Top Scorer",
+      symbol: "⚽",
+      className: "border-emerald-300/30 bg-emerald-300/12 text-emerald-100",
+      metric: (member) => member.goals,
+      requirePositive: true,
+    },
+    {
+      label: "Top Assister",
+      symbol: "👟",
+      className: "border-sky-300/30 bg-sky-300/12 text-sky-100",
+      metric: (member) => member.assists,
+      requirePositive: true,
+    },
+    {
+      label: "Top Contributor",
+      symbol: "✨",
+      className: "border-yellow-300/30 bg-yellow-300/12 text-yellow-100",
+      metric: (member) => member.goals + member.assists,
+      requirePositive: true,
+    },
+    {
+      label: "Top Crashout",
+      symbol: "🟥",
+      className: "border-red-300/30 bg-red-300/12 text-red-100",
+      metric: (member) => member.redCards,
+      requirePositive: true,
+    },
+    {
+      label: "Top Defender",
+      symbol: "🛡",
+      className: "border-violet-300/30 bg-violet-300/12 text-violet-100",
+      metric: (member) => member.tackles,
+      requirePositive: true,
+    },
+    {
+      label: "Most Consistent",
+      symbol: "⭐",
+      className: "border-lime-300/30 bg-lime-300/12 text-lime-100",
+      metric: (member) => member.rating,
+      requirePositive: true,
+    },
+    {
+      label: "Most Appearances",
+      symbol: "📅",
+      className: "border-pink-300/30 bg-pink-300/12 text-pink-100",
+      metric: (member) => member.matches,
+      requirePositive: true,
+    },
+  ];
+
+  return badgeDefinitions
+    .filter((badge) =>
+      isClubLeader(player, squad, badge.metric, badge.requirePositive),
+    )
+    .map(({ label, symbol, className }) => ({ label, symbol, className }));
+}
 
 export default async function PlayerPage({
   params,
@@ -27,7 +114,7 @@ export default async function PlayerPage({
 
   if (!clubId) {
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
@@ -51,7 +138,7 @@ export default async function PlayerPage({
 
     if (!profile.player) {
       return (
-        <main className="min-h-screen bg-black text-white">
+        <main className="min-h-screen bg-black/35 text-white">
           <Navbar />
           <section className="mx-auto max-w-4xl px-6 py-16">
             <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-8">
@@ -75,9 +162,10 @@ export default async function PlayerPage({
       rating: match.rating,
       matchIndex: match.matchIndex,
     }));
+    const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
 
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
 
         <section className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10">
@@ -103,6 +191,9 @@ export default async function PlayerPage({
             tackleSuccessRate={profile.player.tackleSuccessRate}
             manOfTheMatch={profile.player.manOfTheMatch}
             manOfTheMatchRate={profile.player.manOfTheMatchRate}
+            recentMatches={profile.recentMatches}
+            matchWindow={10}
+            awardBadges={awardBadges}
           />
 
           <PerformanceChart ratings={ratings} matchWindow={10} />
@@ -116,7 +207,7 @@ export default async function PlayerPage({
       error instanceof Error ? error.message : "Unable to load live EA player stats.";
 
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8">

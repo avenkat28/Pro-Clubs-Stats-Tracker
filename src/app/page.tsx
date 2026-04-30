@@ -7,7 +7,7 @@ import { featuredStats, features } from "../lib/mockData";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen bg-black/35">
       <Navbar />
       <HeroSection />
       <SearchPanel />

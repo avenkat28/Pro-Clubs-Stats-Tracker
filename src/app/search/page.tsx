@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   );
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black/35 text-white">
       <Navbar />
 
       <section className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10">

@@ -13,6 +13,7 @@ type IconType =
   | "default"
   | "division"
   | "draw"
+  | "form"
   | "games"
   | "goal"
   | "goalAgainst"
@@ -54,6 +55,7 @@ function iconType(label: string): IconType {
   if (normalized.includes("goal") && (normalized.includes("game") || normalized.includes("match"))) return "goalRate";
   if (normalized.includes("goal") || normalized === "g") return "goal";
   if (normalized.includes("rating") || normalized.includes("skill")) return "rating";
+  if (normalized.includes("form")) return "form";
   if (normalized.includes("win") || normalized === "w") return "win";
   if (normalized.includes("loss") || normalized === "l") return "loss";
   if (normalized.includes("draw") || normalized === "d") return "draw";
@@ -76,7 +78,7 @@ function iconColor(label: string) {
     return "text-green-400";
   }
   if (["assist", "assistRate", "pass"].includes(type)) return "text-sky-400";
-  if (["contribution", "contributionRate", "rating", "live", "motm"].includes(type)) {
+  if (["contribution", "contributionRate", "rating", "live", "motm", "form"].includes(type)) {
     return "text-yellow-300";
   }
   if (type === "draw" || type === "games") return "text-slate-300";
@@ -186,6 +188,15 @@ export default function StatIcon({ label, className = "" }: StatIconProps) {
     return (
       <svg viewBox="0 0 24 24" className={baseClassName} aria-hidden="true">
         <path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "form") {
+    return (
+      <svg viewBox="0 0 24 24" className={baseClassName} aria-hidden="true">
+        <path d="M4 16l4-4 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M15 8h4v4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }

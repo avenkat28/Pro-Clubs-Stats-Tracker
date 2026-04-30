@@ -28,7 +28,7 @@ export default async function ClubPage({
     const profile = await getEaClubProfile(clubId, platform);
 
     return (
-      <main className="min-h-screen overflow-x-hidden bg-black text-white">
+      <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
         <Navbar />
 
         <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:py-10">
@@ -92,7 +92,7 @@ export default async function ClubPage({
       error instanceof Error ? error.message : "Unable to load live EA stats.";
 
     return (
-      <main className="min-h-screen overflow-x-hidden bg-black text-white">
+      <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
