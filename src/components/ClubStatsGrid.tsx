@@ -7,8 +7,79 @@ type ClubStatsGridProps = {
   cleanSheets: number;
   recentMatches: {
     result: "W" | "D" | "L";
+    score: string;
   }[];
 };
+
+function parseScore(score: string) {
+  const [goalsFor, goalsAgainst] = score
+    .split("-")
+    .map((value) => Number(value.trim()));
+
+  return {
+    goalsFor: Number.isFinite(goalsFor) ? goalsFor : 0,
+    goalsAgainst: Number.isFinite(goalsAgainst) ? goalsAgainst : 0,
+  };
+}
+
+function getOverallStoryline({
+  matches,
+  winRate,
+  goalsPerMatch,
+  concededPerMatch,
+  goalDifference,
+  cleanSheetRate,
+}: {
+  matches: number;
+  winRate: number;
+  goalsPerMatch: number;
+  concededPerMatch: number;
+  goalDifference: number;
+  cleanSheetRate: number;
+}) {
+  if (matches === 0) {
+    return "No completed club matches are available yet, so the overall profile is still waiting for a real sample.";
+  }
+
+  const recordNote =
+    winRate >= 65
+      ? "The overall record points to a dominant side that turns most matches into wins."
+      : winRate >= 50
+      ? "The overall record is strong, with enough wins to keep the club clearly above water."
+      : winRate >= 35
+      ? "The overall record is mixed, with results still swinging week to week."
+      : "The overall record is under pressure, and the club needs a steadier route to wins.";
+
+  const attackNote =
+    goalsPerMatch >= 2.5
+      ? "The attack is the main strength, producing goals at a high clip."
+      : goalsPerMatch >= 1.5
+      ? "The attack is serviceable and gives the team a platform most nights."
+      : "Chance creation looks like the biggest area to improve.";
+
+  const defenseNote =
+    concededPerMatch <= 1
+      ? "Defensively, they are keeping matches controlled."
+      : concededPerMatch <= 2
+      ? "Defensively, they are competitive but still giving opponents chances."
+      : "Defensive stability is the clearest concern.";
+
+  const balanceNote =
+    goalDifference > 20
+      ? "The goal difference backs up the results."
+      : goalDifference >= 0
+      ? "The goal difference suggests the margins are manageable."
+      : "The negative goal difference shows the performances are not matching the target yet.";
+
+  const cleanSheetNote =
+    cleanSheetRate >= 30
+      ? "Clean sheets are a real part of the identity."
+      : cleanSheetRate >= 15
+      ? "Clean sheets are showing up, but not consistently."
+      : "More shutouts would change the ceiling quickly.";
+
+  return `${recordNote} ${attackNote} ${defenseNote} ${balanceNote} ${cleanSheetNote}`;
+}
 
 export default function ClubStatsGrid({
   wins,
@@ -28,9 +99,10 @@ export default function ClubStatsGrid({
     goalDifference > 0 ? `+${goalDifference}` : goalDifference.toString();
   const cleanSheetRate =
     matches > 0 ? Math.round((cleanSheets / matches) * 100) : 0;
-  const goalsPerMatch = matches > 0 ? (goalsFor / matches).toFixed(2) : "0.00";
-  const concededPerMatch =
-    matches > 0 ? (goalsAgainst / matches).toFixed(2) : "0.00";
+  const goalsPerMatchValue = matches > 0 ? goalsFor / matches : 0;
+  const concededPerMatchValue = matches > 0 ? goalsAgainst / matches : 0;
+  const goalsPerMatch = goalsPerMatchValue.toFixed(2);
+  const concededPerMatch = concededPerMatchValue.toFixed(2);
 
   const goalDifferenceTone =
     goalDifference > 0
@@ -71,10 +143,65 @@ export default function ClubStatsGrid({
   const recentWins = lastTenResults.filter((match) => match.result === "W").length;
   const recentDraws = lastTenResults.filter((match) => match.result === "D").length;
   const recentLosses = lastTenResults.filter((match) => match.result === "L").length;
+  const recentGoals = lastTenResults.reduce(
+    (totals, match) => {
+      const parsedScore = parseScore(match.score);
+
+      return {
+        goalsFor: totals.goalsFor + parsedScore.goalsFor,
+        goalsAgainst: totals.goalsAgainst + parsedScore.goalsAgainst,
+      };
+    },
+    { goalsFor: 0, goalsAgainst: 0 },
+  );
+  const recentGoalDifference = recentGoals.goalsFor - recentGoals.goalsAgainst;
+  const formattedRecentGoalDifference =
+    recentGoalDifference > 0
+      ? `+${recentGoalDifference}`
+      : recentGoalDifference.toString();
+  const overallStoryline = getOverallStoryline({
+    matches,
+    winRate,
+    goalsPerMatch: goalsPerMatchValue,
+    concededPerMatch: concededPerMatchValue,
+    goalDifference,
+    cleanSheetRate,
+  });
 
   const winBarWidth = matches > 0 ? (wins / matches) * 100 : 0;
   const drawBarWidth = matches > 0 ? (draws / matches) * 100 : 0;
   const lossBarWidth = matches > 0 ? (losses / matches) * 100 : 0;
+  const strengthMeters = [
+    {
+      label: "Attack",
+      value: attackStrength,
+      tone: "bg-emerald-400",
+      details: [
+        `Goals scored: ${goalsFor}`,
+        `Goals scored per match: ${goalsPerMatch}`,
+      ],
+    },
+    {
+      label: "Defense",
+      value: defenseStrength,
+      tone: "bg-cyan-300",
+      details: [
+        `Goals conceded: ${goalsAgainst}`,
+        `Goals conceded per match: ${concededPerMatch}`,
+      ],
+    },
+    {
+      label: "Form",
+      value: formStrength,
+      tone: "bg-amber-300",
+      details: [
+        `Last 10 record: ${recentWins}W - ${recentDraws}D - ${recentLosses}L`,
+        `Goals scored: ${recentGoals.goalsFor}`,
+        `Goals conceded: ${recentGoals.goalsAgainst}`,
+        `Goal differential: ${formattedRecentGoalDifference}`,
+      ],
+    },
+  ];
 
   return (
     <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_1fr_0.9fr]">
@@ -212,12 +339,8 @@ export default function ClubStatsGrid({
         <div className="mt-5 space-y-5">
           <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
             <div className="space-y-4">
-              {[
-                { label: "Attack", value: attackStrength, tone: "bg-emerald-400" },
-                { label: "Defense", value: defenseStrength, tone: "bg-cyan-300" },
-                { label: "Form", value: formStrength, tone: "bg-amber-300" },
-              ].map((meter) => (
-                <div key={meter.label}>
+              {strengthMeters.map((meter) => (
+                <div key={meter.label} className="group relative">
                   <div className="flex items-center justify-between text-sm">
                     <p className="text-white/60">{meter.label}</p>
                     <p className="font-semibold text-white/80">{meter.value}</p>
@@ -228,6 +351,14 @@ export default function ClubStatsGrid({
                       style={{ width: `${meter.value}%` }}
                     />
                   </div>
+                  <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-xl border border-white/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
+                    <p className="font-semibold text-white">{meter.label}</p>
+                    <div className="mt-2 space-y-1">
+                      {meter.details.map((detail) => (
+                        <p key={detail}>{detail}</p>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -236,11 +367,7 @@ export default function ClubStatsGrid({
           <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
             <p className="text-sm text-white/50">Storyline</p>
             <p className="mt-3 text-sm leading-6 text-white/70">
-              Form is based on the club's last {lastTenResults.length || 10} matches:
-              {" "}
-              {recentWins}W - {recentDraws}D - {recentLosses}L for {formPoints}
-              {" "}
-              points.
+              {overallStoryline}
             </p>
           </div>
         </div>
