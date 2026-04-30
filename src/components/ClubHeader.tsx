@@ -45,7 +45,9 @@ export default function ClubHeader({
             <h1 className="max-w-4xl text-5xl font-black tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
               {name}
             </h1>
-            <p className="mt-4 text-lg text-white/65 sm:text-2xl">{division}</p>
+            {division !== "Division Unavailable" ? (
+              <p className="mt-4 text-lg text-white/65 sm:text-2xl">{division}</p>
+            ) : null}
           </div>
         </div>
 

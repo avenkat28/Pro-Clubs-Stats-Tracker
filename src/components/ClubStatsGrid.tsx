@@ -17,6 +17,10 @@ type ClubStatsGridProps = {
     total: number;
     league: number;
     playoff: number;
+    bestPlayoffFinish: {
+      badgeLevel: number | null;
+      label: string;
+    };
   };
 };
 
@@ -393,6 +397,19 @@ export default function ClubStatsGrid({
               <p className="text-2xl font-black tracking-[-0.04em] text-white">
                 {appearanceBreakdown.playoff}
               </p>
+            </div>
+            <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-3">
+              <p className="text-white/55">Best Playoff Finish</p>
+              <div className="flex items-center gap-3 text-right">
+                {appearanceBreakdown.bestPlayoffFinish.badgeLevel ? (
+                  <div className="flex h-12 w-10 items-center justify-center rounded-[0.9rem] border border-amber-200/50 bg-[linear-gradient(145deg,#3b3325,#d6b65b_45%,#181818_48%,#101827)] text-xl font-black text-amber-100 shadow-[0_10px_24px_rgba(214,182,91,0.22)]">
+                    {appearanceBreakdown.bestPlayoffFinish.badgeLevel}
+                  </div>
+                ) : null}
+                <p className="text-xl font-black tracking-[-0.04em] text-white">
+                  {appearanceBreakdown.bestPlayoffFinish.label}
+                </p>
+              </div>
             </div>
           </div>
         ) : null}

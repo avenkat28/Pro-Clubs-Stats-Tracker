@@ -41,6 +41,10 @@ export type EaClubAppearanceBreakdown = {
   total: number;
   league: number;
   playoff: number;
+  bestPlayoffFinish: {
+    badgeLevel: number | null;
+    label: string;
+  };
 };
 
 export type EaSquadMember = {
@@ -57,6 +61,7 @@ export type EaSquadMember = {
   tackleSuccessRate: number;
   passAccuracy: number;
   manOfTheMatch: number;
+  manOfTheMatchRate: number;
 };
 
 export type EaPlayerMatch = {
@@ -278,12 +283,66 @@ function getRoundedRating(value: unknown) {
   const rating = getNumber(value, [
     "averageRating",
     "avgRating",
+    "ratingAve",
     "rating",
     "proStats.averageRating",
+    "proStats.ratingAve",
     "stats.averageRating",
+    "stats.ratingAve",
   ]);
 
   return Math.round(rating * 10) / 10;
+}
+
+function getBestPlayoffFinish(value: unknown) {
+  const finishText = getString(value, [
+    "bestPlayoffFinish",
+    "bestFinish",
+    "playoffBestFinish",
+    "highestPlayoffFinish",
+    "playoffs.bestFinish",
+    "playoffs.bestPlayoffFinish",
+    "stats.bestPlayoffFinish",
+    "stats.playoffBestFinish",
+    "title",
+    "name",
+  ], "");
+
+  const finishGroup = getNumber(value, [
+    "bestFinishGroup",
+    "finishGroup",
+    "playoffFinishGroup",
+    "stats.bestFinishGroup",
+  ]);
+  const finishGroupLabels: Record<number, string> = {
+    1: "Champion",
+    2: "Finalist",
+    3: "Semi-Finalist",
+    4: "Quarter-Finalist",
+    5: "Knockout Qualifier",
+    6: "Participant",
+  };
+
+  const finishNumber = getBestNumber(value, [
+    "bestPlayoffDivision",
+    "bestDivision",
+    "highestDivision",
+    "playoffDivision",
+    "playoffs.bestDivision",
+    "stats.bestPlayoffDivision",
+    "stats.playoffDivision",
+  ]);
+  const badgeLevel =
+    finishGroup > 0
+      ? Math.max(1, 8 - finishGroup)
+      : finishNumber > 0
+        ? finishNumber
+        : null;
+
+  return {
+    badgeLevel,
+    label: finishText || finishGroupLabels[finishGroup] || "N/A",
+  };
 }
 
 function getPercentage(numerator: number, denominator: number) {
@@ -315,7 +374,9 @@ function getDivisionLabel(value: unknown) {
     "currentDivision",
     "division",
     "curDivision",
+    "bestDivision",
     "stats.currentDivision",
+    "stats.bestDivision",
   ]);
 
   if (division <= 0) {
@@ -330,9 +391,11 @@ function normalizeClub(
   platform: string,
   infoPayload: unknown,
   overallPayload: unknown,
+  playoffPayload: unknown,
 ): EaClubSummary {
   const info = findFirstRecord(infoPayload);
   const overall = findFirstRecord(overallPayload);
+  const playoff = findFirstRecord(playoffPayload);
 
   const name =
     getString(info, ["name", "clubName", "details.name"], "") ||
@@ -355,10 +418,12 @@ function normalizeClub(
     "stats.goalsAgainst",
   ]);
   const matches = wins + draws + losses;
-  const playoffAppearances = getBestNumber(overall, [
+  const playoffAppearances = getBestNumber(overall ?? playoff, [
+    "gamesPlayedPlayoff",
     "playoffAppearances",
     "playoffMatches",
     "playoffGames",
+    "stats.gamesPlayedPlayoff",
     "playoffsAppearances",
     "stats.playoffAppearances",
     "stats.playoffMatches",
@@ -381,6 +446,7 @@ function normalizeClub(
     "league.matches",
     "league.games",
   ]);
+  const bestPlayoffFinish = getBestPlayoffFinish(playoff ?? overall);
   const normalizedLeagueAppearances =
     leagueAppearances > 0
       ? Math.min(leagueAppearances, matches)
@@ -397,7 +463,8 @@ function normalizeClub(
     badgeUrl: getClubBadgeUrl(info),
     division:
       getString(info, ["division", "currentDivision", "details.division"], "") ||
-      getString(overall, ["division", "currentDivision", "details.division"], "Division Unavailable"),
+      getString(overall, ["division", "currentDivision", "details.division"], "") ||
+      getDivisionLabel(overall ?? info),
     skillRating: getNumber(
       info ?? overall,
       ["skillRating", "skillPoints", "starRating", "details.skillRating"],
@@ -408,15 +475,20 @@ function normalizeClub(
     losses,
     goalsFor,
     goalsAgainst,
-    cleanSheets: getNumber(overall, [
+    cleanSheets: getBestNumber(overall, [
       "cleanSheets",
+      "cleansheets",
+      "shutouts",
       "overall.cleanSheets",
       "stats.cleanSheets",
+      "stats.cleansheets",
+      "stats.shutouts",
     ]),
     appearanceBreakdown: {
       total: matches,
       league: normalizedLeagueAppearances,
       playoff: normalizedPlayoffAppearances,
+      bestPlayoffFinish,
     },
   };
 }
@@ -430,6 +502,11 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "proStats.gamesPlayed",
   ]);
   const wins = getNumber(record, ["wins", "stats.wins", "proStats.wins"]);
+  const directWinRate = getNumber(
+    record,
+    ["winRate", "stats.winRate", "proStats.winRate"],
+    Number.NaN,
+  );
   const tackles = getBestNumber(record, [
     "tackles",
     "tacklesMade",
@@ -442,12 +519,29 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "stats.tacklesWon",
     "proStats.tacklesWon",
   ]);
+  const directTackleSuccessRate = getNumber(
+    record,
+    ["tackleSuccessRate", "stats.tackleSuccessRate", "proStats.tackleSuccessRate"],
+    Number.NaN,
+  );
   const passes = getBestNumber(record, ["passes", "stats.passes", "proStats.passes"]);
   const passesMade = getBestNumber(record, [
     "passesMade",
     "passesCompleted",
     "stats.passesMade",
     "proStats.passesMade",
+  ]);
+  const manOfTheMatch = getBestNumber(record, [
+    "manOfTheMatch",
+    "motm",
+    "mom",
+    "manOfTheMatchCount",
+    "stats.manOfTheMatch",
+    "stats.motm",
+    "stats.mom",
+    "proStats.manOfTheMatch",
+    "proStats.motm",
+    "proStats.mom",
   ]);
   const id =
     getString(record, ["id", "memberId", "proId", "playerId", "playername", "name"], "").trim() ||
@@ -478,7 +572,9 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
       "proStats.assists",
     ]),
     rating: getRoundedRating(record),
-    winRate: getPercentage(wins, matches),
+    winRate: Number.isFinite(directWinRate)
+      ? Math.round(directWinRate)
+      : getPercentage(wins, matches),
     redCards: getBestNumber(record, [
       "redCards",
       "redcards",
@@ -486,15 +582,12 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
       "proStats.redCards",
     ]),
     tackles,
-    tackleSuccessRate: getPercentage(tacklesWon, tackles),
+    tackleSuccessRate: Number.isFinite(directTackleSuccessRate)
+      ? Math.round(directTackleSuccessRate)
+      : getPercentage(tacklesWon, tackles),
     passAccuracy: getPercentage(passesMade, passes),
-    manOfTheMatch: getBestNumber(record, [
-      "manOfTheMatch",
-      "motm",
-      "mom",
-      "stats.manOfTheMatch",
-      "proStats.manOfTheMatch",
-    ]),
+    manOfTheMatch,
+    manOfTheMatchRate: getPercentage(manOfTheMatch, matches),
   };
 }
 
@@ -517,13 +610,26 @@ function mergeSquadMembers(members: EaSquadMember[]) {
       matches: Math.max(existing.matches, member.matches),
       goals: Math.max(existing.goals, member.goals),
       assists: Math.max(existing.assists, member.assists),
-      rating: Math.max(existing.rating, member.rating),
-      winRate: Math.max(existing.winRate, member.winRate),
+      rating:
+        member.matches >= existing.matches && member.rating > 0
+          ? member.rating
+          : existing.rating,
+      winRate: member.matches >= existing.matches ? member.winRate : existing.winRate,
       redCards: Math.max(existing.redCards, member.redCards),
       tackles: Math.max(existing.tackles, member.tackles),
-      tackleSuccessRate: Math.max(existing.tackleSuccessRate, member.tackleSuccessRate),
-      passAccuracy: Math.max(existing.passAccuracy, member.passAccuracy),
+      tackleSuccessRate:
+        member.matches >= existing.matches
+          ? member.tackleSuccessRate
+          : existing.tackleSuccessRate,
+      passAccuracy:
+        member.matches >= existing.matches
+          ? member.passAccuracy
+          : existing.passAccuracy,
       manOfTheMatch: Math.max(existing.manOfTheMatch, member.manOfTheMatch),
+      manOfTheMatchRate:
+        member.matches >= existing.matches
+          ? member.manOfTheMatchRate
+          : existing.manOfTheMatchRate,
     });
   }
 
@@ -799,6 +905,7 @@ export async function getEaClubProfile(
     membersPayload,
     careerMembersPayload,
     leagueMatchesPayload,
+    playoffPayload,
   ] = await Promise.all([
     fetchEaJson("/clubs/info", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
@@ -822,6 +929,10 @@ export async function getEaClubProfile(
       matchType: "leagueMatch",
       maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
     })),
+    fetchOptionalEaJson("/club/playoffAchievements", new URLSearchParams({
+      ...Object.fromEntries(baseParams.entries()),
+      clubId,
+    })),
   ]);
 
   return {
@@ -830,6 +941,7 @@ export async function getEaClubProfile(
       platform,
       infoPayload,
       overallPayload,
+      playoffPayload,
     ),
     squad: normalizeSquad(careerMembersPayload, membersPayload),
     recentMatches: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),

@@ -101,6 +101,8 @@ export default async function PlayerPage({
             redCards={profile.player.redCards}
             tackles={profile.player.tackles}
             tackleSuccessRate={profile.player.tackleSuccessRate}
+            manOfTheMatch={profile.player.manOfTheMatch}
+            manOfTheMatchRate={profile.player.manOfTheMatchRate}
           />
 
           <PerformanceChart ratings={ratings} matchWindow={10} />

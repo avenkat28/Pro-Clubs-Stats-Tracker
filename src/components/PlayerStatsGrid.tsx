@@ -7,6 +7,8 @@ type PlayerStatsGridProps = {
   redCards: number;
   tackles?: number;
   tackleSuccessRate?: number;
+  manOfTheMatch?: number;
+  manOfTheMatchRate?: number;
 };
 
 export default function PlayerStatsGrid({
@@ -18,6 +20,8 @@ export default function PlayerStatsGrid({
   redCards,
   tackles,
   tackleSuccessRate,
+  manOfTheMatch,
+  manOfTheMatchRate,
 }: PlayerStatsGridProps) {
   const ga = goals + assists;
 
@@ -35,7 +39,6 @@ export default function PlayerStatsGrid({
     { label: "G/A / Game", value: gaPerGame },
     { label: "Avg Rating", value: averageRating },
     { label: "Win Rate", value: `${winRate}%` },
-    { label: "Red Cards", value: redCards },
     { label: "Tackles", value: tackles ?? "N/A" },
     {
       label: "Tackle %",
@@ -44,6 +47,15 @@ export default function PlayerStatsGrid({
           ? `${tackleSuccessRate}%`
           : "N/A",
     },
+    { label: "MOTM", value: manOfTheMatch ?? "N/A" },
+    {
+      label: "MOTM %",
+      value:
+        manOfTheMatchRate !== undefined
+          ? `${manOfTheMatchRate}%`
+          : "N/A",
+    },
+    { label: "Red Cards", value: redCards },
   ];
 
   return (
