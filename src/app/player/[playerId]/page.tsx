@@ -167,6 +167,7 @@ export default async function PlayerPage({
     const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
     const playerStatComp = getPlayerStatComp({
       position: profile.player.position,
+      overall: profile.player.overall,
       games: profile.player.matches,
       goals: profile.player.goals,
       assists: profile.player.assists,
@@ -174,6 +175,9 @@ export default async function PlayerPage({
       winRate: profile.player.winRate,
       tackles: profile.player.tackles,
       tacklePercent: profile.player.tackleSuccessRate,
+      passesMade: profile.player.passesMade,
+      passAttempts: profile.player.passAttempts,
+      passAccuracy: profile.player.passAccuracy,
       motm: profile.player.manOfTheMatch,
       motmPercent: profile.player.manOfTheMatchRate,
       redCards: profile.player.redCards,
@@ -193,10 +197,12 @@ export default async function PlayerPage({
             club={profile.club.name}
             position={profile.player.position}
             platform={eaPlatformLabels[platform]}
+            overall={profile.player.overall}
           />
 
           <PlayerStatsGrid
             games={profile.player.matches}
+            overall={profile.player.overall}
             goals={profile.player.goals}
             assists={profile.player.assists}
             averageRating={profile.player.rating}
@@ -204,6 +210,9 @@ export default async function PlayerPage({
             redCards={profile.player.redCards}
             tackles={profile.player.tackles}
             tackleSuccessRate={profile.player.tackleSuccessRate}
+            passesMade={profile.player.passesMade}
+            passAttempts={profile.player.passAttempts}
+            passAccuracy={profile.player.passAccuracy}
             manOfTheMatch={profile.player.manOfTheMatch}
             manOfTheMatchRate={profile.player.manOfTheMatchRate}
             recentMatches={profile.recentMatches}

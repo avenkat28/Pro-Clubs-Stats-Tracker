@@ -12,6 +12,8 @@ type Match = {
   goals: number;
   assists: number;
   tackles: number;
+  passesMade?: number;
+  passAttempts?: number;
   passAccuracy: number;
   redCards: number;
 };
@@ -89,7 +91,7 @@ export default function MatchHistory({
               </div>
 
               {isOpen && (
-                <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 md:grid-cols-5">
+                <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 md:grid-cols-7">
                   <div>
                     <p className="text-xs text-gray-500">
                       <StatLabel label="Goals" />
@@ -113,7 +115,21 @@ export default function MatchHistory({
 
                   <div>
                     <p className="text-xs text-gray-500">
-                      <StatLabel label="Pass Accuracy" />
+                      <StatLabel label="Passes Made" />
+                    </p>
+                    <p className="font-bold">{match.passesMade ?? "N/A"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Pass Attempts" />
+                    </p>
+                    <p className="font-bold">{match.passAttempts ?? "N/A"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      <StatLabel label="Pass %" />
                     </p>
                     <p className="font-bold">{match.passAccuracy}%</p>
                   </div>

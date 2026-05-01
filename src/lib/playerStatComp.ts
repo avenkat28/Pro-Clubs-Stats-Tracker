@@ -32,6 +32,7 @@ export type PlayerCompName =
 
 export type PlayerCompInput = {
   position?: string | null;
+  overall?: number | null;
   games?: number | null;
   matches?: number | null;
   goals?: number | null;
@@ -47,6 +48,9 @@ export type PlayerCompInput = {
   tackles?: number | null;
   tacklePercent?: number | null;
   tackleSuccessRate?: number | null;
+  passesMade?: number | null;
+  passAttempts?: number | null;
+  passAccuracy?: number | null;
   motm?: number | null;
   manOfTheMatch?: number | null;
   motmPercent?: number | null;
@@ -66,6 +70,7 @@ export type PlayerCompScores = {
   balance: number;
   teamSuccess: number;
   aggression?: number;
+  passing?: number;
 };
 
 export type PlayerCompTiers = {
@@ -97,6 +102,7 @@ export type PlayerStatCompResult = {
 type DerivedPlayerStats = {
   position: string;
   positionGroup: PositionGroup;
+  overall: number;
   games: number;
   goals: number;
   assists: number;
@@ -108,6 +114,10 @@ type DerivedPlayerStats = {
   winRate: number;
   tackles: number;
   tacklePercent?: number;
+  passesMade: number;
+  passAttempts: number;
+  passesMadePerGame?: number;
+  passAccuracy?: number;
   motm: number;
   motmPercent: number;
   redCards: number;
@@ -168,6 +178,42 @@ export const PLAYER_COMP_IMAGES = {
   fallback: "/player-comps/fallback.png",
 } as const;
 
+const FORWARD_ELIGIBLE_COMPS: PlayerCompName[] = [
+  "Antoine Griezmann",
+  "Bruno Fernandes",
+  "Bukayo Saka",
+  "Cristiano Ronaldo",
+  "Erling Haaland",
+  "Harry Kane",
+  "Jude Bellingham",
+  "Kevin De Bruyne",
+  "Kylian Mbappé",
+  "Lionel Messi",
+  "Mohamed Salah",
+  "Neymar",
+  "Robert Lewandowski",
+  "Son Heung-min",
+  "Thomas Müller",
+  "Vinícius Jr.",
+];
+
+const MIDFIELDER_ELIGIBLE_COMPS: PlayerCompName[] = [
+  "Arturo Vidal",
+  "Bruno Fernandes",
+  "Casemiro",
+  "Declan Rice",
+  "Federico Valverde",
+  "Frank Lampard",
+  "Jude Bellingham",
+  "Kevin De Bruyne",
+  "Lionel Messi",
+  "Martin Ødegaard",
+  "N’Golo Kanté",
+  "Rodri",
+  "Steven Gerrard",
+  "Yaya Touré",
+];
+
 const PLAYER_PROFILES: PlayerProfile[] = [
   {
     key: "lionelMessi",
@@ -201,7 +247,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     key: "neymar",
     name: "Neymar",
     styleLabel: "Creative Star",
-    positionGroups: ["forward", "midfielder", "unknown"],
+    positionGroups: ["forward", "unknown"],
     ideal: { scoring: 72, creation: 88, output: 86, influence: 84, teamSuccess: 52 },
     thresholds: ({ player }) => [
       player.goalsPerGame >= 0.6,
@@ -281,7 +327,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Kevin De Bruyne",
     styleLabel: "Elite Playmaker",
     positionGroups: ["midfielder", "forward", "unknown"],
-    ideal: { scoring: 48, creation: 92, output: 78, influence: 84, balance: 62 },
+    ideal: { scoring: 48, creation: 92, output: 78, influence: 84, balance: 62, passing: 86 },
     thresholds: ({ player }) => [
       player.assistsPerGame >= 0.9,
       player.goalsPerGame >= 0.35,
@@ -294,7 +340,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Bruno Fernandes",
     styleLabel: "High-Impact Creator",
     positionGroups: ["midfielder", "forward", "unknown"],
-    ideal: { scoring: 58, creation: 82, output: 82, influence: 86, teamSuccess: 50 },
+    ideal: { scoring: 58, creation: 82, output: 82, influence: 86, teamSuccess: 50, passing: 78 },
     thresholds: ({ player }) => [
       player.assistsPerGame >= 0.75,
       player.goalContributionsPerGame >= 1.4,
@@ -306,7 +352,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Martin Ødegaard",
     styleLabel: "Technical Creator",
     positionGroups: ["midfielder", "unknown"],
-    ideal: { scoring: 42, creation: 78, output: 68, influence: 78, discipline: 86 },
+    ideal: { scoring: 42, creation: 78, output: 68, influence: 78, discipline: 86, passing: 82 },
     thresholds: ({ player, scores }) => [
       player.assistsPerGame >= 0.7,
       player.averageRating >= 8.2,
@@ -319,7 +365,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Thomas Müller",
     styleLabel: "System Creator",
     positionGroups: ["forward", "midfielder", "unknown"],
-    ideal: { scoring: 55, creation: 82, output: 78, influence: 72, balance: 70 },
+    ideal: { scoring: 55, creation: 82, output: 78, influence: 72, balance: 70, passing: 74 },
     thresholds: ({ player }) => [
       player.assistsPerGame >= 0.75,
       player.goalsPerGame >= 0.45,
@@ -398,7 +444,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Trent Alexander-Arnold",
     styleLabel: "Creative Defender",
     positionGroups: ["defender", "midfielder", "unknown"],
-    ideal: { scoring: 24, creation: 72, output: 56, influence: 68, defense: 64 },
+    ideal: { scoring: 24, creation: 72, output: 56, influence: 68, defense: 64, passing: 80 },
     thresholds: ({ player, scores }) => [
       player.assistsPerGame >= 0.6,
       scores.defense !== undefined ? scores.defense >= 55 : undefined,
@@ -423,7 +469,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Declan Rice",
     styleLabel: "Balanced Ball Winner",
     positionGroups: ["midfielder", "defender", "unknown"],
-    ideal: { scoring: 22, creation: 30, output: 34, influence: 72, defense: 76, discipline: 86 },
+    ideal: { scoring: 22, creation: 30, output: 34, influence: 72, defense: 76, discipline: 86, passing: 68 },
     thresholds: ({ player, scores }) => [
       scores.defense !== undefined ? scores.defense >= 65 : undefined,
       player.tacklePercent !== undefined ? player.tacklePercent >= 50 : undefined,
@@ -436,7 +482,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Rodri",
     styleLabel: "Controlled Anchor",
     positionGroups: ["midfielder", "defender", "unknown"],
-    ideal: { scoring: 20, creation: 30, output: 34, influence: 78, defense: 70, discipline: 94, teamSuccess: 72 },
+    ideal: { scoring: 20, creation: 30, output: 34, influence: 78, defense: 70, discipline: 94, teamSuccess: 72, passing: 76 },
     thresholds: ({ player, scores }) => [
       player.averageRating >= 8.2,
       player.winRate >= 0.55,
@@ -514,7 +560,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Steven Gerrard",
     styleLabel: "All-Action Leader",
     positionGroups: ["midfielder", "unknown"],
-    ideal: { scoring: 60, creation: 62, output: 68, influence: 80, defense: 60, balance: 84 },
+    ideal: { scoring: 60, creation: 62, output: 68, influence: 80, defense: 60, balance: 84, passing: 70 },
     thresholds: ({ player, scores }) => [
       player.goalsPerGame >= 0.5,
       player.assistsPerGame >= 0.5,
@@ -539,7 +585,7 @@ const PLAYER_PROFILES: PlayerProfile[] = [
     name: "Yaya Touré",
     styleLabel: "Midfield Powerhouse",
     positionGroups: ["midfielder", "unknown"],
-    ideal: { scoring: 56, creation: 56, output: 62, influence: 76, defense: 68, balance: 84 },
+    ideal: { scoring: 56, creation: 56, output: 62, influence: 76, defense: 68, balance: 84, passing: 70 },
     thresholds: ({ player, scores }) => [
       player.goalsPerGame >= 0.45,
       player.assistsPerGame >= 0.45,
@@ -669,6 +715,38 @@ function getPositionGroup(position: string | null | undefined): PositionGroup {
   return "unknown";
 }
 
+function isForwardEligibleComp(name: PlayerCompName) {
+  return FORWARD_ELIGIBLE_COMPS.includes(name);
+}
+
+function isMidfielderEligibleComp(name: PlayerCompName) {
+  return MIDFIELDER_ELIGIBLE_COMPS.includes(name);
+}
+
+function isDefenderEligibleComp(name: PlayerCompName) {
+  return !isForwardEligibleComp(name) && !isMidfielderEligibleComp(name);
+}
+
+function isProfileEligibleForPosition(profile: PlayerProfile, positionGroup: PositionGroup) {
+  if (positionGroup === "unknown") {
+    return true;
+  }
+
+  if (positionGroup === "forward") {
+    return isForwardEligibleComp(profile.name);
+  }
+
+  if (positionGroup === "midfielder") {
+    return isMidfielderEligibleComp(profile.name);
+  }
+
+  if (positionGroup === "defender" || positionGroup === "goalkeeper") {
+    return isDefenderEligibleComp(profile.name);
+  }
+
+  return true;
+}
+
 function isCentralForwardPosition(position: string) {
   return position.includes("ST") || position.includes("CF");
 }
@@ -762,6 +840,14 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
           : 0;
   const redCards = valueOrZero(input.redCards);
   const tackles = valueOrZero(input.tackles);
+  const passesMade = valueOrZero(input.passesMade);
+  const passAttempts = valueOrZero(input.passAttempts);
+  const passAccuracy =
+    input.passAccuracy !== undefined && input.passAccuracy !== null
+      ? normalizePercent(input.passAccuracy)
+      : passAttempts > 0
+        ? (passesMade / passAttempts) * 100
+        : undefined;
   const tacklePercent =
     input.tacklePercent !== undefined && input.tacklePercent !== null
       ? normalizePercent(input.tacklePercent)
@@ -772,6 +858,7 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
   return {
     position,
     positionGroup,
+    overall: valueOrZero(input.overall),
     games,
     goals,
     assists,
@@ -783,6 +870,10 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
     winRate: normalizeRate(input.winRate),
     tackles,
     tacklePercent,
+    passesMade,
+    passAttempts,
+    passesMadePerGame: games > 0 ? passesMade / games : undefined,
+    passAccuracy,
     motm,
     motmPercent,
     redCards,
@@ -883,6 +974,20 @@ function calculateScores(input: PlayerCompInput, player: DerivedPlayerStats): Pl
   );
   const balance = round(player.scorerCreatorBalance * 100);
   const teamSuccess = round(player.winRate * 100);
+  const passing =
+    player.passesMadePerGame !== undefined && player.passAccuracy !== undefined
+      ? round(
+          0.55 *
+            interpolate(player.passesMadePerGame, [
+              [0, 0],
+              [5, 30],
+              [12, 60],
+              [20, 82],
+              [30, 100],
+            ]) +
+            0.45 * player.passAccuracy,
+        )
+      : undefined;
   const aggression =
     tacklesVolumeScore !== undefined
       ? round(
@@ -909,6 +1014,7 @@ function calculateScores(input: PlayerCompInput, player: DerivedPlayerStats): Pl
     balance,
     teamSuccess,
     aggression,
+    passing,
   };
 }
 
@@ -924,6 +1030,7 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
     scoreCloseness(context.scores.balance, profile.ideal.balance),
     scoreCloseness(context.scores.teamSuccess, profile.ideal.teamSuccess),
     scoreCloseness(context.scores.aggression, profile.ideal.aggression),
+    scoreCloseness(context.scores.passing, profile.ideal.passing),
   ]);
   const thresholdFit = averageBooleans(profile.thresholds(context)) * 100;
 
@@ -931,6 +1038,7 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
   const biasFit = getBiasFit(profile, context.player);
   const profileModifier = getProfileModifier(profile, context.player, context.scores);
   const diversityModifier = getDiversityModifier(profile, context.player);
+  const passingModifier = getPassingModifier(profile, context.player, context.scores);
   const roleFit = getRoleFit(profile, context.player);
 
   return (
@@ -938,7 +1046,8 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
       0.32 * thresholdFit +
       10 * biasFit +
       profileModifier +
-      diversityModifier) *
+      diversityModifier +
+      passingModifier) *
     positionFit *
     roleFit
   );
@@ -949,23 +1058,11 @@ function getPositionFit(profile: PlayerProfile, player: DerivedPlayerStats) {
     return 1;
   }
 
-  if (player.positionGroup === "goalkeeper") {
-    return profile.positionGroups.includes("defender") ? 0.45 : 0.05;
-  }
-
-  if (profile.positionGroups.includes(player.positionGroup)) {
+  if (isProfileEligibleForPosition(profile, player.positionGroup)) {
     return 1;
   }
 
-  if (player.positionGroup === "defender" && !profile.positionGroups.includes("defender")) {
-    return 0.08;
-  }
-
-  if (player.positionGroup === "forward" && profile.positionGroups.includes("defender")) {
-    return 0.22;
-  }
-
-  return 0.55;
+  return 0.02;
 }
 
 function getBiasFit(profile: PlayerProfile, player: DerivedPlayerStats) {
@@ -1163,12 +1260,65 @@ function getProfileModifier(
   return 0;
 }
 
+function getPassingModifier(
+  profile: PlayerProfile,
+  player: DerivedPlayerStats,
+  scores: PlayerCompScores,
+) {
+  if (scores.passing === undefined || player.passesMadePerGame === undefined) {
+    return 0;
+  }
+
+  const highPassing = scores.passing >= 70;
+  const elitePassing = scores.passing >= 82;
+  const lowPassing = scores.passing < 45;
+
+  if (
+    highPassing &&
+    (profile.name === "Kevin De Bruyne" ||
+      profile.name === "Bruno Fernandes" ||
+      profile.name === "Martin Ødegaard" ||
+      profile.name === "Thomas Müller" ||
+      profile.name === "Trent Alexander-Arnold")
+  ) {
+    return elitePassing ? 7 : 5;
+  }
+
+  if (
+    highPassing &&
+    (profile.name === "Rodri" ||
+      profile.name === "Declan Rice" ||
+      profile.name === "Yaya Touré" ||
+      profile.name === "Steven Gerrard")
+  ) {
+    return 4;
+  }
+
+  if (
+    lowPassing &&
+    (profile.name === "Kevin De Bruyne" ||
+      profile.name === "Bruno Fernandes" ||
+      profile.name === "Martin Ødegaard")
+  ) {
+    return -6;
+  }
+
+  if (
+    lowPassing &&
+    (profile.name === "Erling Haaland" || profile.name === "Cristiano Ronaldo")
+  ) {
+    return 3;
+  }
+
+  return 0;
+}
+
 function getDiversityModifier(profile: PlayerProfile, player: DerivedPlayerStats) {
   if (
     player.positionGroup === "defender" ||
     player.positionGroup === "goalkeeper" ||
     player.positionGroup === "unknown" ||
-    !profile.positionGroups.includes(player.positionGroup)
+    !isProfileEligibleForPosition(profile, player.positionGroup)
   ) {
     return 0;
   }
@@ -1285,6 +1435,14 @@ function createReasons(player: DerivedPlayerStats, scores: PlayerCompScores, pri
     `${formatPercent(player.motmPercent)} MOTM rate and ${formatPercent(player.winRate)} win rate.`,
   ];
 
+  if (player.overall > 0) {
+    reasons.push(`${player.overall} overall rating from the player profile payload.`);
+  }
+
+  if (scores.passing !== undefined && player.passesMadePerGame !== undefined) {
+    reasons.push(`${player.passesMadePerGame.toFixed(2)} passes made per game with ${Math.round(player.passAccuracy ?? 0)}% pass success.`);
+  }
+
   if (scores.defense !== undefined && player.tacklesPerGame !== undefined) {
     reasons.push(`${player.tacklesPerGame.toFixed(2)} tackles per game with ${Math.round(player.tacklePercent ?? 0)}% tackle success.`);
   }
@@ -1313,7 +1471,11 @@ export function getPlayerStatComp(input: PlayerCompInput): PlayerStatCompResult 
   const player = derivePlayerStats(input);
   const scores = calculateScores(input, player);
   const context = { player, scores };
-  const rankedProfiles = PLAYER_PROFILES.map((profile) => ({
+  const eligibleProfiles = PLAYER_PROFILES.filter((profile) =>
+    isProfileEligibleForPosition(profile, player.positionGroup),
+  );
+  const rankingProfiles = eligibleProfiles.length > 0 ? eligibleProfiles : PLAYER_PROFILES;
+  const rankedProfiles = rankingProfiles.map((profile) => ({
     profile,
     similarityScore: scorePlayerProfile(profile, context),
   })).sort((left, right) => right.similarityScore - left.similarityScore);

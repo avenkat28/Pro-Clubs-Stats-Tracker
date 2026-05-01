@@ -22,6 +22,7 @@ export type PlayerAwardBadge = {
 
 type PlayerStatsGridProps = {
   games: number;
+  overall?: number;
   goals: number;
   assists: number;
   averageRating: number;
@@ -29,6 +30,9 @@ type PlayerStatsGridProps = {
   redCards: number;
   tackles?: number;
   tackleSuccessRate?: number;
+  passesMade?: number;
+  passAttempts?: number;
+  passAccuracy?: number;
   manOfTheMatch?: number;
   manOfTheMatchRate?: number;
   recentMatches?: RecentPlayerMatch[];
@@ -116,6 +120,7 @@ function getPlayerFormBadge({
 
 export default function PlayerStatsGrid({
   games,
+  overall,
   goals,
   assists,
   averageRating,
@@ -123,6 +128,9 @@ export default function PlayerStatsGrid({
   redCards,
   tackles,
   tackleSuccessRate,
+  passesMade,
+  passAttempts,
+  passAccuracy,
   manOfTheMatch,
   manOfTheMatchRate,
   recentMatches = [],
@@ -139,9 +147,12 @@ export default function PlayerStatsGrid({
   const goalsPerGame = games > 0 ? (goals / games).toFixed(2) : "0.00";
   const assistsPerGame = games > 0 ? (assists / games).toFixed(2) : "0.00";
   const gaPerGame = games > 0 ? (ga / games).toFixed(2) : "0.00";
+  const passesMadePerGame =
+    games > 0 && passesMade !== undefined ? (passesMade / games).toFixed(2) : "N/A";
 
   const stats = [
     { label: "Games", value: games },
+    { label: "Overall", value: overall && overall > 0 ? overall : "N/A" },
     { label: "Goals", value: goals },
     { label: "Assists", value: assists },
     { label: "G/A", value: ga },
@@ -150,6 +161,13 @@ export default function PlayerStatsGrid({
     { label: "G/A / Game", value: gaPerGame },
     { label: "Avg Rating", value: averageRating },
     { label: "Win Rate", value: `${winRate}%` },
+    { label: "Passes Made", value: passesMade ?? "N/A" },
+    { label: "Pass Attempts", value: passAttempts ?? "N/A" },
+    { label: "Passes / Game", value: passesMadePerGame },
+    {
+      label: "Pass %",
+      value: passAccuracy !== undefined ? `${passAccuracy}%` : "N/A",
+    },
     { label: "Tackles", value: tackles ?? "N/A" },
     {
       label: "Tackle %",

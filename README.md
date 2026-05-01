@@ -18,6 +18,105 @@ Useful endpoints now wired into the app:
 - `GET https://proclubs.ea.com/api/fc/clubs/overallStats?platform=common-gen5&clubIds=:clubId`
 - `GET https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId=:clubId`
 
+## Stat comp features
+
+The app includes deterministic real-life comparison features for clubs and players.
+These are stat-profile comps, not exact playstyle comps. The comp logic only uses
+stats available from the current app and EA feeds. It does not use possession,
+passing volume, pass accuracy, xG, xA, dribbling, pace, heatmaps, or shot data.
+
+### Pro Team Comp
+
+Club pages call `getProTeamComp` from `src/lib/proTeamComp.ts` and display the
+result with `src/components/ProTeamCompCard.tsx`.
+
+The team comp uses record, goals for, goals against, goal difference, clean sheets,
+form when available, player goal-contribution distribution when available, tackles,
+tackle success, and red cards. It returns primary and secondary real-life club comps,
+a style label, explanation, category scores, tiers, and reasons.
+
+Club comp images live in:
+
+```text
+public/club-comps/
+```
+
+Expected club image filenames:
+
+```text
+manchester-city.png
+barcelona.png
+real-madrid.png
+bayern-munich.png
+psg.png
+liverpool.png
+arsenal.png
+tottenham.png
+borussia-dortmund.png
+bayer-leverkusen.png
+napoli.png
+inter-milan.png
+atletico-madrid.png
+juventus.png
+chelsea.png
+```
+
+### Player Stat Comp
+
+Player pages call `getPlayerStatComp` from `src/lib/playerStatComp.ts` and display
+the result with `src/components/PlayerStatCompCard.tsx`.
+
+The player comp uses games, goals, assists, G/A, goals per game, assists per game,
+G/A per game, average rating, win rate, tackles, tackle success, MOTM, red cards,
+form when available, and position when available. Position is used to avoid bad
+matches such as defenders receiving attacker comps, and central strikers with a
+heavy goal bias being compared to wide forwards.
+
+Player comp images live in:
+
+```text
+public/player-comps/
+```
+
+Expected player image filenames:
+
+```text
+lionel-messi.png
+cristiano-ronaldo.png
+neymar.png
+kylian-mbappe.png
+erling-haaland.png
+harry-kane.png
+robert-lewandowski.png
+mohamed-salah.png
+kevin-de-bruyne.png
+bruno-fernandes.png
+martin-odegaard.png
+thomas-muller.png
+jude-bellingham.png
+bukayo-saka.png
+vinicius-jr.png
+son-heung-min.png
+antoine-griezmann.png
+trent-alexander-arnold.png
+ngolo-kante.png
+declan-rice.png
+rodri.png
+casemiro.png
+virgil-van-dijk.png
+ruben-dias.png
+sergio-ramos.png
+federico-valverde.png
+steven-gerrard.png
+frank-lampard.png
+yaya-toure.png
+arturo-vidal.png
+fallback.png
+```
+
+If a player image is missing or fails to load, the UI falls back to
+`public/player-comps/fallback.png`.
+
 ## Database setup
 
 The app uses Prisma with PostgreSQL. For Supabase, use the pooled connection URL for normal app queries and the direct connection URL for Prisma migrations.

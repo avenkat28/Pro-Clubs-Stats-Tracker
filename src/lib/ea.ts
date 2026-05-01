@@ -51,6 +51,7 @@ export type EaSquadMember = {
   id: string;
   name: string;
   position: string;
+  overall: number;
   matches: number;
   goals: number;
   assists: number;
@@ -59,6 +60,8 @@ export type EaSquadMember = {
   redCards: number;
   tackles: number;
   tackleSuccessRate: number;
+  passesMade: number;
+  passAttempts: number;
   passAccuracy: number;
   manOfTheMatch: number;
   manOfTheMatchRate: number;
@@ -74,6 +77,8 @@ export type EaPlayerMatch = {
   goals: number;
   assists: number;
   tackles: number;
+  passesMade: number;
+  passAttempts: number;
   passAccuracy: number;
   redCards: number;
 };
@@ -292,6 +297,28 @@ function getRoundedRating(value: unknown) {
   ]);
 
   return Math.round(rating * 10) / 10;
+}
+
+function getOverall(value: unknown) {
+  return Math.round(
+    getBestNumber(value, [
+      "overall",
+      "ovr",
+      "overallRating",
+      "ratingOverall",
+      "proOverall",
+      "pro.overall",
+      "pro.ovr",
+      "pro.overallRating",
+      "avatar.overall",
+      "avatar.ovr",
+      "attributes.overall",
+      "stats.overall",
+      "stats.ovr",
+      "proStats.overall",
+      "proStats.ovr",
+    ]),
+  );
 }
 
 function getBestPlayoffFinish(value: unknown) {
@@ -524,13 +551,48 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     ["tackleSuccessRate", "stats.tackleSuccessRate", "proStats.tackleSuccessRate"],
     Number.NaN,
   );
-  const passes = getBestNumber(record, ["passes", "stats.passes", "proStats.passes"]);
+  const passes = getBestNumber(record, [
+    "passes",
+    "passAttempts",
+    "passesAttempted",
+    "stats.passes",
+    "stats.passAttempts",
+    "proStats.passes",
+    "proStats.passAttempts",
+  ]);
+  const directPassAccuracy = getNumber(
+    record,
+    [
+      "passAccuracy",
+      "passSuccessRate",
+      "passingAccuracy",
+      "stats.passAccuracy",
+      "stats.passSuccessRate",
+      "proStats.passAccuracy",
+      "proStats.passSuccessRate",
+    ],
+    Number.NaN,
+  );
   const passesMade = getBestNumber(record, [
     "passesMade",
     "passesCompleted",
+    "passesmade",
+    "passescomplete",
+    "completedPasses",
     "stats.passesMade",
+    "stats.passesCompleted",
     "proStats.passesMade",
+    "proStats.passesCompleted",
   ]);
+  const passAccuracy = Number.isFinite(directPassAccuracy)
+    ? Math.round(directPassAccuracy)
+    : getPercentage(passesMade, passes);
+  const passAttempts =
+    passes > 0
+      ? passes
+      : passesMade > 0 && passAccuracy > 0
+        ? Math.round(passesMade / (passAccuracy / 100))
+        : 0;
   const manOfTheMatch = getBestNumber(record, [
     "manOfTheMatch",
     "motm",
@@ -564,6 +626,7 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
       "proPos",
       "pos",
     ], "N/A"),
+    overall: getOverall(record),
     matches,
     goals: getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]),
     assists: getBestNumber(record, [
@@ -585,7 +648,9 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     tackleSuccessRate: Number.isFinite(directTackleSuccessRate)
       ? Math.round(directTackleSuccessRate)
       : getPercentage(tacklesWon, tackles),
-    passAccuracy: getPercentage(passesMade, passes),
+    passesMade,
+    passAttempts,
+    passAccuracy,
     manOfTheMatch,
     manOfTheMatchRate: getPercentage(manOfTheMatch, matches),
   };
@@ -621,6 +686,12 @@ function mergeSquadMembers(members: EaSquadMember[]) {
         member.matches >= existing.matches
           ? member.tackleSuccessRate
           : existing.tackleSuccessRate,
+      overall:
+        member.overall > 0
+          ? member.overall
+          : existing.overall,
+      passesMade: Math.max(existing.passesMade, member.passesMade),
+      passAttempts: Math.max(existing.passAttempts, member.passAttempts),
       passAccuracy:
         member.matches >= existing.matches
           ? member.passAccuracy
@@ -705,6 +776,18 @@ function normalizePlayerRecentMatches(
             ? "D"
             : "L";
 
+      const matchPassesMade = getBestNumber(playerRecord, [
+        "passesmade",
+        "passesMade",
+        "passesCompleted",
+        "completedPasses",
+      ]);
+      const matchPassAttempts = getBestNumber(playerRecord, [
+        "passes",
+        "passAttempts",
+        "passesAttempted",
+      ]);
+
       return {
         id: getString(record, ["matchId", "id", "timestamp"], crypto.randomUUID()),
         matchIndex: RECENT_CLUB_MATCH_SCAN_COUNT - index,
@@ -715,13 +798,12 @@ function normalizePlayerRecentMatches(
         goals: getNumber(playerRecord, ["goals"]),
         assists: getNumber(playerRecord, ["assists"]),
         tackles: getNumber(playerRecord, ["tackles"]),
+        passesMade: matchPassesMade,
+        passAttempts: matchPassAttempts,
         passAccuracy: getNumber(
           playerRecord,
-          ["passAccuracy"],
-          getPercentage(
-            getNumber(playerRecord, ["passesmade", "passesMade"]),
-            getNumber(playerRecord, ["passes"]),
-          ),
+          ["passAccuracy", "passSuccessRate", "passingAccuracy"],
+          getPercentage(matchPassesMade, matchPassAttempts),
         ),
         redCards: getNumber(playerRecord, ["redcards", "redCards"]),
       };
