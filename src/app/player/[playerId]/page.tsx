@@ -1,5 +1,6 @@
 import Navbar from "../../../components/Navbar";
 import PlayerHeader from "../../../components/PlayerHeader";
+import PlayerStatCompCard from "../../../components/PlayerStatCompCard";
 import PlayerStatsGrid, {
   type PlayerAwardBadge,
 } from "../../../components/PlayerStatsGrid";
@@ -11,6 +12,7 @@ import {
   getEaPlayerProfile,
   isEaPlatform,
 } from "../../../lib/ea";
+import { getPlayerStatComp } from "../../../lib/playerStatComp";
 
 function isClubLeader(
   player: EaSquadMember,
@@ -163,6 +165,19 @@ export default async function PlayerPage({
       matchIndex: match.matchIndex,
     }));
     const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
+    const playerStatComp = getPlayerStatComp({
+      position: profile.player.position,
+      games: profile.player.matches,
+      goals: profile.player.goals,
+      assists: profile.player.assists,
+      averageRating: profile.player.rating,
+      winRate: profile.player.winRate,
+      tackles: profile.player.tackles,
+      tacklePercent: profile.player.tackleSuccessRate,
+      motm: profile.player.manOfTheMatch,
+      motmPercent: profile.player.manOfTheMatchRate,
+      redCards: profile.player.redCards,
+    });
 
     return (
       <main className="min-h-screen bg-black/35 text-white">
@@ -195,6 +210,8 @@ export default async function PlayerPage({
             matchWindow={10}
             awardBadges={awardBadges}
           />
+
+          <PlayerStatCompCard comp={playerStatComp} />
 
           <PerformanceChart ratings={ratings} matchWindow={10} />
 
