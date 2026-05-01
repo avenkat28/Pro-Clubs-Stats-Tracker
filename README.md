@@ -62,3 +62,10 @@ npm run prisma:studio
 - `npm run prisma:migrate` applies schema migrations during development.
 - `npm run prisma:studio` opens Prisma Studio.
 - `npm run prisma:seed` seeds development data from `prisma/seed.ts`.
+
+## Data & Attribution Disclaimer
+
+This project is licensed under the MIT License.
+However, all data, names, logos, and trademarks related to EA Sports and EA FC are the property of their respective owners.
+
+This project is for educational and non-commercial purposes only and is not affiliated with or endorsed by Electronic Arts.
