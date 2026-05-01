@@ -27,6 +27,7 @@ const SCORE_ITEMS: ScoreItem[] = [
   { key: "balance", label: "Balance" },
   { key: "teamSuccess", label: "Team Success" },
   { key: "aggression", label: "Aggression" },
+  { key: "passing", label: "Passing" },
 ];
 
 function CompImage({
