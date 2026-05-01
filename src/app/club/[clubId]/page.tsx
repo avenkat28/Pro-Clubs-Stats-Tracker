@@ -1,6 +1,7 @@
 import ClubHeader from "../../../components/ClubHeader";
 import ClubStatsGrid from "../../../components/ClubStatsGrid";
 import Navbar from "../../../components/Navbar";
+import ProTeamCompCard from "../../../components/ProTeamCompCard";
 import SquadTable from "../../../components/SquadTable";
 import {
   eaPlatformLabels,
@@ -8,6 +9,7 @@ import {
   getEaClubProfile,
   isEaPlatform,
 } from "../../../lib/ea";
+import { getProTeamComp } from "../../../lib/proTeamComp";
 
 export default async function ClubPage({
   params,
@@ -26,6 +28,37 @@ export default async function ClubPage({
 
   try {
     const profile = await getEaClubProfile(clubId, platform);
+    const matches =
+      profile.club.wins + profile.club.draws + profile.club.losses;
+    const proTeamComp = getProTeamComp(
+      {
+        matches,
+        wins: profile.club.wins,
+        draws: profile.club.draws,
+        losses: profile.club.losses,
+        goalsFor: profile.club.goalsFor,
+        goalsAgainst: profile.club.goalsAgainst,
+        cleanSheets: profile.club.cleanSheets,
+        leagueApps: profile.club.appearanceBreakdown.league,
+        playoffApps: profile.club.appearanceBreakdown.playoff,
+        bestFinish: profile.club.appearanceBreakdown.bestPlayoffFinish.label,
+        last10: profile.recentClubMatches.slice(0, 10).map((match) => ({
+          result: match.result,
+        })),
+      },
+      profile.squad.map((player) => ({
+        matches: player.matches,
+        totalGoals: player.goals,
+        totalAssists: player.assists,
+        totalGoalContributions: player.goals + player.assists,
+        avgRating: player.rating,
+        tackles: player.tackles,
+        tacklePercent: player.tackleSuccessRate,
+        redCards: player.redCards,
+        motm: player.manOfTheMatch,
+        motmPercent: player.manOfTheMatchRate,
+      })),
+    );
 
     return (
       <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
@@ -82,6 +115,8 @@ export default async function ClubPage({
             recentMatches={profile.recentClubMatches}
             appearanceBreakdown={profile.club.appearanceBreakdown}
           />
+
+          <ProTeamCompCard comp={proTeamComp} />
 
           <SquadTable players={profile.squad} clubId={clubId} platform={platform} />
         </section>
