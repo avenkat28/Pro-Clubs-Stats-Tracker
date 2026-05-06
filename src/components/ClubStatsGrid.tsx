@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import {
+  teamStrengthBarClassName,
+  teamStrengthGlowClassName,
+  teamStrengthTextClassName,
+} from "../lib/colorCoding";
 import { StatLabel } from "./StatIcon";
 
 type ClubStatsGridProps = {
@@ -244,13 +249,11 @@ export default function ClubStatsGrid({
     {
       label: "Attack",
       value: attackStrength,
-      tone: "bg-emerald-400",
       details: [`Goals scored: ${goalsFor}`, `Goals scored per match: ${goalsPerMatch}`],
     },
     {
       label: "Defense",
       value: defenseStrength,
-      tone: "bg-lime-300",
       details: [
         `Goals conceded: ${goalsAgainst}`,
         `Goals conceded per match: ${concededPerMatch}`,
@@ -259,7 +262,6 @@ export default function ClubStatsGrid({
     {
       label: "Form",
       value: formStrength,
-      tone: "bg-green-500",
       details: [
         `Last 10 record: ${recentWins}W - ${recentDraws}D - ${recentLosses}L`,
         `Goals scored: ${recentGoals.goalsFor}`,
@@ -490,11 +492,13 @@ export default function ClubStatsGrid({
             <div key={meter.label} className="group relative">
               <div className="flex items-center justify-between text-sm">
                 <p className="font-semibold text-white/68">{meter.label}</p>
-                <p className="font-black text-white">{meter.value}</p>
+                <p className={`font-black ${teamStrengthTextClassName(meter.value)}`}>
+                  {meter.value}
+                </p>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className={`h-full rounded-full ${meter.tone} shadow-[0_0_20px_rgba(52,211,153,0.3)]`}
+                  className={`h-full rounded-full ${teamStrengthBarClassName(meter.value)} ${teamStrengthGlowClassName(meter.value)}`}
                   style={{ width: `${meter.value}%` }}
                 />
               </div>

@@ -413,16 +413,44 @@ function getDivisionLabel(value: unknown) {
   return `Division ${division}`;
 }
 
+function getCurrentDivisionLabel(value: unknown) {
+  const division = getNumber(value, [
+    "currentDivision",
+    "division",
+    "curDivision",
+    "stats.currentDivision",
+  ]);
+
+  if (division <= 0) {
+    return "";
+  }
+
+  return `Division ${division}`;
+}
+
+function getSkillRatingValue(value: unknown) {
+  return getNumber(value, [
+    "skillRating",
+    "skillPoints",
+    "starRating",
+    "details.skillRating",
+    "record.skillRating",
+  ]);
+}
+
 function normalizeClub(
   clubId: string,
   platform: string,
   infoPayload: unknown,
   overallPayload: unknown,
   playoffPayload: unknown,
+  currentSeasonPayload?: unknown,
 ): EaClubSummary {
   const info = findFirstRecord(infoPayload);
   const overall = findFirstRecord(overallPayload);
   const playoff = findFirstRecord(playoffPayload);
+  const currentSeason =
+    asRecord(currentSeasonPayload) ?? findFirstRecord(currentSeasonPayload);
 
   const name =
     getString(info, ["name", "clubName", "details.name"], "") ||
@@ -489,14 +517,14 @@ function normalizeClub(
     platform,
     badgeUrl: getClubBadgeUrl(info),
     division:
+      getCurrentDivisionLabel(currentSeason) ||
       getString(info, ["division", "currentDivision", "details.division"], "") ||
       getString(overall, ["division", "currentDivision", "details.division"], "") ||
       getDivisionLabel(overall ?? info),
-    skillRating: getNumber(
-      info ?? overall,
-      ["skillRating", "skillPoints", "starRating", "details.skillRating"],
-      getNumber(overall, ["skillRating", "skillPoints", "details.skillRating"]),
-    ),
+    skillRating:
+      getSkillRatingValue(overall) ||
+      getSkillRatingValue(info) ||
+      getSkillRatingValue(currentSeason),
     wins,
     draws,
     losses,
@@ -878,15 +906,55 @@ function normalizeLeaderboardClub(
     id,
     name,
     platform,
-    division: getDivisionLabel(record),
-    skillRating: getNumber(record, [
-      "skillRating",
-      "skillPoints",
-      "stars",
-      "record.skillRating",
-    ]),
+    division: getCurrentDivisionLabel(record) || getDivisionLabel(record),
+    skillRating: getSkillRatingValue(record),
     record: `${wins}W - ${draws}D - ${losses}L`,
   };
+}
+
+function findClubById(value: unknown, clubId: string) {
+  return asArray(value).find((entry) => {
+    const record = asRecord(entry);
+
+    if (!record) {
+      return false;
+    }
+
+    return getString(record, ["clubId", "id", "teamId"], "") === clubId;
+  });
+}
+
+async function getCurrentSeasonClubEntry(
+  platform: EaPlatform,
+  clubId: string,
+  clubName: string,
+) {
+  if (!clubName.trim()) {
+    return null;
+  }
+
+  const payload = await searchEaEndpoint(
+    "/currentSeasonLeaderboard/search",
+    platform,
+    clubName,
+  );
+
+  return findClubById(payload, clubId);
+}
+
+async function getClubOverallStatsEntry(
+  platform: EaPlatform,
+  clubId: string,
+) {
+  const payload = await fetchOptionalEaJson(
+    "/clubs/overallStats",
+    new URLSearchParams({
+      platform,
+      clubIds: clubId,
+    }),
+  );
+
+  return findFirstRecord(payload);
 }
 
 function dedupeClubSearchResults(results: EaClubSearchResult[]) {
@@ -970,7 +1038,27 @@ export async function searchEaClubs(
       .includes(normalizedQuery),
   );
 
-  return results.slice(0, 24);
+  const trimmedResults = results.slice(0, 24);
+  const enrichedResults = await Promise.all(
+    trimmedResults.map(async (entry) => {
+      const overall = await getClubOverallStatsEntry(platform, entry.id);
+      const skillRating = getSkillRatingValue(overall);
+
+      if (skillRating <= 0) {
+        return entry;
+      }
+
+      return {
+        ...entry,
+        skillRating,
+      };
+    }),
+  );
+
+  return enrichedResults.sort(
+    (left, right) =>
+      right.skillRating - left.skillRating || left.name.localeCompare(right.name),
+  );
 }
 
 export async function getEaClubProfile(
@@ -1017,6 +1105,14 @@ export async function getEaClubProfile(
     })),
   ]);
 
+  const clubInfo = findFirstRecord(infoPayload);
+  const clubName = getString(clubInfo, ["name", "clubName", "details.name"], "");
+  const currentSeasonPayload = await getCurrentSeasonClubEntry(
+    platform as EaPlatform,
+    clubId,
+    clubName,
+  );
+
   return {
     club: normalizeClub(
       clubId,
@@ -1024,6 +1120,7 @@ export async function getEaClubProfile(
       infoPayload,
       overallPayload,
       playoffPayload,
+      currentSeasonPayload,
     ),
     squad: normalizeSquad(careerMembersPayload, membersPayload),
     recentMatches: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),

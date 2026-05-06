@@ -8,6 +8,8 @@ type SearchResultCardProps = {
   href: string;
   statLabel: string;
   statValue: string | number;
+  statClassName?: string;
+  statContainerClassName?: string;
 };
 
 export default function SearchResultCard({
@@ -18,6 +20,8 @@ export default function SearchResultCard({
   href,
   statLabel,
   statValue,
+  statClassName,
+  statContainerClassName,
 }: SearchResultCardProps) {
   return (
     <a
@@ -36,11 +40,11 @@ export default function SearchResultCard({
           <p className="mt-1 text-sm text-gray-500">{meta}</p>
         </div>
 
-        <div className="rounded-xl bg-black/40 px-4 py-3 text-right">
+        <div className={`rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-right ${statContainerClassName ?? ""}`}>
           <p className="text-xs text-gray-500">
             <StatLabel label={statLabel} className="justify-end" />
           </p>
-          <p className="text-xl font-bold text-blue-400">{statValue}</p>
+          <p className={`text-xl font-bold ${statClassName ?? "text-blue-400"}`}>{statValue}</p>
         </div>
       </div>
     </a>
