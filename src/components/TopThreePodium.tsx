@@ -1,4 +1,5 @@
 import type { TopClub, TopPlayer } from "../lib/mockData";
+import { skillRatingTextClassName } from "../lib/colorCoding";
 import type { LeaderboardTab } from "./LeaderboardTabs";
 
 type TopThreePodiumProps = {
@@ -49,6 +50,10 @@ export default function TopThreePodium({
           activeTab === "players"
             ? `${(item as TopPlayer).rating.toFixed(1)} AVG`
             : `${(item as TopClub).skillRating} SR`;
+        const primaryStatTone =
+          activeTab === "players"
+            ? "text-green-400"
+            : skillRatingTextClassName((item as TopClub).skillRating);
 
         return (
           <a
@@ -79,7 +84,7 @@ export default function TopThreePodium({
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500">
                   Form Index
                 </p>
-                <p className="mt-1 text-2xl font-black text-green-400">
+                <p className={`mt-1 text-2xl font-black ${primaryStatTone}`}>
                   {primaryStat}
                 </p>
               </div>

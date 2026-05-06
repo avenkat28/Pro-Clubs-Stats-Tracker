@@ -1,4 +1,5 @@
 import type { TopClub, TopPlayer } from "../lib/mockData";
+import { skillRatingTextClassName } from "../lib/colorCoding";
 import type { LeaderboardTab } from "./LeaderboardTabs";
 import { StatLabel } from "./StatIcon";
 
@@ -99,6 +100,7 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
 
   const club = props.item;
   const clubWinRate = winRate(club.wins, club.games);
+  const skillRatingTone = skillRatingTextClassName(club.skillRating);
 
   return (
     <tr
@@ -127,7 +129,7 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
       <td className="px-4 py-4 font-bold text-red-400">{club.losses}</td>
       <td className="px-4 py-4 font-bold text-green-400">{club.goalsFor}</td>
       <td className="px-4 py-4 font-bold text-red-400">{club.goalsAgainst}</td>
-      <td className="px-4 py-4 font-black text-blue-300">
+      <td className={`px-4 py-4 font-black ${skillRatingTone}`}>
         {club.skillRating}
       </td>
       <td className="px-4 py-4 font-bold text-green-400">{clubWinRate}%</td>
@@ -186,6 +188,7 @@ export function MobileLeaderboardCard({
   }
 
   const club = item as TopClub;
+  const skillRatingTone = skillRatingTextClassName(club.skillRating);
 
   return (
     <a
@@ -204,7 +207,7 @@ export function MobileLeaderboardCard({
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500">Skill</p>
-          <p className="text-xl font-black text-blue-300">{club.skillRating}</p>
+          <p className={`text-xl font-black ${skillRatingTone}`}>{club.skillRating}</p>
         </div>
       </div>
 

@@ -1,3 +1,9 @@
+import {
+  skillRatingCardClassName,
+  skillRatingLabelClassName,
+  skillRatingTextClassName,
+} from "../lib/colorCoding";
+
 type ClubHeaderProps = {
   name: string;
   platform: string;
@@ -15,6 +21,10 @@ export default function ClubHeader({
   clubId,
   badgeUrl,
 }: ClubHeaderProps) {
+  const skillRatingCardTone = skillRatingCardClassName(skillRating);
+  const skillRatingLabelTone = skillRatingLabelClassName(skillRating);
+  const skillRatingValueTone = skillRatingTextClassName(skillRating);
+
   return (
     <section className="min-w-0 overflow-hidden rounded-[1.5rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_34%),linear-gradient(135deg,rgba(9,18,13,0.96),rgba(3,5,4,0.94))] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.03] sm:p-6">
       <div className="flex flex-wrap items-center gap-3 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-100/75">
@@ -53,11 +63,11 @@ export default function ClubHeader({
           </div>
         </div>
 
-        <div className="w-full rounded-[1.25rem] border border-emerald-300/20 bg-emerald-300/[0.09] px-6 py-5 text-center shadow-[0_18px_40px_rgba(16,185,129,0.16)] sm:w-auto sm:min-w-48">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-100/65">
+        <div className={`w-full rounded-[1.25rem] border px-6 py-5 text-center sm:w-auto sm:min-w-48 ${skillRatingCardTone}`}>
+          <p className={`text-xs font-black uppercase tracking-[0.2em] ${skillRatingLabelTone}`}>
             Skill Rating
           </p>
-          <p className="mt-2 text-5xl font-black tracking-[-0.06em] text-emerald-200">
+          <p className={`mt-2 text-5xl font-black tracking-[-0.06em] ${skillRatingValueTone}`}>
             {skillRating}
           </p>
         </div>

@@ -1,4 +1,8 @@
 import SearchResultCard from "./SearchResultCard";
+import {
+  skillRatingCardClassName,
+  skillRatingTextClassName,
+} from "../lib/colorCoding";
 
 type PlayerResult = {
   id: string;
@@ -65,6 +69,16 @@ export default function SearchResults({
                 href={`/club/${club.id}?platform=${club.platform}`}
                 statLabel="Skill Rating"
                 statValue={club.skillRating || "Open"}
+                statClassName={
+                  typeof club.skillRating === "number"
+                    ? skillRatingTextClassName(club.skillRating)
+                    : undefined
+                }
+                statContainerClassName={
+                  typeof club.skillRating === "number" && club.skillRating > 0
+                    ? skillRatingCardClassName(club.skillRating)
+                    : undefined
+                }
               />
             ))}
           </div>
