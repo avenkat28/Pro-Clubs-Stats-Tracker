@@ -7,7 +7,7 @@ import {
   eaPlatformLabels,
   eaPlatforms,
   getEaClubProfile,
-  isEaPlatform,
+  normalizeEaPlatform,
 } from "../../../lib/ea";
 import { getProTeamComp } from "../../../lib/proTeamComp";
 
@@ -22,9 +22,7 @@ export default async function ClubPage({
     params,
     searchParams,
   ]);
-  const platform = isEaPlatform(resolvedSearchParams.platform)
-    ? resolvedSearchParams.platform
-    : "common-gen5";
+  const platform = normalizeEaPlatform(resolvedSearchParams.platform);
 
   try {
     const profile = await getEaClubProfile(clubId, platform);

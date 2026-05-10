@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getEaClubProfile } from "../../../../../lib/ea";
+import { getEaClubProfile, normalizeEaPlatform } from "../../../../../lib/ea";
 
 export async function GET(
   request: Request,
@@ -8,22 +8,22 @@ export async function GET(
 ) {
   const { clubId } = await params;
   const { searchParams } = new URL(request.url);
-  const platform = searchParams.get("platform") ?? undefined;
+  const platform = normalizeEaPlatform(searchParams.get("platform"));
 
   try {
     const profile = await getEaClubProfile(clubId, platform);
 
     return NextResponse.json(profile);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unable to fetch EA club data";
+    const message = "Unable to fetch EA club data";
+    const status = error instanceof Error && error.message.includes("Club ID") ? 400 : 502;
 
     return NextResponse.json(
       {
         error: message,
       },
       {
-        status: 502,
+        status,
       },
     );
   }
