@@ -258,6 +258,8 @@ export type EaSquadMember = {
   matches: number;
   goals: number;
   assists: number;
+  shots: number;
+  shotSuccessRate: number;
   rating: number;
   winRate: number;
   redCards: number;
@@ -279,10 +281,16 @@ export type EaPlayerMatch = {
   rating: number;
   goals: number;
   assists: number;
+  shots: number;
+  shotSuccessRate: number;
   tackles: number;
+  tackleAttempts: number;
+  tacklesMade: number;
+  tackleSuccessRate: number;
   passesMade: number;
   passAttempts: number;
   passAccuracy: number;
+  manOfTheMatch: boolean;
   redCards: number;
 };
 
@@ -629,6 +637,33 @@ function getPercentage(numerator: number, denominator: number) {
   return Math.round((numerator / denominator) * 100);
 }
 
+function getShotSuccessRate(value: unknown, goals: number, shots: number) {
+  const directShotSuccessRate = getNumber(
+    value,
+    [
+      "shotSuccessRate",
+      "shotConversionRate",
+      "conversionRate",
+      "shotAccuracy",
+      "stats.shotSuccessRate",
+      "stats.shotConversionRate",
+      "stats.conversionRate",
+      "stats.shotAccuracy",
+      "proStats.shotSuccessRate",
+      "proStats.shotConversionRate",
+      "proStats.conversionRate",
+      "proStats.shotAccuracy",
+    ],
+    Number.NaN,
+  );
+
+  if (Number.isFinite(directShotSuccessRate)) {
+    return Math.round(directShotSuccessRate);
+  }
+
+  return getPercentage(goals, shots);
+}
+
 function getHeight(value: unknown) {
   const heightText = getString(value, [
     "height",
@@ -861,6 +896,46 @@ function normalizeClub(
     playoffAppearances > 0
       ? Math.min(playoffAppearances, matches)
       : Math.max(0, matches - normalizedLeagueAppearances);
+  const extractedCleanSheets = Math.max(
+    getBestNumber(overall, [
+      "cleanSheets",
+      "cleansheets",
+      "cleanSheet",
+      "shutouts",
+      "overall.cleanSheets",
+      "stats.cleanSheets",
+      "stats.cleansheets",
+      "stats.cleanSheet",
+      "stats.shutouts",
+    ]),
+    getBestNumber(currentSeason, [
+      "cleanSheets",
+      "cleansheets",
+      "cleanSheet",
+      "shutouts",
+      "record.cleanSheets",
+      "record.cleansheets",
+      "record.cleanSheet",
+      "record.shutouts",
+      "stats.cleanSheets",
+      "stats.cleansheets",
+      "stats.cleanSheet",
+    ]),
+    getBestNumber(info, [
+      "cleanSheets",
+      "cleansheets",
+      "cleanSheet",
+      "shutouts",
+      "details.cleanSheets",
+      "details.cleansheets",
+      "details.cleanSheet",
+    ]),
+  );
+  // Even when EA omits clean-sheet totals, matches minus goals against gives
+  // a hard lower bound: to concede 201 goals across 213 matches, at least 12
+  // matches had to end with zero conceded.
+  const minimumPossibleCleanSheets =
+    matches > 0 && goalsAgainst >= 0 ? Math.max(0, matches - goalsAgainst) : 0;
 
   return {
     id: clubId,
@@ -881,15 +956,7 @@ function normalizeClub(
     losses,
     goalsFor,
     goalsAgainst,
-    cleanSheets: getBestNumber(overall, [
-      "cleanSheets",
-      "cleansheets",
-      "shutouts",
-      "overall.cleanSheets",
-      "stats.cleanSheets",
-      "stats.cleansheets",
-      "stats.shutouts",
-    ]),
+    cleanSheets: Math.max(extractedCleanSheets, minimumPossibleCleanSheets),
     appearanceBreakdown: {
       total: matches,
       league: normalizedLeagueAppearances,
@@ -908,6 +975,22 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "proStats.gamesPlayed",
   ]);
   const wins = getNumber(record, ["wins", "stats.wins", "proStats.wins"]);
+  const goals = getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]);
+  const shots = getBestNumber(record, [
+    "shots",
+    "shotsTaken",
+    "shotsAttempted",
+    "totalShots",
+    "shotsTotal",
+    "stats.shots",
+    "stats.shotsTaken",
+    "stats.shotsAttempted",
+    "stats.totalShots",
+    "proStats.shots",
+    "proStats.shotsTaken",
+    "proStats.shotsAttempted",
+    "proStats.totalShots",
+  ]);
   const directWinRate = getNumber(
     record,
     ["winRate", "stats.winRate", "proStats.winRate"],
@@ -1009,12 +1092,14 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     nationality: getNationality(record),
     overall: getOverall(record),
     matches,
-    goals: getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]),
+    goals,
     assists: getBestNumber(record, [
       "assists",
       "stats.assists",
       "proStats.assists",
     ]),
+    shots,
+    shotSuccessRate: getShotSuccessRate(record, goals, shots),
     rating: getRoundedRating(record),
     winRate: Number.isFinite(directWinRate)
       ? Math.round(directWinRate)
@@ -1058,6 +1143,11 @@ function mergeSquadMembers(members: EaSquadMember[]) {
       matches: Math.max(existing.matches, member.matches),
       goals: Math.max(existing.goals, member.goals),
       assists: Math.max(existing.assists, member.assists),
+      shots: Math.max(existing.shots, member.shots),
+      shotSuccessRate:
+        member.shots >= existing.shots
+          ? member.shotSuccessRate
+          : existing.shotSuccessRate,
       rating:
         member.matches >= existing.matches && member.rating > 0
           ? member.rating
@@ -1161,15 +1251,177 @@ function normalizePlayerRecentMatches(
 
       const matchPassesMade = getBestNumber(playerRecord, [
         "passesmade",
+        "passescomplete",
         "passesMade",
         "passesCompleted",
         "completedPasses",
+        "stats.passescomplete",
+        "stats.passesmade",
+        "stats.passesMade",
+        "stats.passesCompleted",
+        "stats.completedPasses",
+        "proStats.passescomplete",
+        "proStats.passesmade",
+        "proStats.passesMade",
+        "proStats.passesCompleted",
+        "proStats.completedPasses",
       ]);
       const matchPassAttempts = getBestNumber(playerRecord, [
         "passes",
+        "passattempts",
         "passAttempts",
         "passesAttempted",
+        "stats.passes",
+        "stats.passattempts",
+        "stats.passAttempts",
+        "stats.passesAttempted",
+        "proStats.passes",
+        "proStats.passattempts",
+        "proStats.passAttempts",
+        "proStats.passesAttempted",
       ]);
+      const matchTackles = getBestNumber(playerRecord, [
+        "tackles",
+        "tacklesMade",
+        "tacklesWon",
+        "tackleSuccesses",
+        "stats.tackles",
+        "stats.tacklesMade",
+        "stats.tacklesWon",
+        "stats.tackleSuccesses",
+        "proStats.tackles",
+        "proStats.tacklesMade",
+        "proStats.tacklesWon",
+        "proStats.tackleSuccesses",
+      ]);
+      const matchTacklesMade = getBestNumber(playerRecord, [
+        "tacklesWon",
+        "tackleSuccesses",
+        "tacklesmade",
+        "tacklesMade",
+        "tacklesmade",
+        "stats.tacklesWon",
+        "stats.tackleSuccesses",
+        "stats.tacklesMade",
+        "stats.tacklesmade",
+        "proStats.tacklesWon",
+        "proStats.tackleSuccesses",
+        "proStats.tacklesMade",
+        "proStats.tacklesmade",
+      ]);
+      const matchTackleAttempts = getBestNumber(playerRecord, [
+        "tackles",
+        "tacklesAttempted",
+        "tacklesattempted",
+        "tackleAttempts",
+        "tackleattempts",
+        "tacklesMade",
+        "stats.tackles",
+        "stats.tacklesAttempted",
+        "stats.tacklesattempted",
+        "stats.tackleAttempts",
+        "stats.tackleattempts",
+        "stats.tacklesMade",
+        "proStats.tackles",
+        "proStats.tacklesAttempted",
+        "proStats.tacklesattempted",
+        "proStats.tackleAttempts",
+        "proStats.tackleattempts",
+        "proStats.tacklesMade",
+      ]);
+      const matchGoals = getBestNumber(playerRecord, [
+        "goals",
+        "stats.goals",
+        "proStats.goals",
+      ]);
+      const matchAssists = getBestNumber(playerRecord, [
+        "assists",
+        "stats.assists",
+        "proStats.assists",
+      ]);
+      const matchRedCards = getBestNumber(playerRecord, [
+        "redcards",
+        "redCards",
+        "stats.redcards",
+        "stats.redCards",
+        "proStats.redcards",
+        "proStats.redCards",
+      ]);
+      const matchShots = getBestNumber(playerRecord, [
+        "shots",
+        "shotsTaken",
+        "shotsAttempted",
+        "totalShots",
+        "shotsTotal",
+        "stats.shots",
+        "stats.shotsTaken",
+        "stats.shotsAttempted",
+        "stats.totalShots",
+        "proStats.shots",
+        "proStats.shotsTaken",
+        "proStats.shotsAttempted",
+        "proStats.totalShots",
+      ]);
+      const matchShotSuccessRate = getShotSuccessRate(playerRecord, matchGoals, matchShots);
+      const directMatchPassAccuracy = getNumber(
+        playerRecord,
+        [
+          "passAccuracy",
+          "passSuccessRate",
+          "passingAccuracy",
+          "stats.passAccuracy",
+          "stats.passSuccessRate",
+          "stats.passingAccuracy",
+          "proStats.passAccuracy",
+          "proStats.passSuccessRate",
+          "proStats.passingAccuracy",
+        ],
+        Number.NaN,
+      );
+      const directMatchTackleSuccessRate = getNumber(
+        playerRecord,
+        [
+          "tackleSuccessRate",
+          "tackleWinRate",
+          "tackleAccuracy",
+          "stats.tackleSuccessRate",
+          "stats.tackleWinRate",
+          "stats.tackleAccuracy",
+          "proStats.tackleSuccessRate",
+          "proStats.tackleWinRate",
+          "proStats.tackleAccuracy",
+        ],
+        Number.NaN,
+      );
+      const resolvedMatchPassAccuracy = Number.isFinite(directMatchPassAccuracy)
+        ? Math.round(directMatchPassAccuracy)
+        : getPercentage(matchPassesMade, matchPassAttempts);
+      const resolvedMatchPassAttempts =
+        matchPassAttempts > 0
+          ? matchPassAttempts
+          : matchPassesMade > 0 && resolvedMatchPassAccuracy > 0
+            ? Math.round(matchPassesMade / (resolvedMatchPassAccuracy / 100))
+            : 0;
+      const resolvedMatchTackleAttempts =
+        matchTackleAttempts > 0
+          ? matchTackleAttempts
+          : matchTacklesMade > 0
+            ? matchTacklesMade
+          : matchTackles > 0
+            ? matchTackles
+            : 0;
+      const resolvedMatchTacklesMade =
+        matchTacklesMade > 0
+          ? matchTacklesMade
+          : resolvedMatchTackleAttempts > 0 && matchTacklesMade === 0 && matchTackles > 0
+            ? Math.min(matchTackles, resolvedMatchTackleAttempts)
+            : 0;
+      const resolvedMatchTackleSuccessRate =
+        Number.isFinite(directMatchTackleSuccessRate)
+          ? Math.round(directMatchTackleSuccessRate)
+          : resolvedMatchTackleAttempts > 0
+          ? getPercentage(resolvedMatchTacklesMade, resolvedMatchTackleAttempts)
+          : 0;
 
       return {
         id: getString(record, ["matchId", "id", "timestamp"], crypto.randomUUID()),
@@ -1178,17 +1430,29 @@ function normalizePlayerRecentMatches(
         result,
         score: `${ourScore}-${opponentScore}`,
         rating: getRoundedRating(playerRecord),
-        goals: getNumber(playerRecord, ["goals"]),
-        assists: getNumber(playerRecord, ["assists"]),
-        tackles: getNumber(playerRecord, ["tackles"]),
+        goals: matchGoals,
+        assists: matchAssists,
+        shots: matchShots,
+        shotSuccessRate: matchShotSuccessRate,
+        tackles: resolvedMatchTacklesMade,
+        tackleAttempts: resolvedMatchTackleAttempts,
+        tacklesMade: resolvedMatchTacklesMade,
+        tackleSuccessRate: resolvedMatchTackleSuccessRate,
         passesMade: matchPassesMade,
-        passAttempts: matchPassAttempts,
-        passAccuracy: getNumber(
-          playerRecord,
-          ["passAccuracy", "passSuccessRate", "passingAccuracy"],
-          getPercentage(matchPassesMade, matchPassAttempts),
-        ),
-        redCards: getNumber(playerRecord, ["redcards", "redCards"]),
+        passAttempts: resolvedMatchPassAttempts,
+        passAccuracy: resolvedMatchPassAccuracy,
+        manOfTheMatch: getBestNumber(playerRecord, [
+          "manOfTheMatch",
+          "motm",
+          "mom",
+          "stats.manOfTheMatch",
+          "stats.motm",
+          "stats.mom",
+          "proStats.manOfTheMatch",
+          "proStats.motm",
+          "proStats.mom",
+        ]) > 0,
+        redCards: matchRedCards,
       };
     })
     .filter((match): match is EaPlayerMatch => Boolean(match))

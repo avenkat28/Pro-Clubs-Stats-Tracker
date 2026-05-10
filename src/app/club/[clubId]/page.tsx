@@ -109,7 +109,6 @@ export default async function ClubPage({
             losses={profile.club.losses}
             goalsFor={profile.club.goalsFor}
             goalsAgainst={profile.club.goalsAgainst}
-            cleanSheets={profile.club.cleanSheets}
             recentMatches={profile.recentClubMatches}
             appearanceBreakdown={profile.club.appearanceBreakdown}
           />
