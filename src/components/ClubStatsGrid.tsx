@@ -14,7 +14,6 @@ type ClubStatsGridProps = {
   losses: number;
   goalsFor: number;
   goalsAgainst: number;
-  cleanSheets: number;
   recentMatches: {
     result: "W" | "D" | "L";
     score: string;
@@ -121,7 +120,6 @@ export default function ClubStatsGrid({
   losses,
   goalsFor,
   goalsAgainst,
-  cleanSheets,
   recentMatches,
   appearanceBreakdown,
 }: ClubStatsGridProps) {
@@ -132,8 +130,6 @@ export default function ClubStatsGrid({
   const goalDifference = goalsFor - goalsAgainst;
   const formattedGoalDifference =
     goalDifference > 0 ? `+${goalDifference}` : goalDifference.toString();
-  const cleanSheetRate =
-    matches > 0 ? Math.round((cleanSheets / matches) * 100) : 0;
   const goalsPerMatchValue = matches > 0 ? goalsFor / matches : 0;
   const concededPerMatchValue = matches > 0 ? goalsAgainst / matches : 0;
   const goalsPerMatch = goalsPerMatchValue.toFixed(2);
@@ -145,8 +141,6 @@ export default function ClubStatsGrid({
       : goalDifference < 0
         ? "text-red-300"
         : "text-lime-200";
-  const cleanSheetTone = cleanSheets > 0 ? "text-emerald-300" : "text-white";
-
   const attackStrength =
     matches > 0 ? Math.min(100, Math.round((goalsFor / matches) * 24)) : 0;
   const defenseStrength =
@@ -459,24 +453,13 @@ export default function ClubStatsGrid({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3">
             <div className={tileClassName}>
               <p className="text-xs text-white/45">
                 <StatLabel label="Goal Difference" iconClassName="h-3.5 w-3.5" />
               </p>
               <p className={`mt-2 text-3xl font-black tracking-[-0.06em] ${goalDifferenceTone}`}>
                 {formattedGoalDifference}
-              </p>
-            </div>
-            <div className={tileClassName}>
-              <p className="text-xs text-white/45">
-                <StatLabel label="Clean Sheets" iconClassName="h-3.5 w-3.5" />
-              </p>
-              <p className={`mt-2 text-3xl font-black tracking-[-0.06em] ${cleanSheetTone}`}>
-                {cleanSheets}
-              </p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-emerald-200/50">
-                {cleanSheetRate}% rate
               </p>
             </div>
           </div>

@@ -29,6 +29,7 @@ type IconType =
   | "rating"
   | "record"
   | "redCard"
+  | "shot"
   | "tackle"
   | "win";
 
@@ -44,6 +45,7 @@ function iconType(label: string): IconType {
   if (normalized.includes("clean")) return "cleanSheet";
   if (normalized.includes("motm") || normalized.includes("man of the match")) return "motm";
   if (normalized.includes("tackle")) return "tackle";
+  if (normalized.includes("shot")) return "shot";
   if (normalized.includes("pass")) return "pass";
   if (normalized.includes("g/a") && (normalized.includes("game") || normalized.includes("match"))) return "contributionRate";
   if (normalized.includes("g/a")) return "contribution";
@@ -78,6 +80,7 @@ function iconColor(label: string) {
     return "text-green-400";
   }
   if (["assist", "assistRate", "pass"].includes(type)) return "text-sky-400";
+  if (type === "shot") return "text-amber-300";
   if (["contribution", "contributionRate", "rating", "live", "motm", "form"].includes(type)) {
     return "text-yellow-300";
   }
@@ -245,6 +248,17 @@ export default function StatIcon({ label, className = "" }: StatIconProps) {
         <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
         <circle cx="12" cy="12" r="2" fill="currentColor" />
         <path d="M12 5v3M12 16v3M5 12h3M16 12h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === "shot") {
+    return (
+      <svg viewBox="0 0 24 24" className={baseClassName} aria-hidden="true">
+        <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+        <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
       </svg>
     );
   }

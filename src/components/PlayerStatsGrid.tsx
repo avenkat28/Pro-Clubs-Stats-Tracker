@@ -1,3 +1,6 @@
+ "use client";
+
+import { useState } from "react";
 import { StatLabel } from "./StatIcon";
 
 type RecentPlayerMatch = {
@@ -18,6 +21,7 @@ export type PlayerAwardBadge = {
   label: string;
   symbol: string;
   className: string;
+  description: string;
 };
 
 type PlayerStatsGridProps = {
@@ -28,6 +32,7 @@ type PlayerStatsGridProps = {
   averageRating: number;
   winRate: number;
   redCards: number;
+  shotSuccessRate?: number;
   tackles?: number;
   tackleSuccessRate?: number;
   passesMade?: number;
@@ -126,6 +131,7 @@ export default function PlayerStatsGrid({
   averageRating,
   winRate,
   redCards,
+  shotSuccessRate,
   tackles,
   tackleSuccessRate,
   passesMade,
@@ -137,6 +143,7 @@ export default function PlayerStatsGrid({
   matchWindow = 10,
   awardBadges = [],
 }: PlayerStatsGridProps) {
+  const [statMode, setStatMode] = useState<"overall" | "perMatch">("overall");
   const ga = goals + assists;
   const formBadge = getPlayerFormBadge({
     games,
@@ -147,28 +154,27 @@ export default function PlayerStatsGrid({
   const goalsPerGame = games > 0 ? (goals / games).toFixed(2) : "0.00";
   const assistsPerGame = games > 0 ? (assists / games).toFixed(2) : "0.00";
   const gaPerGame = games > 0 ? (ga / games).toFixed(2) : "0.00";
+  const redCardsRate = games > 0 ? Math.round((redCards / games) * 100) : 0;
   const passesMadePerGame =
     games > 0 && passesMade !== undefined ? (passesMade / games).toFixed(2) : "N/A";
+  const passAttemptsPerGame =
+    games > 0 && passAttempts !== undefined ? (passAttempts / games).toFixed(2) : "N/A";
+  const tacklesPerGame =
+    games > 0 && tackles !== undefined ? (tackles / games).toFixed(2) : "N/A";
 
-  const stats = [
-    { label: "Games", value: games },
+  const sharedStats = [
     { label: "Overall", value: overall && overall > 0 ? overall : "N/A" },
-    { label: "Goals", value: goals },
-    { label: "Assists", value: assists },
-    { label: "G/A", value: ga },
-    { label: "Goals / Game", value: goalsPerGame },
-    { label: "Assists / Game", value: assistsPerGame },
-    { label: "G/A / Game", value: gaPerGame },
+    { label: "Games", value: games },
     { label: "Avg Rating", value: averageRating },
     { label: "Win Rate", value: `${winRate}%` },
-    { label: "Passes Made", value: passesMade ?? "N/A" },
-    { label: "Pass Attempts", value: passAttempts ?? "N/A" },
-    { label: "Passes / Game", value: passesMadePerGame },
+    {
+      label: "Shot %",
+      value: shotSuccessRate !== undefined ? `${shotSuccessRate}%` : "N/A",
+    },
     {
       label: "Pass %",
       value: passAccuracy !== undefined ? `${passAccuracy}%` : "N/A",
     },
-    { label: "Tackles", value: tackles ?? "N/A" },
     {
       label: "Tackle %",
       value:
@@ -176,16 +182,36 @@ export default function PlayerStatsGrid({
           ? `${tackleSuccessRate}%`
           : "N/A",
     },
-    { label: "MOTM", value: manOfTheMatch ?? "N/A" },
-    {
-      label: "MOTM %",
-      value:
-        manOfTheMatchRate !== undefined
-          ? `${manOfTheMatchRate}%`
-          : "N/A",
-    },
-    { label: "Red Cards", value: redCards },
   ];
+
+  const modeStats =
+    statMode === "overall"
+      ? [
+          { label: "Goals", value: goals },
+          { label: "Assists", value: assists },
+          { label: "G/A", value: ga },
+          { label: "MOTM", value: manOfTheMatch ?? "N/A" },
+          { label: "Pass Attempts", value: passAttempts ?? "N/A" },
+          { label: "Passes Made", value: passesMade ?? "N/A" },
+          { label: "Tackles", value: tackles ?? "N/A" },
+          { label: "Red Cards", value: redCards },
+        ]
+      : [
+          { label: "Goals / Match", value: goalsPerGame },
+          { label: "Assists / Match", value: assistsPerGame },
+          { label: "G/A / Match", value: gaPerGame },
+          {
+            label: "MOTM %",
+            value:
+              manOfTheMatchRate !== undefined
+                ? `${manOfTheMatchRate}%`
+                : "N/A",
+          },
+          { label: "Pass Attempts / Match", value: passAttemptsPerGame },
+          { label: "Passes Made / Match", value: passesMadePerGame },
+          { label: "Tackles / Match", value: tacklesPerGame },
+          { label: "Red Card %", value: `${redCardsRate}%` },
+        ];
 
   return (
     <section className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -194,15 +220,21 @@ export default function PlayerStatsGrid({
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/55">
             Club Badges
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3 overflow-visible">
             {awardBadges.map((badge) => (
-              <span
-                key={badge.label}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-black shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${badge.className}`}
-              >
-                <span aria-hidden="true">{badge.symbol}</span>
-                {badge.label}
-              </span>
+              <div key={badge.label} className="group relative overflow-visible">
+                <span
+                  aria-label={`${badge.label}: ${badge.description}`}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-black shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${badge.className}`}
+                >
+                  <span aria-hidden="true">{badge.symbol}</span>
+                  {badge.label}
+                </span>
+                <div className="pointer-events-none absolute bottom-[calc(100%+0.65rem)] left-0 z-20 w-max max-w-[18rem] rounded-[1.1rem] border border-white/10 bg-black px-4 py-3 text-left text-sm font-semibold text-white opacity-0 shadow-[0_18px_45px_rgba(0,0,0,0.38)] transition duration-150 ease-out group-hover:opacity-100">
+                  <p className="text-base font-black text-white">{badge.label}</p>
+                  <p className="mt-1 text-sm font-medium text-white/80">{badge.description}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -230,7 +262,50 @@ export default function PlayerStatsGrid({
         </p>
       </div>
 
-      {stats.map((stat) => (
+      {sharedStats.map((stat) => (
+        <div
+          key={stat.label}
+          className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white"
+        >
+          <p className="text-sm text-gray-400">
+            <StatLabel label={stat.label} />
+          </p>
+          <p className="mt-2 text-3xl font-bold">{stat.value}</p>
+        </div>
+      ))}
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white md:col-span-3 lg:col-span-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/55">
+            Player Stats
+          </p>
+          <div className="inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
+            {[
+              { label: "Overall", value: "overall" as const },
+              { label: "Per Match", value: "perMatch" as const },
+            ].map((tab) => {
+              const isActive = statMode === tab.value;
+
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => setStatMode(tab.value)}
+                  className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition ${
+                    isActive
+                      ? "bg-emerald-300 text-black shadow-[0_0_24px_rgba(110,231,183,0.22)]"
+                      : "text-white/45 hover:text-emerald-100"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {modeStats.map((stat) => (
         <div
           key={stat.label}
           className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white"

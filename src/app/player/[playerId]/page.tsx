@@ -5,6 +5,7 @@ import PlayerStatsGrid, {
 } from "../../../components/PlayerStatsGrid";
 import MatchHistory from "../../../components/MatchHistory";
 import PerformanceChart from "../../../components/PerformanceChart";
+import RecentPlayerSection from "../../../components/RecentPlayerSection";
 import {
   type EaSquadMember,
   eaPlatformLabels,
@@ -36,6 +37,7 @@ function getPlayerAwardBadges(
     label: string;
     symbol: string;
     className: string;
+    description: string;
     metric: (member: EaSquadMember) => number;
     requirePositive?: boolean;
   }> = [
@@ -43,6 +45,7 @@ function getPlayerAwardBadges(
       label: "Top Scorer",
       symbol: "⚽",
       className: "border-emerald-300/30 bg-emerald-300/12 text-emerald-100",
+      description: "Leads the squad in total goals.",
       metric: (member) => member.goals,
       requirePositive: true,
     },
@@ -50,6 +53,7 @@ function getPlayerAwardBadges(
       label: "Top Assister",
       symbol: "👟",
       className: "border-sky-300/30 bg-sky-300/12 text-sky-100",
+      description: "Leads the squad in total assists.",
       metric: (member) => member.assists,
       requirePositive: true,
     },
@@ -57,6 +61,7 @@ function getPlayerAwardBadges(
       label: "Top Contributor",
       symbol: "✨",
       className: "border-yellow-300/30 bg-yellow-300/12 text-yellow-100",
+      description: "Leads the squad in combined goals and assists.",
       metric: (member) => member.goals + member.assists,
       requirePositive: true,
     },
@@ -64,6 +69,7 @@ function getPlayerAwardBadges(
       label: "Top Crashout",
       symbol: "🟥",
       className: "border-red-300/30 bg-red-300/12 text-red-100",
+      description: "Has the most red cards in the squad.",
       metric: (member) => member.redCards,
       requirePositive: true,
     },
@@ -71,6 +77,7 @@ function getPlayerAwardBadges(
       label: "Top Defender",
       symbol: "🛡",
       className: "border-violet-300/30 bg-violet-300/12 text-violet-100",
+      description: "Leads the squad in tackles made.",
       metric: (member) => member.tackles,
       requirePositive: true,
     },
@@ -78,6 +85,7 @@ function getPlayerAwardBadges(
       label: "Most Consistent",
       symbol: "⭐",
       className: "border-lime-300/30 bg-lime-300/12 text-lime-100",
+      description: "Owns the highest average match rating in the squad.",
       metric: (member) => member.rating,
       requirePositive: true,
     },
@@ -85,6 +93,7 @@ function getPlayerAwardBadges(
       label: "Most Appearances",
       symbol: "📅",
       className: "border-pink-300/30 bg-pink-300/12 text-pink-100",
+      description: "Has played the most matches for the club.",
       metric: (member) => member.matches,
       requirePositive: true,
     },
@@ -94,7 +103,12 @@ function getPlayerAwardBadges(
     .filter((badge) =>
       isClubLeader(player, squad, badge.metric, badge.requirePositive),
     )
-    .map(({ label, symbol, className }) => ({ label, symbol, className }));
+    .map(({ label, symbol, className, description }) => ({
+      label,
+      symbol,
+      className,
+      description,
+    }));
 }
 
 export default async function PlayerPage({
@@ -160,6 +174,7 @@ export default async function PlayerPage({
     const ratings = profile.recentMatches.map((match) => ({
       rating: match.rating,
       matchIndex: match.matchIndex,
+      matchId: match.id,
     }));
     const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
     const playerStatComp = getPlayerStatComp({
@@ -191,6 +206,16 @@ export default async function PlayerPage({
             Player ID: {playerId} / Club ID: {clubId}
           </p>
 
+          <div>
+            <a
+              href={`/club/${clubId}?platform=${platform}`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-emerald-300/40 hover:text-emerald-100"
+            >
+              <span aria-hidden="true">←</span>
+              Return to Club Stats
+            </a>
+          </div>
+
           <PlayerHeader
             name={profile.player.name}
             club={profile.club.name}
@@ -210,6 +235,7 @@ export default async function PlayerPage({
             averageRating={profile.player.rating}
             winRate={profile.player.winRate}
             redCards={profile.player.redCards}
+            shotSuccessRate={profile.player.shotSuccessRate}
             tackles={profile.player.tackles}
             tackleSuccessRate={profile.player.tackleSuccessRate}
             passesMade={profile.player.passesMade}
@@ -222,7 +248,10 @@ export default async function PlayerPage({
             awardBadges={awardBadges}
           />
 
-          <PerformanceChart ratings={ratings} matchWindow={10} />
+          <RecentPlayerSection
+            matches={profile.recentMatches}
+            matchWindow={10}
+          />
 
           <MatchHistory matches={profile.recentMatches} matchWindow={10} />
         </section>

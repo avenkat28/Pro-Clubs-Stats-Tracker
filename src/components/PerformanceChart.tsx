@@ -1,6 +1,7 @@
 type RatingPoint = {
   rating: number;
   matchIndex: number;
+  matchId?: string;
 };
 
 type PerformanceChartProps = {
@@ -191,7 +192,12 @@ export default function PerformanceChart({
   const points = visibleRatings.map(({ rating, matchIndex }) => {
     const x = matchWindow > 1 ? chart.left + (matchIndex - 1) * xStep : chart.width / 2;
     const y = chart.top + ((ratingCeiling - rating) / ratingRange) * plotHeight;
-    return { x, y, rating };
+    const matchId =
+      typeof visibleRatings.find((entry) => entry.matchIndex === matchIndex)?.matchId ===
+      "string"
+        ? visibleRatings.find((entry) => entry.matchIndex === matchIndex)?.matchId
+        : undefined;
+    return { x, y, rating, matchId };
   });
   const lineSegments = points.slice(0, -1).map((point, index) => ({
     start: point,
@@ -297,24 +303,54 @@ export default function PerformanceChart({
           {/* dots */}
           {points.map((p, i) => (
             <g key={i}>
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r="6"
-                fill={ratingColor(p.rating)}
-              />
+              {p.matchId ? (
+                <a href={`#recent-match-${p.matchId}`} className="cursor-pointer">
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="9"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="6"
+                    fill={ratingColor(p.rating)}
+                  />
 
-              <text
-                x={p.x}
-                y={Math.max(18, p.y - 14)}
-                textAnchor="middle"
-                fill={ratingColor(p.rating)}
-                fontSize="14"
-                fontWeight="bold"
-              >
-                {formatRating(p.rating)}
-              </text>
+                  <text
+                    x={p.x}
+                    y={Math.max(18, p.y - 14)}
+                    textAnchor="middle"
+                    fill={ratingColor(p.rating)}
+                    fontSize="14"
+                    fontWeight="bold"
+                    style={{ cursor: "pointer" }}
+                  >
+                    {formatRating(p.rating)}
+                  </text>
+                </a>
+              ) : (
+                <>
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="6"
+                    fill={ratingColor(p.rating)}
+                  />
 
+                  <text
+                    x={p.x}
+                    y={Math.max(18, p.y - 14)}
+                    textAnchor="middle"
+                    fill={ratingColor(p.rating)}
+                    fontSize="14"
+                    fontWeight="bold"
+                  >
+                    {formatRating(p.rating)}
+                  </text>
+                </>
+              )}
             </g>
           ))}
 

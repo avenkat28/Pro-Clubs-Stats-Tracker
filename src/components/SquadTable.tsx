@@ -9,10 +9,12 @@ type SquadPlayer = {
   id: string;
   name: string;
   position: string;
+  nationality: string | null;
   overall: number;
   matches: number;
   goals: number;
   assists: number;
+  shotSuccessRate: number;
   rating: number;
   winRate: number;
   redCards: number;
@@ -41,11 +43,12 @@ type SortKey =
   | "assists"
   | "contributions"
   | "rating"
+  | "manOfTheMatch"
   | "winRate"
+  | "shotSuccessRate"
+  | "passing"
   | "tackles"
-  | "passesMade"
-  | "passAccuracy"
-  | "manOfTheMatch";
+  | "tackleSuccessRate";
 type SortDirection = "asc" | "desc";
 
 function perMatch(value: number, matches: number) {
@@ -65,10 +68,20 @@ function formatNumber(value: number, digits = 0) {
 
 function sortArrow(isActive: boolean, direction: SortDirection) {
   if (!isActive) {
-    return "  ";
+    return "";
   }
 
   return direction === "desc" ? "v" : "^";
+}
+
+function getNationalityFlag(nationality: string | null) {
+  if (!nationality) {
+    return null;
+  }
+
+  const [flag] = nationality.split(" ");
+
+  return flag || null;
 }
 
 export default function SquadTable({ players, clubId, platform }: SquadTableProps) {
@@ -106,22 +119,24 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
             : contributions;
         case "rating":
           return player.rating;
-        case "winRate":
-          return player.winRate;
-        case "tackles":
-          return statMode === "perMatch"
-            ? perMatch(player.tackles, player.matches)
-            : player.tackles;
-        case "passesMade":
-          return statMode === "perMatch"
-            ? perMatch(player.passesMade, player.matches)
-            : player.passesMade;
-        case "passAccuracy":
-          return player.passAccuracy;
         case "manOfTheMatch":
           return statMode === "perMatch"
             ? player.manOfTheMatchRate
             : player.manOfTheMatch;
+        case "winRate":
+          return player.winRate;
+        case "shotSuccessRate":
+          return player.shotSuccessRate;
+        case "passing":
+          return statMode === "perMatch"
+            ? perMatch(player.passesMade, player.matches)
+            : player.passAccuracy;
+        case "tackles":
+          return statMode === "perMatch"
+            ? perMatch(player.tackles, player.matches)
+            : player.tackles;
+        case "tackleSuccessRate":
+          return player.tackleSuccessRate;
       }
     };
 
@@ -152,11 +167,12 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
     assists: statMode === "overall" ? "Assists" : "Assists / Match",
     contributions: statMode === "overall" ? "G+A" : "G+A / Match",
     rating: "Rating",
+    manOfTheMatch: statMode === "overall" ? "MOTM" : "MOTM %",
     winRate: "Win Rate",
-    tackles: statMode === "overall" ? "Tackles" : "Tackles / Match",
-    passesMade: statMode === "overall" ? "Passes" : "Passes / Match",
-    passAccuracy: "Pass Accuracy",
-    manOfTheMatch: statMode === "overall" ? "MOTM" : "MOTM Rate",
+    shotSuccessRate: "Shot Success",
+    passing: statMode === "overall" ? "Pass Accuracy" : "Passes / Match",
+    tackles: statMode === "perMatch" ? "Tackles / Match" : "Tackles",
+    tackleSuccessRate: "Tackle Success",
   } satisfies Record<SortKey, string>;
 
   function handleSort(nextKey: SortKey) {
@@ -176,7 +192,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
   }: {
     columnKey: SortKey;
     label: string;
-    align?: "left" | "right";
+    align?: "left" | "center" | "right";
   }) {
     const isActive = sortKey === columnKey;
 
@@ -184,14 +200,20 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
       <button
         type="button"
         onClick={() => handleSort(columnKey)}
-        className={`inline-flex w-full items-center gap-2 font-semibold transition ${
-          align === "right" ? "justify-end" : "justify-start"
+        className={`flex w-full items-center font-semibold transition ${
+          align === "right"
+            ? "justify-end"
+            : align === "center"
+              ? "justify-center"
+              : "justify-start"
         } ${isActive ? "text-emerald-100" : "text-white/45 hover:text-white/80"}`}
       >
         <span>{label}</span>
-        <span className="w-3 text-center text-[10px] uppercase text-white/35">
-          {sortArrow(isActive, sortDirection)}
-        </span>
+        {isActive ? (
+          <span className="pointer-events-none ml-1.5 text-[10px] uppercase text-white/35">
+            {sortArrow(true, sortDirection)}
+          </span>
+        ) : null}
       </button>
     );
   }
@@ -258,7 +280,22 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
       ) : null}
 
       <div className="mt-6 overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-[1250px] text-left text-sm">
+        <table className="w-full min-w-[1160px] table-fixed text-left text-sm">
+          <colgroup>
+            <col className="w-[18rem]" />
+            <col className="w-[8rem]" />
+            <col className="w-[5rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[6.5rem]" />
+            <col className="w-[7rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[7rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[6rem]" />
+            <col className="w-[6rem]" />
+          </colgroup>
           <thead className="text-white/45">
             <tr className="border-b border-white/10">
               <th className="pb-4">
@@ -267,60 +304,64 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
               <th className="pb-4">
                 <HeaderButton columnKey="position" label="POS" />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton columnKey="overall" label="OVR" align="right" />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton columnKey="matches" label="Apps" align="right" />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton
                   columnKey="goals"
                   label={statMode === "overall" ? "Goals" : "G/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton
                   columnKey="assists"
                   label={statMode === "overall" ? "Assists" : "A/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton
                   columnKey="contributions"
                   label={statMode === "overall" ? "G+A" : "G+A/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton columnKey="rating" label="Rating" align="right" />
               </th>
-              <th className="pb-4 text-right">
-                <HeaderButton columnKey="winRate" label="Win %" align="right" />
-              </th>
-              <th className="pb-4 text-right">
-                <HeaderButton
-                  columnKey="tackles"
-                  label={statMode === "overall" ? "Tackles" : "Tkl/Match"}
-                  align="right"
-                />
-              </th>
-              <th className="pb-4 text-right">
-                <HeaderButton
-                  columnKey="passesMade"
-                  label={statMode === "overall" ? "Passes" : "Pass/Match"}
-                  align="right"
-                />
-              </th>
-              <th className="pb-4 text-right">
-                <HeaderButton columnKey="passAccuracy" label="Pass %" align="right" />
-              </th>
-              <th className="pb-4 text-right">
+              <th className="pb-4 pr-2 text-right">
                 <HeaderButton
                   columnKey="manOfTheMatch"
                   label={statMode === "overall" ? "MOTM" : "MOTM %"}
+                  align="right"
+                />
+              </th>
+              <th className="pb-4 pr-2 text-right">
+                <HeaderButton columnKey="winRate" label="Win %" align="right" />
+              </th>
+              <th className="pb-4 pr-2 text-right">
+                <HeaderButton
+                  columnKey="shotSuccessRate"
+                  label="Shot %"
+                  align="right"
+                />
+              </th>
+              <th className="pb-4 pr-2 text-right">
+                <HeaderButton
+                  columnKey="passing"
+                  label={statMode === "overall" ? "Pass %" : "Pass/Match"}
+                  align="right"
+                />
+              </th>
+              <th className="pb-4 pr-2 text-right">
+                <HeaderButton
+                  columnKey={statMode === "overall" ? "tackleSuccessRate" : "tackles"}
+                  label={statMode === "overall" ? "Tackle %" : "Tkl/Match"}
                   align="right"
                 />
               </th>
@@ -329,6 +370,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
 
           <tbody>
             {sortablePlayers.map((player) => {
+              const nationalityFlag = getNationalityFlag(player.nationality);
               const playerHref = `/player/${encodeURIComponent(player.id)}?clubId=${encodeURIComponent(
                 clubId,
               )}&platform=${encodeURIComponent(platform)}`;
@@ -347,11 +389,11 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
                   : formatNumber(perMatch(contributions, player.matches), 2);
               const tacklesValue =
                 statMode === "overall"
-                  ? formatNumber(player.tackles)
+                  ? `${formatNumber(player.tackleSuccessRate)}%`
                   : formatNumber(perMatch(player.tackles, player.matches), 2);
               const passesValue =
                 statMode === "overall"
-                  ? formatNumber(player.passesMade)
+                  ? `${formatNumber(player.passAccuracy)}%`
                   : formatNumber(perMatch(player.passesMade, player.matches), 2);
               const motmValue =
                 statMode === "overall"
@@ -368,36 +410,47 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
                       <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.45),_rgba(255,255,255,0.02))] text-xs font-black uppercase text-white/85">
                         {player.name.slice(0, 2)}
                       </div>
-                      <Link
-                        href={playerHref}
-                        className="font-semibold transition hover:text-blue-300"
-                      >
-                        {player.name}
-                      </Link>
+                      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-3">
+                        <Link
+                          href={playerHref}
+                          className="truncate font-semibold transition hover:text-blue-300"
+                        >
+                          {player.name}
+                        </Link>
+                        <span
+                          className="text-right text-lg leading-none text-white/70"
+                          aria-label={player.nationality ?? "Nationality unavailable"}
+                          title={player.nationality ?? "Nationality unavailable"}
+                        >
+                          {nationalityFlag ?? "--"}
+                        </span>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-4 text-white/55">{capitalizeWords(player.position)}</td>
-                  <td className="py-4 text-right font-semibold text-blue-200">
+                  <td className="py-4 text-white/55">
+                    <span className="inline-block pl-1">{capitalizeWords(player.position)}</span>
+                  </td>
+                  <td className="py-4 pr-2 text-right font-semibold tabular-nums text-blue-200">
                     {player.overall > 0 ? player.overall : "--"}
                   </td>
-                  <td className="py-4 text-right">{formatNumber(player.matches)}</td>
-                  <td className="py-4 text-right">{goalsValue}</td>
-                  <td className="py-4 text-right">{assistsValue}</td>
-                  <td className="py-4 text-right font-semibold text-emerald-200">
+                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.matches)}</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{goalsValue}</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{assistsValue}</td>
+                  <td className="py-4 pr-2 text-right font-semibold tabular-nums text-emerald-200">
                     {contributionsValue}
                   </td>
-                  <td className="py-4 text-right">
+                  <td className="py-4 pr-2 text-right">
                     <span
                       className={`inline-flex min-w-16 items-center justify-center rounded-full border px-2.5 py-1 font-bold ${ratingBadgeClassName(player.rating)}`}
                     >
                       {player.rating > 0 ? player.rating.toFixed(1) : "--"}
                     </span>
                   </td>
-                  <td className="py-4 text-right">{formatNumber(player.winRate)}%</td>
-                  <td className="py-4 text-right">{tacklesValue}</td>
-                  <td className="py-4 text-right">{passesValue}</td>
-                  <td className="py-4 text-right">{formatNumber(player.passAccuracy)}%</td>
-                  <td className="py-4 text-right">{motmValue}</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{motmValue}</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.winRate)}%</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.shotSuccessRate)}%</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{passesValue}</td>
+                  <td className="py-4 pr-2 text-right tabular-nums">{tacklesValue}</td>
                 </tr>
               );
             })}
@@ -411,7 +464,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
             Totals view shows raw production and usage.
           </span>
           <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
-            Per-match view normalizes scoring, creation, tackles, passing, and MOTM impact.
+            Per-match view normalizes scoring, creation, passing volume, tackles, and MOTM impact.
           </span>
         </div>
       ) : null}
