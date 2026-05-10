@@ -1,6 +1,5 @@
 import Navbar from "../../../components/Navbar";
 import PlayerHeader from "../../../components/PlayerHeader";
-import PlayerStatCompCard from "../../../components/PlayerStatCompCard";
 import PlayerStatsGrid, {
   type PlayerAwardBadge,
 } from "../../../components/PlayerStatsGrid";
@@ -10,7 +9,7 @@ import {
   type EaSquadMember,
   eaPlatformLabels,
   getEaPlayerProfile,
-  isEaPlatform,
+  normalizeEaPlatform,
 } from "../../../lib/ea";
 import { getPlayerStatComp } from "../../../lib/playerStatComp";
 
@@ -110,9 +109,7 @@ export default async function PlayerPage({
     searchParams,
   ]);
   const clubId = resolvedSearchParams.clubId;
-  const platform = isEaPlatform(resolvedSearchParams.platform)
-    ? resolvedSearchParams.platform
-    : "common-gen5";
+  const platform = normalizeEaPlatform(resolvedSearchParams.platform);
 
   if (!clubId) {
     return (
@@ -168,6 +165,7 @@ export default async function PlayerPage({
     const playerStatComp = getPlayerStatComp({
       position: profile.player.position,
       overall: profile.player.overall,
+      height: profile.player.height,
       games: profile.player.matches,
       goals: profile.player.goals,
       assists: profile.player.assists,
@@ -181,6 +179,7 @@ export default async function PlayerPage({
       motm: profile.player.manOfTheMatch,
       motmPercent: profile.player.manOfTheMatchRate,
       redCards: profile.player.redCards,
+      recentMatches: profile.recentMatches,
     });
 
     return (
@@ -198,6 +197,9 @@ export default async function PlayerPage({
             position={profile.player.position}
             platform={eaPlatformLabels[platform]}
             overall={profile.player.overall}
+            height={profile.player.height}
+            nationality={profile.player.nationality}
+            comp={playerStatComp.primaryComp}
           />
 
           <PlayerStatsGrid
@@ -219,8 +221,6 @@ export default async function PlayerPage({
             matchWindow={10}
             awardBadges={awardBadges}
           />
-
-          <PlayerStatCompCard comp={playerStatComp} />
 
           <PerformanceChart ratings={ratings} matchWindow={10} />
 
