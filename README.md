@@ -67,10 +67,24 @@ Player pages call `getPlayerStatComp` from `src/lib/playerStatComp.ts` and displ
 the result with `src/components/PlayerStatCompCard.tsx`.
 
 The player comp uses games, goals, assists, G/A, goals per game, assists per game,
-G/A per game, average rating, win rate, tackles, tackle success, MOTM, red cards,
-form when available, and position when available. Position is used to avoid bad
-matches such as defenders receiving attacker comps, and central strikers with a
+G/A per game, overall, average rating, win rate, tackles, tackle success, MOTM,
+red cards, recent-match form when available, and position when available. Overall
+is treated as a quality-tier signal, so elite-overall players are compared more
+often to elite real-life profiles while lower-overall players can land on breakout
+or emerging comps with similar production. Recent-match form
+compares the player's last available ratings and G/A against their season profile,
+so hot streaks and slumps can affect both the comp score and reasoning. Position is
+used as a real-life role fit, so ST, LW, RW, CAM, CM, CDM, fullback, CB, and GK
+profiles are compared against players who actually play similar roles. This avoids
+bad matches such as defenders receiving attacker comps, and central strikers with a
 heavy goal bias being compared to wide forwards.
+
+The player comp algorithm also changes comparison lanes after goal-volume
+thresholds. Around 20 goals it starts boosting productive scorer/hybrid comps,
+around 40 goals it shifts toward high-volume scorers, around 75 goals it heavily
+prefers elite finishers, and around 120 goals it favors legendary volume scorer
+profiles. Goals per game can also push a player into a higher lane for shorter
+sample sizes.
 
 Player comp images live in:
 
@@ -82,6 +96,13 @@ Expected player image filenames:
 
 ```text
 lionel-messi.png
+alexander-isak.png
+antoine-semenyo.png
+arturo-vidal.png
+bruno-fernandes.png
+bryan-mbeumo.png
+bukayo-saka.png
+cole palmer.png
 cristiano-ronaldo.png
 neymar.png
 kylian-mbappe.png
@@ -90,11 +111,9 @@ harry-kane.png
 robert-lewandowski.png
 mohamed-salah.png
 kevin-de-bruyne.png
-bruno-fernandes.png
 martin-odegaard.png
 thomas-muller.png
 jude-bellingham.png
-bukayo-saka.png
 vinicius-jr.png
 son-heung-min.png
 antoine-griezmann.png
@@ -110,7 +129,16 @@ federico-valverde.png
 steven-gerrard.png
 frank-lampard.png
 yaya-toure.png
-arturo-vidal.png
+florian-wirtz.png
+gianluigi-donnarumma.png
+igor-thiago.png
+joao-cancelo.png
+joao-pedro.png
+julian-alvarez.png
+nico-oreilly.png
+omar-marmoush.png
+rayan-cherki.png
+viktor-gyokeres.png
 fallback.png
 ```
 

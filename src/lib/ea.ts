@@ -18,6 +18,207 @@ const DEFAULT_EA_API_BASE_URL =
 const DEFAULT_REVALIDATE_SECONDS = 300;
 const RECENT_PLAYER_MATCH_COUNT = 10;
 const RECENT_CLUB_MATCH_SCAN_COUNT = 10;
+const DEFAULT_EA_API_HOST = "proclubs.ea.com";
+const ALLOWED_EA_API_HOSTS = new Set([DEFAULT_EA_API_HOST]);
+const EA_CLUB_ID_PATTERN = /^\d{1,20}$/;
+const EA_ROUTE_ID_PATTERN = /^[\w .@+-]{1,128}$/;
+const MAX_EA_SEARCH_QUERY_LENGTH = 80;
+const EA_NATIONALITIES: Record<string, { name: string; flag: string }> = {
+  "1": { name: "Albania", flag: "🇦🇱" },
+  "3": { name: "Armenia", flag: "🇦🇲" },
+  "4": { name: "Austria", flag: "🇦🇹" },
+  "5": { name: "Azerbaijan", flag: "🇦🇿" },
+  "6": { name: "Belarus", flag: "🇧🇾" },
+  "7": { name: "Belgium", flag: "🇧🇪" },
+  "8": { name: "Bosnia Herzegovina", flag: "🇧🇦" },
+  "9": { name: "Bulgaria", flag: "🇧🇬" },
+  "10": { name: "Croatia", flag: "🇭🇷" },
+  "11": { name: "Cyprus", flag: "🇨🇾" },
+  "12": { name: "Czech Republic", flag: "🇨🇿" },
+  "13": { name: "Denmark", flag: "🇩🇰" },
+  "14": { name: "England", flag: "🏴" },
+  "15": { name: "Montenegro", flag: "🇲🇪" },
+  "16": { name: "Faroe Islands", flag: "🇫🇴" },
+  "17": { name: "Finland", flag: "🇫🇮" },
+  "18": { name: "France", flag: "🇫🇷" },
+  "19": { name: "North Macedonia", flag: "🇲🇰" },
+  "20": { name: "Georgia", flag: "🇬🇪" },
+  "21": { name: "Germany", flag: "🇩🇪" },
+  "22": { name: "Greece", flag: "🇬🇷" },
+  "23": { name: "Hungary", flag: "🇭🇺" },
+  "24": { name: "Iceland", flag: "🇮🇸" },
+  "25": { name: "Republic of Ireland", flag: "🇮🇪" },
+  "26": { name: "Israel", flag: "🇮🇱" },
+  "27": { name: "Italy", flag: "🇮🇹" },
+  "28": { name: "Latvia", flag: "🇱🇻" },
+  "29": { name: "Liechtenstein", flag: "🇱🇮" },
+  "30": { name: "Lithuania", flag: "🇱🇹" },
+  "31": { name: "Luxembourg", flag: "🇱🇺" },
+  "32": { name: "Malta", flag: "🇲🇹" },
+  "33": { name: "Moldova", flag: "🇲🇩" },
+  "34": { name: "Netherlands", flag: "🇳🇱" },
+  "35": { name: "Northern Ireland", flag: "🇬🇧" },
+  "36": { name: "Norway", flag: "🇳🇴" },
+  "37": { name: "Poland", flag: "🇵🇱" },
+  "38": { name: "Portugal", flag: "🇵🇹" },
+  "39": { name: "Romania", flag: "🇷🇴" },
+  "40": { name: "Russia", flag: "🇷🇺" },
+  "41": { name: "San Marino", flag: "🇸🇲" },
+  "42": { name: "Scotland", flag: "🏴" },
+  "43": { name: "Slovakia", flag: "🇸🇰" },
+  "44": { name: "Slovenia", flag: "🇸🇮" },
+  "45": { name: "Spain", flag: "🇪🇸" },
+  "46": { name: "Sweden", flag: "🇸🇪" },
+  "47": { name: "Switzerland", flag: "🇨🇭" },
+  "48": { name: "Turkey", flag: "🇹🇷" },
+  "49": { name: "Ukraine", flag: "🇺🇦" },
+  "50": { name: "Wales", flag: "🏴" },
+  "51": { name: "Serbia", flag: "🇷🇸" },
+  "52": { name: "Argentina", flag: "🇦🇷" },
+  "53": { name: "Bolivia", flag: "🇧🇴" },
+  "54": { name: "Brazil", flag: "🇧🇷" },
+  "55": { name: "Chile", flag: "🇨🇱" },
+  "56": { name: "Colombia", flag: "🇨🇴" },
+  "57": { name: "Ecuador", flag: "🇪🇨" },
+  "58": { name: "Paraguay", flag: "🇵🇾" },
+  "59": { name: "Peru", flag: "🇵🇪" },
+  "60": { name: "Uruguay", flag: "🇺🇾" },
+  "61": { name: "Venezuela", flag: "🇻🇪" },
+  "63": { name: "Antigua & Barbuda", flag: "🇦🇬" },
+  "64": { name: "Aruba", flag: "🇦🇼" },
+  "66": { name: "Barbados", flag: "🇧🇧" },
+  "67": { name: "Belize", flag: "🇧🇿" },
+  "68": { name: "Bermuda", flag: "🇧🇲" },
+  "70": { name: "Canada", flag: "🇨🇦" },
+  "72": { name: "Costa Rica", flag: "🇨🇷" },
+  "73": { name: "Cuba", flag: "🇨🇺" },
+  "76": { name: "El Salvador", flag: "🇸🇻" },
+  "77": { name: "Grenada", flag: "🇬🇩" },
+  "78": { name: "Guatemala", flag: "🇬🇹" },
+  "79": { name: "Guyana", flag: "🇬🇾" },
+  "80": { name: "Haiti", flag: "🇭🇹" },
+  "81": { name: "Honduras", flag: "🇭🇳" },
+  "82": { name: "Jamaica", flag: "🇯🇲" },
+  "83": { name: "Mexico", flag: "🇲🇽" },
+  "84": { name: "Montserrat", flag: "🇲🇸" },
+  "85": { name: "Curacao", flag: "🇨🇼" },
+  "87": { name: "Panama", flag: "🇵🇦" },
+  "88": { name: "Puerto Rico", flag: "🇵🇷" },
+  "89": { name: "St Kitts Nevis", flag: "🇰🇳" },
+  "90": { name: "St Lucia", flag: "🇱🇨" },
+  "91": { name: "St Vincent Grenadine", flag: "🇻🇨" },
+  "92": { name: "Suriname", flag: "🇸🇷" },
+  "93": { name: "Trinidad & Tobago", flag: "🇹🇹" },
+  "95": { name: "United States", flag: "🇺🇸" },
+  "97": { name: "Algeria", flag: "🇩🇿" },
+  "98": { name: "Angola", flag: "🇦🇴" },
+  "99": { name: "Benin", flag: "🇧🇯" },
+  "101": { name: "Burkina Faso", flag: "🇧🇫" },
+  "103": { name: "Cameroon", flag: "🇨🇲" },
+  "104": { name: "Cape Verde", flag: "🇨🇻" },
+  "105": { name: "Central African Republic", flag: "🇨🇫" },
+  "106": { name: "Chad", flag: "🇹🇩" },
+  "107": { name: "Congo", flag: "🇨🇬" },
+  "108": { name: "Ivory Coast", flag: "🇨🇮" },
+  "110": { name: "DR Congo", flag: "🇨🇩" },
+  "111": { name: "Egypt", flag: "🇪🇬" },
+  "112": { name: "Equatorial Guinea", flag: "🇬🇶" },
+  "113": { name: "Eritrea", flag: "🇪🇷" },
+  "114": { name: "Ethiopia", flag: "🇪🇹" },
+  "115": { name: "Gabon", flag: "🇬🇦" },
+  "116": { name: "Gambia", flag: "🇬🇲" },
+  "117": { name: "Ghana", flag: "🇬🇭" },
+  "118": { name: "Guinea", flag: "🇬🇳" },
+  "119": { name: "Guinea Bissau", flag: "🇬🇼" },
+  "120": { name: "Kenya", flag: "🇰🇪" },
+  "122": { name: "Liberia", flag: "🇱🇷" },
+  "123": { name: "Libya", flag: "🇱🇾" },
+  "124": { name: "Madagascar", flag: "🇲🇬" },
+  "126": { name: "Mali", flag: "🇲🇱" },
+  "127": { name: "Mauritania", flag: "🇲🇷" },
+  "128": { name: "Mauritius", flag: "🇲🇺" },
+  "129": { name: "Morocco", flag: "🇲🇦" },
+  "130": { name: "Mozambique", flag: "🇲🇿" },
+  "131": { name: "Namibia", flag: "🇳🇦" },
+  "132": { name: "Niger", flag: "🇳🇪" },
+  "133": { name: "Nigeria", flag: "🇳🇬" },
+  "135": { name: "Sao Tome & Principe", flag: "🇸🇹" },
+  "136": { name: "Senegal", flag: "🇸🇳" },
+  "138": { name: "Sierra Leone", flag: "🇸🇱" },
+  "139": { name: "Somalia", flag: "🇸🇴" },
+  "140": { name: "South Africa", flag: "🇿🇦" },
+  "141": { name: "Sudan", flag: "🇸🇩" },
+  "143": { name: "Tanzania", flag: "🇹🇿" },
+  "144": { name: "Togo", flag: "🇹🇬" },
+  "145": { name: "Tunisia", flag: "🇹🇳" },
+  "146": { name: "Uganda", flag: "🇺🇬" },
+  "147": { name: "Zambia", flag: "🇿🇲" },
+  "148": { name: "Zimbabwe", flag: "🇿🇼" },
+  "149": { name: "Afghanistan", flag: "🇦🇫" },
+  "155": { name: "China PR", flag: "🇨🇳" },
+  "157": { name: "Guam", flag: "🇬🇺" },
+  "159": { name: "India", flag: "🇮🇳" },
+  "161": { name: "Iran", flag: "🇮🇷" },
+  "162": { name: "Iraq", flag: "🇮🇶" },
+  "163": { name: "Japan", flag: "🇯🇵" },
+  "165": { name: "Kazakhstan", flag: "🇰🇿" },
+  "166": { name: "Korea DPR", flag: "🇰🇵" },
+  "167": { name: "Korea Republic", flag: "🇰🇷" },
+  "168": { name: "Kuwait", flag: "🇰🇼" },
+  "169": { name: "Kyrgyzstan", flag: "🇰🇬" },
+  "171": { name: "Lebanon", flag: "🇱🇧" },
+  "178": { name: "Oman", flag: "🇴🇲" },
+  "180": { name: "Palestine", flag: "🇵🇸" },
+  "181": { name: "Philippines", flag: "🇵🇭" },
+  "182": { name: "Qatar", flag: "🇶🇦" },
+  "183": { name: "Saudi Arabia", flag: "🇸🇦" },
+  "186": { name: "Syria", flag: "🇸🇾" },
+  "187": { name: "Tajikistan", flag: "🇹🇯" },
+  "191": { name: "Uzbekistan", flag: "🇺🇿" },
+  "192": { name: "Vietnam", flag: "🇻🇳" },
+  "195": { name: "Australia", flag: "🇦🇺" },
+  "197": { name: "Fiji", flag: "🇫🇯" },
+  "198": { name: "New Zealand", flag: "🇳🇿" },
+  "199": { name: "Papua New Guinea", flag: "🇵🇬" },
+  "205": { name: "Gibraltar", flag: "🇬🇮" },
+  "207": { name: "Dominican Republic", flag: "🇩🇴" },
+  "208": { name: "Estonia", flag: "🇪🇪" },
+  "213": { name: "Chinese Taipei", flag: "🇹🇼" },
+  "214": { name: "Comoros", flag: "🇰🇲" },
+  "215": { name: "New Caledonia", flag: "🇳🇨" },
+  "219": { name: "Kosovo", flag: "🇽🇰" },
+};
+
+const NATIONALITY_ALIASES: Record<string, string> = {
+  "antigua and barbuda": "Antigua & Barbuda",
+  "bosnia and herzegovina": "Bosnia Herzegovina",
+  "cape verde islands": "Cape Verde",
+  "central african rep.": "Central African Republic",
+  "china": "China PR",
+  "chinese taipei": "Chinese Taipei",
+  "cote d'ivoire": "Ivory Coast",
+  "côte d'ivoire": "Ivory Coast",
+  "curacao": "Curacao",
+  "czechia": "Czech Republic",
+  "democratic republic of the congo": "DR Congo",
+  "fyr macedonia": "North Macedonia",
+  "guinea-bissau": "Guinea Bissau",
+  "ivory coast": "Ivory Coast",
+  "north korea": "Korea DPR",
+  "republic of ireland": "Republic of Ireland",
+  "republic of the congo": "Congo",
+  "russia": "Russia",
+  "sao tome and principe": "Sao Tome & Principe",
+  "sao tomé & príncipe": "Sao Tome & Principe",
+  "south korea": "Korea Republic",
+  "st kitts and nevis": "St Kitts Nevis",
+  "st lucia": "St Lucia",
+  "st vincent and the grenadines": "St Vincent Grenadine",
+  "trinidad and tobago": "Trinidad & Tobago",
+  "turkiye": "Turkey",
+  "united states of america": "United States",
+  "usa": "United States",
+};
 
 type PrimitiveRecord = Record<string, unknown>;
 
@@ -51,6 +252,8 @@ export type EaSquadMember = {
   id: string;
   name: string;
   position: string;
+  height: string | null;
+  nationality: string | null;
   overall: number;
   matches: number;
   goals: number;
@@ -101,6 +304,52 @@ export function isEaPlatform(value: string | undefined | null): value is EaPlatf
   return Boolean(value && eaPlatforms.includes(value as EaPlatform));
 }
 
+function getEaApiBaseUrl() {
+  let url: URL;
+
+  try {
+    url = new URL(DEFAULT_EA_API_BASE_URL);
+  } catch {
+    throw new Error("EA_API_BASE_URL must be a valid absolute URL.");
+  }
+
+  if (url.protocol !== "https:" || !ALLOWED_EA_API_HOSTS.has(url.hostname)) {
+    throw new Error(
+      `EA_API_BASE_URL must use HTTPS and point to ${DEFAULT_EA_API_HOST}.`,
+    );
+  }
+
+  return `${url.origin}${url.pathname.replace(/\/$/, "")}`;
+}
+
+export function normalizeEaPlatform(value: string | undefined | null): EaPlatform {
+  return isEaPlatform(value) ? value : "common-gen5";
+}
+
+export function normalizeEaClubId(value: string) {
+  const normalizedValue = value.trim();
+
+  if (!EA_CLUB_ID_PATTERN.test(normalizedValue)) {
+    throw new Error("Club ID must be numeric and 20 digits or fewer.");
+  }
+
+  return normalizedValue;
+}
+
+export function normalizeEaRouteId(value: string, label = "ID") {
+  const normalizedValue = value.trim();
+
+  if (!EA_ROUTE_ID_PATTERN.test(normalizedValue)) {
+    throw new Error(`${label} contains unsupported characters or is too long.`);
+  }
+
+  return normalizedValue;
+}
+
+export function normalizeEaSearchQuery(value: string) {
+  return value.trim().slice(0, MAX_EA_SEARCH_QUERY_LENGTH);
+}
+
 export type EaClubSearchResult = {
   id: string;
   name: string;
@@ -125,7 +374,7 @@ export class EaRequestError extends Error {
 }
 
 function createEaUrl(pathname: string, searchParams: URLSearchParams) {
-  return `${DEFAULT_EA_API_BASE_URL}${pathname}?${searchParams.toString()}`;
+  return `${getEaApiBaseUrl()}${pathname}?${searchParams.toString()}`;
 }
 
 async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
@@ -380,6 +629,108 @@ function getPercentage(numerator: number, denominator: number) {
   return Math.round((numerator / denominator) * 100);
 }
 
+function getHeight(value: unknown) {
+  const heightText = getString(value, [
+    "height",
+    "heightFormatted",
+    "proHeight",
+    "avatar.height",
+    "pro.height",
+    "stats.height",
+    "proStats.height",
+  ], "");
+
+  if (heightText) {
+    const numericHeight = Number(heightText);
+
+    if (Number.isFinite(numericHeight) && numericHeight > 0) {
+      return `${Math.round(numericHeight)} cm`;
+    }
+
+    return heightText;
+  }
+
+  const heightCm = getNumber(value, [
+    "heightCm",
+    "heightCM",
+    "heightCentimeters",
+    "proHeightCm",
+    "avatar.heightCm",
+    "pro.heightCm",
+    "stats.heightCm",
+    "proStats.heightCm",
+  ]);
+
+  if (heightCm > 0) {
+    return `${Math.round(heightCm)} cm`;
+  }
+
+  const heightInches = getNumber(value, [
+    "heightInches",
+    "heightIn",
+    "proHeightInches",
+    "avatar.heightInches",
+    "pro.heightInches",
+  ]);
+
+  if (heightInches > 0) {
+    const feet = Math.floor(heightInches / 12);
+    const inches = Math.round(heightInches % 12);
+
+    return `${feet}'${inches}\"`;
+  }
+
+  return null;
+}
+
+function normalizeNationalityKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function getNationalityByName(value: string) {
+  const normalizedValue = normalizeNationalityKey(value);
+  const alias = NATIONALITY_ALIASES[normalizedValue];
+  const nationalities = Object.values(EA_NATIONALITIES);
+  const nationality = nationalities.find(
+    (entry) =>
+      normalizeNationalityKey(entry.name) === normalizedValue ||
+      (alias && entry.name === alias),
+  );
+
+  return nationality ? `${nationality.flag} ${nationality.name}` : null;
+}
+
+function getNationality(value: unknown) {
+  const nationality = getString(value, [
+    "nationality",
+    "nation",
+    "country",
+    "countryName",
+    "nationalityName",
+    "proNationality",
+    "avatar.nationality",
+    "avatar.country",
+    "pro.nationality",
+    "pro.country",
+    "stats.nationality",
+    "proStats.nationality",
+  ], "");
+  const eaNationality = EA_NATIONALITIES[nationality];
+
+  if (eaNationality) {
+    return `${eaNationality.flag} ${eaNationality.name}`;
+  }
+
+  return getNationalityByName(nationality) ?? (nationality || null);
+}
+
 function getClubBadgeUrl(info: PrimitiveRecord | null) {
   const crestAssetId = getString(info, [
     "customKit.crestAssetId",
@@ -626,6 +977,8 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
       "proPos",
       "pos",
     ], "N/A"),
+    height: getHeight(record),
+    nationality: getNationality(record),
     overall: getOverall(record),
     matches,
     goals: getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]),
@@ -672,6 +1025,8 @@ function mergeSquadMembers(members: EaSquadMember[]) {
       ...existing,
       name: existing.name !== "Unknown" ? existing.name : member.name,
       position: existing.position !== "N/A" ? existing.position : member.position,
+      height: existing.height ?? member.height,
+      nationality: existing.nationality ?? member.nationality,
       matches: Math.max(existing.matches, member.matches),
       goals: Math.max(existing.goals, member.goals),
       assists: Math.max(existing.assists, member.assists),
@@ -945,15 +1300,17 @@ export async function searchEaClubs(
   query: string,
   platform: EaPlatform,
 ): Promise<EaClubSearchResult[]> {
-  const normalizedQuery = query.toLowerCase().trim();
+  const safePlatform = normalizeEaPlatform(platform);
+  const safeQuery = normalizeEaSearchQuery(query);
+  const normalizedQuery = safeQuery.toLowerCase();
 
   if (!normalizedQuery) {
     return [];
   }
 
   const [allTimeSearchPayload, currentSeasonSearchPayload] = await Promise.all([
-    searchEaEndpoint("/allTimeLeaderboard/search", platform, query),
-    searchEaEndpoint("/currentSeasonLeaderboard/search", platform, query),
+    searchEaEndpoint("/allTimeLeaderboard/search", safePlatform, safeQuery),
+    searchEaEndpoint("/currentSeasonLeaderboard/search", safePlatform, safeQuery),
   ]);
 
   const results = dedupeClubSearchResults([
@@ -977,8 +1334,10 @@ export async function getEaClubProfile(
   clubId: string,
   platform = DEFAULT_EA_PLATFORM,
 ): Promise<EaClubProfile> {
+  const safeClubId = normalizeEaClubId(clubId);
+  const safePlatform = normalizeEaPlatform(platform);
   const baseParams = new URLSearchParams({
-    platform,
+    platform: safePlatform,
   });
 
   const [
@@ -991,43 +1350,43 @@ export async function getEaClubProfile(
   ] = await Promise.all([
     fetchEaJson("/clubs/info", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubIds: clubId,
+      clubIds: safeClubId,
     })),
     fetchEaJson("/clubs/overallStats", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubIds: clubId,
+      clubIds: safeClubId,
     })),
     fetchOptionalEaJson("/members/stats", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubId,
+      clubId: safeClubId,
     })),
     fetchOptionalEaJson("/members/career/stats", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubId,
+      clubId: safeClubId,
     })),
     fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubIds: clubId,
+      clubIds: safeClubId,
       matchType: "leagueMatch",
       maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
     })),
     fetchOptionalEaJson("/club/playoffAchievements", new URLSearchParams({
       ...Object.fromEntries(baseParams.entries()),
-      clubId,
+      clubId: safeClubId,
     })),
   ]);
 
   return {
     club: normalizeClub(
-      clubId,
-      platform,
+      safeClubId,
+      safePlatform,
       infoPayload,
       overallPayload,
       playoffPayload,
     ),
     squad: normalizeSquad(careerMembersPayload, membersPayload),
     recentMatches: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
-    recentClubMatches: normalizeClubRecentMatches(leagueMatchesPayload, clubId),
+    recentClubMatches: normalizeClubRecentMatches(leagueMatchesPayload, safeClubId),
   };
 }
 
@@ -1036,8 +1395,10 @@ export async function getEaPlayerProfile(
   playerId: string,
   platform = DEFAULT_EA_PLATFORM,
 ) {
-  const profile = await getEaClubProfile(clubId, platform);
-  const player = profile.squad.find((member) => member.id === playerId);
+  const safeClubId = normalizeEaClubId(clubId);
+  const safePlayerId = normalizeEaRouteId(playerId, "Player ID");
+  const profile = await getEaClubProfile(safeClubId, platform);
+  const player = profile.squad.find((member) => member.id === safePlayerId);
 
   return {
     club: profile.club,
@@ -1046,8 +1407,8 @@ export async function getEaPlayerProfile(
     recentMatches: player
       ? normalizePlayerRecentMatches(
           profile.recentMatches,
-          clubId,
-          playerId,
+          safeClubId,
+          safePlayerId,
           player.name,
         )
       : [],

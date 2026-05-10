@@ -5,9 +5,18 @@ import {
   EaRequestError,
   eaPlatformLabels,
   eaPlatforms,
-  isEaPlatform,
+  normalizeEaPlatform,
+  normalizeEaSearchQuery,
   searchEaClubs,
 } from "../../lib/ea";
+
+const searchFilters = ["all", "players", "clubs"] as const;
+
+function normalizeSearchFilter(value: string | undefined) {
+  return searchFilters.includes(value as (typeof searchFilters)[number])
+    ? value
+    : "all";
+}
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -19,9 +28,9 @@ type SearchPageProps = {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-  const query = params.q ?? "";
-  const filter = params.type ?? "all";
-  const platform = isEaPlatform(params.platform) ? params.platform : "common-gen5";
+  const query = normalizeEaSearchQuery(params.q ?? "");
+  const filter = normalizeSearchFilter(params.type);
+  const platform = normalizeEaPlatform(params.platform);
   let clubs = [];
   let searchError = "";
 

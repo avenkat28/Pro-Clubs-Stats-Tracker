@@ -22,6 +22,9 @@
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.2.4"
   },
+  "overrides": {
+    "postcss": "$postcss"
+  },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
