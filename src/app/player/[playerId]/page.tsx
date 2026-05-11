@@ -183,6 +183,8 @@ export default async function PlayerPage({
       height: profile.player.height,
       games: profile.player.matches,
       goals: profile.player.goals,
+      shots: profile.player.shots,
+      shotSuccessRate: profile.player.shotSuccessRate,
       assists: profile.player.assists,
       averageRating: profile.player.rating,
       winRate: profile.player.winRate,

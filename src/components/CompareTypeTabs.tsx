@@ -1,4 +1,4 @@
-import type { CompareMode } from "../lib/compareMockData";
+import type { CompareMode } from "../lib/compareTypes";
 
 type CompareTypeTabsProps = {
   activeMode: CompareMode;
@@ -15,7 +15,7 @@ export default function CompareTypeTabs({
   onModeChange,
 }: CompareTypeTabsProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-1 backdrop-blur">
+    <div className="rounded-lg border border-white/10 bg-[#080b0a] p-1">
       <div className="grid grid-cols-2 gap-1">
         {tabs.map((tab) => {
           const isActive = activeMode === tab.value;
@@ -25,10 +25,10 @@ export default function CompareTypeTabs({
               key={tab.value}
               type="button"
               onClick={() => onModeChange(tab.value)}
-              className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
+              className={`rounded-md px-5 py-2.5 text-sm font-semibold transition ${
                 isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-white text-black"
+                  : "text-white/55 hover:bg-white/[0.06] hover:text-white"
               }`}
             >
               {tab.label}

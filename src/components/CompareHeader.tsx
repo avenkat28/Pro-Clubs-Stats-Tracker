@@ -1,15 +1,19 @@
 export default function CompareHeader() {
   return (
-    <header className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-8 shadow-2xl shadow-blue-950/20 backdrop-blur md:px-8 md:py-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">
-        EA FC 26 Pro Clubs Analytics
-      </p>
-      <h1 className="mt-3 text-4xl font-black text-white md:text-6xl">
-        Compare Performance
-      </h1>
-      <p className="mt-4 max-w-2xl text-base text-gray-400 md:text-lg">
-        Compare clubs and players side-by-side with advanced stats.
-      </p>
+    <header className="border-b border-white/10 pb-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300/75">
+            Compare
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold text-white md:text-5xl">
+            Performance matchup
+          </h1>
+        </div>
+        <p className="max-w-xl text-sm leading-6 text-white/55 md:text-right">
+          Review two clubs or players across the same stat set.
+        </p>
+      </div>
     </header>
   );
 }

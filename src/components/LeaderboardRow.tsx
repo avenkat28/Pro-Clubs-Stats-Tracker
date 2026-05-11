@@ -42,13 +42,27 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 function winRate(wins: number, games: number) {
+  if (games <= 0) {
+    return 0;
+  }
+
   return Math.round((wins / games) * 100);
 }
 
 export default function LeaderboardRow(props: LeaderboardRowProps) {
   const href =
     props.activeTab === "players"
-      ? `/player/${props.item.id}`
+      ? `/player/${encodeURIComponent(props.item.id)}${
+          props.item.clubId
+            ? `?clubId=${encodeURIComponent(props.item.clubId)}&platform=${
+                props.item.platform === "Old Gen"
+                  ? "common-gen4"
+                  : props.item.platform === "Switch"
+                    ? "nx"
+                    : "common-gen5"
+              }`
+            : ""
+        }`
       : `/club/${props.item.id}`;
 
   if (props.activeTab === "players") {
@@ -146,7 +160,20 @@ export function MobileLeaderboardCard({
   item: TopPlayer | TopClub;
   displayRank: number;
 }) {
-  const href = activeTab === "players" ? `/player/${item.id}` : `/club/${item.id}`;
+  const href =
+    activeTab === "players"
+      ? `/player/${encodeURIComponent(item.id)}${
+          (item as TopPlayer).clubId
+            ? `?clubId=${encodeURIComponent((item as TopPlayer).clubId ?? "")}&platform=${
+                item.platform === "Old Gen"
+                  ? "common-gen4"
+                  : item.platform === "Switch"
+                    ? "nx"
+                    : "common-gen5"
+              }`
+            : ""
+        }`
+      : `/club/${item.id}`;
 
   if (activeTab === "players") {
     const player = item as TopPlayer;

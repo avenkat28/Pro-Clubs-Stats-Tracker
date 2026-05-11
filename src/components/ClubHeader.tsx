@@ -3,6 +3,25 @@ import {
   skillRatingLabelClassName,
   skillRatingTextClassName,
 } from "../lib/colorCoding";
+import type { ProTeamCompName } from "../lib/proTeamComp";
+
+const CLUB_COMP_IMAGE_PATHS: Record<ProTeamCompName, string> = {
+  "Manchester City": "/club-comps/manchester-city.png",
+  Barcelona: "/club-comps/barcelona.png",
+  "Real Madrid": "/club-comps/real-madrid.png",
+  "Bayern Munich": "/club-comps/bayern-munich.png",
+  PSG: "/club-comps/psg.png",
+  Liverpool: "/club-comps/liverpool.png",
+  Arsenal: "/club-comps/arsenal.png",
+  Tottenham: "/club-comps/tottenham.png",
+  "Borussia Dortmund": "/club-comps/borussia-dortmund.png",
+  "Bayer Leverkusen": "/club-comps/bayer-leverkusen.png",
+  Napoli: "/club-comps/napoli.png",
+  "Inter Milan": "/club-comps/inter-milan.png",
+  "Atlético Madrid": "/club-comps/atletico-madrid.png",
+  Juventus: "/club-comps/juventus.png",
+  Chelsea: "/club-comps/chelsea.png",
+};
 
 type ClubHeaderProps = {
   name: string;
@@ -11,6 +30,7 @@ type ClubHeaderProps = {
   skillRating: number;
   clubId: string;
   badgeUrl?: string | null;
+  proTeamComp?: ProTeamCompName;
 };
 
 export default function ClubHeader({
@@ -20,6 +40,7 @@ export default function ClubHeader({
   skillRating,
   clubId,
   badgeUrl,
+  proTeamComp,
 }: ClubHeaderProps) {
   const skillRatingCardTone = skillRatingCardClassName(skillRating);
   const skillRatingLabelTone = skillRatingLabelClassName(skillRating);
@@ -63,13 +84,35 @@ export default function ClubHeader({
           </div>
         </div>
 
-        <div className={`w-full rounded-[1.25rem] border px-6 py-5 text-center sm:w-auto sm:min-w-48 ${skillRatingCardTone}`}>
-          <p className={`text-xs font-black uppercase tracking-[0.2em] ${skillRatingLabelTone}`}>
-            Skill Rating
-          </p>
-          <p className={`mt-2 text-5xl font-black tracking-[-0.06em] ${skillRatingValueTone}`}>
-            {skillRating}
-          </p>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
+          {proTeamComp ? (
+            <div className="flex min-w-48 items-center gap-3 rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] p-2">
+                <img
+                  src={CLUB_COMP_IMAGE_PATHS[proTeamComp]}
+                  alt={`${proTeamComp} crest`}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-white/40">
+                  Club Comp
+                </p>
+                <p className="mt-1 truncate text-xl font-black tracking-[-0.03em] text-white">
+                  {proTeamComp}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <div className={`w-full rounded-[1.25rem] border px-6 py-5 text-center sm:w-auto sm:min-w-48 ${skillRatingCardTone}`}>
+            <p className={`text-xs font-black uppercase tracking-[0.2em] ${skillRatingLabelTone}`}>
+              Skill Rating
+            </p>
+            <p className={`mt-2 text-5xl font-black tracking-[-0.06em] ${skillRatingValueTone}`}>
+              {skillRating}
+            </p>
+          </div>
         </div>
       </div>
     </section>

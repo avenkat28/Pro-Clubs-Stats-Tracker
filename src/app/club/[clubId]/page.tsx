@@ -1,7 +1,6 @@
 import ClubHeader from "../../../components/ClubHeader";
 import ClubStatsGrid from "../../../components/ClubStatsGrid";
 import Navbar from "../../../components/Navbar";
-import ProTeamCompCard from "../../../components/ProTeamCompCard";
 import SquadTable from "../../../components/SquadTable";
 import {
   eaPlatformLabels,
@@ -101,6 +100,7 @@ export default async function ClubPage({
             skillRating={profile.club.skillRating}
             clubId={clubId}
             badgeUrl={profile.club.badgeUrl}
+            proTeamComp={proTeamComp.primaryComp}
           />
 
           <ClubStatsGrid
@@ -112,8 +112,6 @@ export default async function ClubPage({
             recentMatches={profile.recentClubMatches}
             appearanceBreakdown={profile.club.appearanceBreakdown}
           />
-
-          <ProTeamCompCard comp={proTeamComp} />
 
           <SquadTable players={profile.squad} clubId={clubId} platform={platform} />
         </section>

@@ -1,401 +1,271 @@
-"use client";
-
-import { useMemo, useState } from "react";
-import CompareCard from "../../components/CompareCard";
+import CompareClient from "../../components/CompareClient";
 import CompareHeader from "../../components/CompareHeader";
-import CompareRadarChart, {
-  type RadarMetric,
-} from "../../components/CompareRadarChart";
-import CompareSearchBox from "../../components/CompareSearchBox";
-import CompareStatRow from "../../components/CompareStatRow";
-import CompareSummary from "../../components/CompareSummary";
-import CompareTypeTabs from "../../components/CompareTypeTabs";
 import Navbar from "../../components/Navbar";
 import {
-  compareClubs,
-  comparePlayers,
-  type CompareClub,
-  type CompareMode,
-  type ComparePlayer,
-} from "../../lib/compareMockData";
+  EaRequestError,
+  eaPlatformLabels,
+  eaPlatforms,
+  getEaClubProfile,
+  getEaLeaderboards,
+  normalizeEaPlatform,
+  normalizeEaSearchQuery,
+  searchEaClubs,
+  type EaClubProfile,
+  type EaLeaderboardClub,
+  type EaLeaderboardPlayer,
+  type EaSquadMember,
+} from "../../lib/ea";
+import type { CompareClub, ComparePlayer } from "../../lib/compareTypes";
 
-function perGame(value: number, games: number) {
-  return Number((value / games).toFixed(2));
+const MIN_RELEVANT_PLAYER_GAMES = 10;
+
+type ComparePageProps = {
+  searchParams: Promise<{
+    platform?: string;
+    leftClub?: string;
+    leftClubId?: string;
+    rightClub?: string;
+    rightClubId?: string;
+  }>;
+};
+
+function toCompareClub(club: EaLeaderboardClub): CompareClub {
+  return {
+    id: club.id,
+    name: club.name,
+    division: club.division,
+    platform: club.platform,
+    games: club.games,
+    wins: club.wins,
+    draws: club.draws,
+    losses: club.losses,
+    goalsFor: club.goalsFor,
+    goalsAgainst: club.goalsAgainst,
+    cleanSheets: club.cleanSheets,
+    skillRating: club.skillRating,
+  };
 }
 
-function clubWinRate(club: CompareClub) {
-  return Math.round((club.wins / club.games) * 100);
+function toComparePlayer(player: EaLeaderboardPlayer): ComparePlayer {
+  return {
+    id: `${player.clubId}:${player.id}`,
+    name: player.name,
+    club: player.club,
+    position: player.position,
+    platform: player.platform,
+    games: player.games,
+    goals: player.goals,
+    assists: player.assists,
+    rating: player.rating,
+    winRate: player.winRate,
+    redCards: player.redCards,
+    tackles: player.tackles,
+    tackleRate: player.tackleRate,
+  };
 }
 
-function normalize(value: number, max: number) {
-  return Math.round((value / max) * 100);
+function profileToCompareClub(profile: EaClubProfile): CompareClub {
+  const club = profile.club;
+
+  return {
+    id: club.id,
+    name: club.name,
+    division: club.division,
+    platform: eaPlatformLabels[normalizeEaPlatform(club.platform)],
+    games: club.wins + club.draws + club.losses,
+    wins: club.wins,
+    draws: club.draws,
+    losses: club.losses,
+    goalsFor: club.goalsFor,
+    goalsAgainst: club.goalsAgainst,
+    cleanSheets: club.cleanSheets,
+    skillRating: club.skillRating,
+  };
 }
 
-function playerRadar(left: ComparePlayer, right: ComparePlayer): RadarMetric[] {
-  const maxGoals = Math.max(left.goals, right.goals, 1);
-  const maxAssists = Math.max(left.assists, right.assists, 1);
-  const maxRating = Math.max(left.rating, right.rating, 1);
-  const maxWinRate = Math.max(left.winRate, right.winRate, 1);
-  const maxTackles = Math.max(left.tackles, right.tackles, 1);
-
-  return [
-    {
-      label: "Goals",
-      left: normalize(left.goals, maxGoals),
-      right: normalize(right.goals, maxGoals),
-    },
-    {
-      label: "Assists",
-      left: normalize(left.assists, maxAssists),
-      right: normalize(right.assists, maxAssists),
-    },
-    {
-      label: "Rating",
-      left: normalize(left.rating, maxRating),
-      right: normalize(right.rating, maxRating),
-    },
-    {
-      label: "Win %",
-      left: normalize(left.winRate, maxWinRate),
-      right: normalize(right.winRate, maxWinRate),
-    },
-    {
-      label: "Tackles",
-      left: normalize(left.tackles, maxTackles),
-      right: normalize(right.tackles, maxTackles),
-    },
-  ];
+function squadMemberToComparePlayer(
+  member: EaSquadMember,
+  profile: EaClubProfile,
+): ComparePlayer {
+  return {
+    id: `${profile.club.id}:${member.id}`,
+    name: member.name,
+    club: profile.club.name,
+    position: member.position,
+    platform: eaPlatformLabels[normalizeEaPlatform(profile.club.platform)],
+    games: member.matches,
+    goals: member.goals,
+    assists: member.assists,
+    rating: member.rating,
+    winRate: member.winRate,
+    redCards: member.redCards,
+    tackles: member.tackles,
+    tackleRate: member.tackleSuccessRate,
+  };
 }
 
-function clubRadar(left: CompareClub, right: CompareClub): RadarMetric[] {
-  const leftWinRate = clubWinRate(left);
-  const rightWinRate = clubWinRate(right);
-  const maxWins = Math.max(left.wins, right.wins, 1);
-  const maxGoalsFor = Math.max(left.goalsFor, right.goalsFor, 1);
-  const maxGoalsAgainst = Math.max(left.goalsAgainst, right.goalsAgainst, 1);
-  const maxWinRate = Math.max(leftWinRate, rightWinRate, 1);
-  const maxSkillRating = Math.max(left.skillRating, right.skillRating, 1);
-
-  return [
-    {
-      label: "Wins",
-      left: normalize(left.wins, maxWins),
-      right: normalize(right.wins, maxWins),
-    },
-    {
-      label: "GF",
-      left: normalize(left.goalsFor, maxGoalsFor),
-      right: normalize(right.goalsFor, maxGoalsFor),
-    },
-    {
-      label: "GA",
-      left: 100 - normalize(left.goalsAgainst, maxGoalsAgainst) + 20,
-      right: 100 - normalize(right.goalsAgainst, maxGoalsAgainst) + 20,
-    },
-    {
-      label: "Win %",
-      left: normalize(leftWinRate, maxWinRate),
-      right: normalize(rightWinRate, maxWinRate),
-    },
-    {
-      label: "Skill",
-      left: normalize(left.skillRating, maxSkillRating),
-      right: normalize(right.skillRating, maxSkillRating),
-    },
-  ];
+function dedupeById<T extends { id: string }>(items: T[]) {
+  return Array.from(new Map(items.map((item) => [item.id, item])).values());
 }
 
-export default function ComparePage() {
-  const [mode, setMode] = useState<CompareMode>("players");
-  const [leftPlayerId, setLeftPlayerId] = useState(comparePlayers[0].id);
-  const [rightPlayerId, setRightPlayerId] = useState(comparePlayers[1].id);
-  const [leftClubId, setLeftClubId] = useState(compareClubs[0].id);
-  const [rightClubId, setRightClubId] = useState(compareClubs[1].id);
-
-  const leftPlayer =
-    comparePlayers.find((player) => player.id === leftPlayerId) ??
-    comparePlayers[0];
-  const rightPlayer =
-    comparePlayers.find((player) => player.id === rightPlayerId) ??
-    comparePlayers[1];
-  const leftClub =
-    compareClubs.find((club) => club.id === leftClubId) ?? compareClubs[0];
-  const rightClub =
-    compareClubs.find((club) => club.id === rightClubId) ?? compareClubs[1];
-
-  const leftItem = mode === "players" ? leftPlayer : leftClub;
-  const rightItem = mode === "players" ? rightPlayer : rightClub;
-  const options = mode === "players" ? comparePlayers : compareClubs;
-  const leftId = mode === "players" ? leftPlayerId : leftClubId;
-  const rightId = mode === "players" ? rightPlayerId : rightClubId;
-  const radarMetrics = useMemo(() => {
-    return mode === "players"
-      ? playerRadar(leftPlayer, rightPlayer)
-      : clubRadar(leftClub, rightClub);
-  }, [leftClub, leftPlayer, mode, rightClub, rightPlayer]);
-
-  function handleLeftChange(id: string) {
-    if (mode === "players") {
-      setLeftPlayerId(id);
-    } else {
-      setLeftClubId(id);
-    }
-  }
-
-  function handleRightChange(id: string) {
-    if (mode === "players") {
-      setRightPlayerId(id);
-    } else {
-      setRightClubId(id);
-    }
-  }
-
+function isRelevantComparePlayer(player: ComparePlayer) {
   return (
-    <main className="min-h-screen bg-black/35 text-white">
-      <Navbar />
-
-      <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
-        <CompareHeader />
-
-        <CompareTypeTabs activeMode={mode} onModeChange={setMode} />
-
-        <CompareSearchBox
-          mode={mode}
-          options={options}
-          leftId={leftId}
-          rightId={rightId}
-          onLeftChange={handleLeftChange}
-          onRightChange={handleRightChange}
-        />
-
-        <CompareSummary mode={mode} left={leftItem} right={rightItem} />
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <CompareCard mode={mode} item={leftItem} side="left" />
-          <CompareCard mode={mode} item={rightItem} side="right" />
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-          <ComparisonTable
-            mode={mode}
-            leftPlayer={leftPlayer}
-            rightPlayer={rightPlayer}
-            leftClub={leftClub}
-            rightClub={rightClub}
-          />
-
-          <CompareRadarChart
-            leftName={leftItem.name}
-            rightName={rightItem.name}
-            metrics={radarMetrics}
-          />
-        </div>
-      </section>
-    </main>
+    player.games >= MIN_RELEVANT_PLAYER_GAMES &&
+    player.name !== "Unknown" &&
+    player.rating > 0
   );
 }
 
-function ComparisonTable({
-  mode,
-  leftPlayer,
-  rightPlayer,
-  leftClub,
-  rightClub,
-}: {
-  mode: CompareMode;
-  leftPlayer: ComparePlayer;
-  rightPlayer: ComparePlayer;
-  leftClub: CompareClub;
-  rightClub: CompareClub;
-}) {
-  return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-blue-950/10 backdrop-blur">
-      <div className="border-b border-white/10 px-5 py-4">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">
-          Stat Breakdown
-        </p>
-        <h2 className="mt-1 text-2xl font-black text-white">
-          Main Comparison
-        </h2>
-      </div>
+async function getOptionalClubProfile(input: string, platform: string) {
+  const safeInput = normalizeEaSearchQuery(input);
 
-      <div className="max-h-[720px] overflow-auto">
-        <table className="w-full min-w-[520px] border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur">
-            <tr className="border-b border-white/10">
-              <th className="px-4 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-gray-500">
-                {mode === "players" ? leftPlayer.name : leftClub.name}
-              </th>
-              <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-[0.14em] text-gray-500">
-                Stat
-              </th>
-              <th className="px-4 py-4 text-right text-xs font-black uppercase tracking-[0.14em] text-gray-500">
-                {mode === "players" ? rightPlayer.name : rightClub.name}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {mode === "players" ? (
-              <>
-                <CompareStatRow
-                  label="Games"
-                  leftValue={leftPlayer.games}
-                  rightValue={rightPlayer.games}
-                  leftScore={leftPlayer.games}
-                  rightScore={rightPlayer.games}
-                />
-                <CompareStatRow
-                  label="Goals"
-                  leftValue={leftPlayer.goals}
-                  rightValue={rightPlayer.goals}
-                  leftScore={leftPlayer.goals}
-                  rightScore={rightPlayer.goals}
-                />
-                <CompareStatRow
-                  label="Assists"
-                  leftValue={leftPlayer.assists}
-                  rightValue={rightPlayer.assists}
-                  leftScore={leftPlayer.assists}
-                  rightScore={rightPlayer.assists}
-                />
-                <CompareStatRow
-                  label="G/A"
-                  leftValue={leftPlayer.goals + leftPlayer.assists}
-                  rightValue={rightPlayer.goals + rightPlayer.assists}
-                  leftScore={leftPlayer.goals + leftPlayer.assists}
-                  rightScore={rightPlayer.goals + rightPlayer.assists}
-                />
-                <CompareStatRow
-                  label="Goals/Game"
-                  leftValue={perGame(leftPlayer.goals, leftPlayer.games)}
-                  rightValue={perGame(rightPlayer.goals, rightPlayer.games)}
-                  leftScore={perGame(leftPlayer.goals, leftPlayer.games)}
-                  rightScore={perGame(rightPlayer.goals, rightPlayer.games)}
-                />
-                <CompareStatRow
-                  label="Assists/Game"
-                  leftValue={perGame(leftPlayer.assists, leftPlayer.games)}
-                  rightValue={perGame(rightPlayer.assists, rightPlayer.games)}
-                  leftScore={perGame(leftPlayer.assists, leftPlayer.games)}
-                  rightScore={perGame(rightPlayer.assists, rightPlayer.games)}
-                />
-                <CompareStatRow
-                  label="Avg Rating"
-                  leftValue={leftPlayer.rating.toFixed(1)}
-                  rightValue={rightPlayer.rating.toFixed(1)}
-                  leftScore={leftPlayer.rating}
-                  rightScore={rightPlayer.rating}
-                />
-                <CompareStatRow
-                  label="Win %"
-                  leftValue={`${leftPlayer.winRate}%`}
-                  rightValue={`${rightPlayer.winRate}%`}
-                  leftScore={leftPlayer.winRate}
-                  rightScore={rightPlayer.winRate}
-                />
-                <CompareStatRow
-                  label="Red Cards"
-                  leftValue={leftPlayer.redCards}
-                  rightValue={rightPlayer.redCards}
-                  leftScore={leftPlayer.redCards}
-                  rightScore={rightPlayer.redCards}
-                  lowerIsBetter
-                />
-                <CompareStatRow
-                  label="Tackles"
-                  leftValue={leftPlayer.tackles}
-                  rightValue={rightPlayer.tackles}
-                  leftScore={leftPlayer.tackles}
-                  rightScore={rightPlayer.tackles}
-                />
-                <CompareStatRow
-                  label="Tackle %"
-                  leftValue={`${leftPlayer.tackleRate}%`}
-                  rightValue={`${rightPlayer.tackleRate}%`}
-                  leftScore={leftPlayer.tackleRate}
-                  rightScore={rightPlayer.tackleRate}
-                />
-              </>
-            ) : (
-              <>
-                <CompareStatRow
-                  label="Games"
-                  leftValue={leftClub.games}
-                  rightValue={rightClub.games}
-                  leftScore={leftClub.games}
-                  rightScore={rightClub.games}
-                />
-                <CompareStatRow
-                  label="Wins"
-                  leftValue={leftClub.wins}
-                  rightValue={rightClub.wins}
-                  leftScore={leftClub.wins}
-                  rightScore={rightClub.wins}
-                />
-                <CompareStatRow
-                  label="Draws"
-                  leftValue={leftClub.draws}
-                  rightValue={rightClub.draws}
-                  leftScore={leftClub.draws}
-                  rightScore={rightClub.draws}
-                />
-                <CompareStatRow
-                  label="Losses"
-                  leftValue={leftClub.losses}
-                  rightValue={rightClub.losses}
-                  leftScore={leftClub.losses}
-                  rightScore={rightClub.losses}
-                  lowerIsBetter
-                />
-                <CompareStatRow
-                  label="Win %"
-                  leftValue={`${clubWinRate(leftClub)}%`}
-                  rightValue={`${clubWinRate(rightClub)}%`}
-                  leftScore={clubWinRate(leftClub)}
-                  rightScore={clubWinRate(rightClub)}
-                />
-                <CompareStatRow
-                  label="Goals For"
-                  leftValue={leftClub.goalsFor}
-                  rightValue={rightClub.goalsFor}
-                  leftScore={leftClub.goalsFor}
-                  rightScore={rightClub.goalsFor}
-                />
-                <CompareStatRow
-                  label="Goals Against"
-                  leftValue={leftClub.goalsAgainst}
-                  rightValue={rightClub.goalsAgainst}
-                  leftScore={leftClub.goalsAgainst}
-                  rightScore={rightClub.goalsAgainst}
-                  lowerIsBetter
-                />
-                <CompareStatRow
-                  label="Clean Sheets"
-                  leftValue={leftClub.cleanSheets}
-                  rightValue={rightClub.cleanSheets}
-                  leftScore={leftClub.cleanSheets}
-                  rightScore={rightClub.cleanSheets}
-                />
-                <CompareStatRow
-                  label="Skill Rating"
-                  leftValue={leftClub.skillRating}
-                  rightValue={rightClub.skillRating}
-                  leftScore={leftClub.skillRating}
-                  rightScore={rightClub.skillRating}
-                />
-                <CompareStatRow
-                  label="Division"
-                  leftValue={leftClub.division}
-                  rightValue={rightClub.division}
-                  leftScore={Number(leftClub.division.replace(/\D/g, ""))}
-                  rightScore={Number(rightClub.division.replace(/\D/g, ""))}
-                  lowerIsBetter
-                />
-              </>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+  if (!safeInput) {
+    return null;
+  }
+
+  if (/^\d+$/.test(safeInput)) {
+    return getEaClubProfile(safeInput, platform);
+  }
+
+  const clubs = await searchEaClubs(safeInput, normalizeEaPlatform(platform));
+  const bestMatch =
+    clubs.find((club) => club.name.toLowerCase() === safeInput.toLowerCase()) ??
+    clubs[0];
+
+  if (!bestMatch) {
+    return null;
+  }
+
+  return getEaClubProfile(bestMatch.id, platform);
+}
+
+export default async function ComparePage({ searchParams }: ComparePageProps) {
+  const params = await searchParams;
+  const platform = normalizeEaPlatform(params.platform);
+  const leftClubInput = normalizeEaSearchQuery(params.leftClub ?? params.leftClubId ?? "");
+  const rightClubInput = normalizeEaSearchQuery(params.rightClub ?? params.rightClubId ?? "");
+  const clubQuery = `${leftClubInput ? `&leftClub=${encodeURIComponent(leftClubInput)}` : ""}${
+    rightClubInput ? `&rightClub=${encodeURIComponent(rightClubInput)}` : ""
+  }`;
+  let players: ComparePlayer[] = [];
+  let clubs: CompareClub[] = [];
+  let compareError = "";
+  const selectedProfiles: EaClubProfile[] = [];
+
+  try {
+    const [leaderboards, leftProfileResult, rightProfileResult] = await Promise.all([
+      getEaLeaderboards(platform, 30, 20),
+      getOptionalClubProfile(leftClubInput, platform).then(
+        (profile) => ({ status: "fulfilled" as const, value: profile }),
+        (error) => ({ status: "rejected" as const, reason: error }),
+      ),
+      getOptionalClubProfile(rightClubInput, platform).then(
+        (profile) => ({ status: "fulfilled" as const, value: profile }),
+        (error) => ({ status: "rejected" as const, reason: error }),
+      ),
+    ]);
+
+    for (const result of [leftProfileResult, rightProfileResult]) {
+      if (result.status === "fulfilled" && result.value) {
+        selectedProfiles.push(result.value);
+      }
+    }
+
+    const selectedPlayers = selectedProfiles.flatMap((profile) =>
+      profile.squad.map((member) => squadMemberToComparePlayer(member, profile)),
+    );
+    const selectedClubs = selectedProfiles.map(profileToCompareClub);
+
+    players = dedupeById([
+      ...selectedPlayers,
+      ...leaderboards.players.map(toComparePlayer),
+    ]).filter(isRelevantComparePlayer);
+    clubs = dedupeById([
+      ...selectedClubs,
+      ...leaderboards.clubs.map(toCompareClub),
+    ]);
+  } catch (error) {
+    if (error instanceof EaRequestError) {
+      compareError = `EA rejected the live compare request (${error.status}).`;
+    } else if (error instanceof Error) {
+      compareError = error.message;
+    } else {
+      compareError = "Live EA compare data failed.";
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-[#050706] text-white">
+      <Navbar />
+
+      <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:py-8">
+        <CompareHeader />
+
+        <form className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
+          <input type="hidden" name="platform" value={platform} />
+          <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
+                Left club name or ID
+              </span>
+              <input
+                name="leftClub"
+                defaultValue={leftClubInput}
+                placeholder="Club name or ID"
+                className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
+              />
+            </label>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
+                Right club name or ID
+              </span>
+              <input
+                name="rightClub"
+                defaultValue={rightClubInput}
+                placeholder="Club name or ID"
+                className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
+              />
+            </label>
+            <button className="rounded-md bg-white px-5 py-2.5 font-semibold text-black transition hover:bg-emerald-200">
+              Load clubs
+            </button>
+          </div>
+          <p className="mt-3 text-sm text-white/45">
+            Enter club names or EA club IDs. Their squads will appear at the top of the player selectors.
+          </p>
+        </form>
+
+        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
+          {eaPlatforms.map((platformOption) => {
+            const isActive = platformOption === platform;
+
+            return (
+              <a
+                key={platformOption}
+                href={`/compare?platform=${platformOption}${clubQuery}`}
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-white text-black"
+                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
+                }`}
+              >
+                {eaPlatformLabels[platformOption]}
+              </a>
+            );
+          })}
+        </div>
+
+        {compareError ? (
+          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
+            <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
+              Live compare unavailable
+            </p>
+            <p className="mt-2 text-sm text-yellow-100/80">{compareError}</p>
+          </div>
+        ) : null}
+
+        <CompareClient players={players} clubs={clubs} />
+      </section>
+    </main>
   );
 }
