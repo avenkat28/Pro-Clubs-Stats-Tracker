@@ -41,7 +41,19 @@ export default function TopThreePodium({
       {items.map((item, index) => {
         const style = podiumStyles[index];
         const href =
-          activeTab === "players" ? `/player/${item.id}` : `/club/${item.id}`;
+          activeTab === "players"
+            ? `/player/${encodeURIComponent(item.id)}${
+                (item as TopPlayer).clubId
+                  ? `?clubId=${encodeURIComponent((item as TopPlayer).clubId ?? "")}&platform=${
+                      item.platform === "Old Gen"
+                        ? "common-gen4"
+                        : item.platform === "Switch"
+                          ? "nx"
+                          : "common-gen5"
+                    }`
+                  : ""
+              }`
+            : `/club/${item.id}`;
         const detail =
           activeTab === "players"
             ? `${(item as TopPlayer).position} / ${(item as TopPlayer).club}`

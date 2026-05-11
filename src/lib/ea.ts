@@ -367,6 +367,50 @@ export type EaClubSearchResult = {
   record: string;
 };
 
+export type EaLeaderboardPlatformLabel = "Gen5" | "Old Gen" | "Switch";
+export type EaLeaderboardRegion = "Worldwide" | "NA" | "EU";
+
+export type EaLeaderboardClub = {
+  id: string;
+  rank: number;
+  name: string;
+  division: string;
+  platform: EaLeaderboardPlatformLabel;
+  region: EaLeaderboardRegion;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  cleanSheets: number;
+  skillRating: number;
+};
+
+export type EaLeaderboardPlayer = {
+  id: string;
+  clubId: string;
+  rank: number;
+  name: string;
+  club: string;
+  position: string;
+  platform: EaLeaderboardPlatformLabel;
+  region: EaLeaderboardRegion;
+  games: number;
+  goals: number;
+  assists: number;
+  rating: number;
+  winRate: number;
+  redCards: number;
+  tackles: number;
+  tackleRate: number;
+};
+
+export type EaLeaderboards = {
+  clubs: EaLeaderboardClub[];
+  players: EaLeaderboardPlayer[];
+};
+
 export class EaRequestError extends Error {
   status: number;
   url: string;
@@ -635,6 +679,20 @@ function getPercentage(numerator: number, denominator: number) {
   }
 
   return Math.round((numerator / denominator) * 100);
+}
+
+function getLeaderboardPlatformLabel(
+  platform: EaPlatform,
+): EaLeaderboardPlatformLabel {
+  if (platform === "common-gen4") {
+    return "Old Gen";
+  }
+
+  if (platform === "nx") {
+    return "Switch";
+  }
+
+  return "Gen5";
 }
 
 function getShotSuccessRate(value: unknown, goals: number, shots: number) {
@@ -1528,6 +1586,207 @@ function normalizeLeaderboardClub(
     division: getCurrentDivisionLabel(record) || getDivisionLabel(record),
     skillRating: getSkillRatingValue(record),
     record: `${wins}W - ${draws}D - ${losses}L`,
+  };
+}
+
+function normalizeLeaderboardClubRow(
+  platform: EaPlatform,
+  value: unknown,
+  index: number,
+): EaLeaderboardClub | null {
+  const record = asRecord(value);
+
+  if (!record) {
+    return null;
+  }
+
+  const id = getString(record, ["clubId", "id", "teamId"], "");
+  const name = getString(record, ["clubName", "name", "teamName"], "");
+
+  if (!id || !name) {
+    return null;
+  }
+
+  const wins = getNumber(record, ["wins", "record.wins", "stats.wins"]);
+  const draws = getNumber(record, ["draws", "ties", "record.draws", "stats.draws"]);
+  const losses = getNumber(record, ["losses", "record.losses", "stats.losses"]);
+  const goalsFor = getNumber(record, [
+    "goals",
+    "goalsFor",
+    "goalsScored",
+    "record.goals",
+    "record.goalsFor",
+    "stats.goals",
+    "stats.goalsFor",
+  ]);
+  const goalsAgainst = getNumber(record, [
+    "goalsAgainst",
+    "goalsConceded",
+    "record.goalsAgainst",
+    "stats.goalsAgainst",
+  ]);
+  const games = getNumber(
+    record,
+    ["gamesPlayed", "matches", "record.gamesPlayed", "stats.gamesPlayed"],
+    wins + draws + losses,
+  );
+  const cleanSheets = Math.max(
+    getBestNumber(record, [
+      "cleanSheets",
+      "cleansheets",
+      "cleanSheet",
+      "shutouts",
+      "record.cleanSheets",
+      "stats.cleanSheets",
+      "stats.cleansheets",
+    ]),
+    games > 0 && goalsAgainst >= 0 ? Math.max(0, games - goalsAgainst) : 0,
+  );
+
+  return {
+    id,
+    rank: getNumber(record, ["rank", "ranking", "placement"], index + 1),
+    name,
+    division: getCurrentDivisionLabel(record) || getDivisionLabel(record),
+    platform: getLeaderboardPlatformLabel(platform),
+    region: "Worldwide",
+    games,
+    wins,
+    draws,
+    losses,
+    goalsFor,
+    goalsAgainst,
+    cleanSheets,
+    skillRating: getSkillRatingValue(record),
+  };
+}
+
+function normalizeLeaderboardPlayerRow(
+  platform: EaPlatform,
+  club: EaLeaderboardClub,
+  value: unknown,
+): EaLeaderboardPlayer | null {
+  const record = asRecord(value);
+
+  if (!record) {
+    return null;
+  }
+
+  const member = normalizeMember(record);
+
+  if (!member.id || member.name === "Unknown" || member.matches <= 0) {
+    return null;
+  }
+
+  return {
+    id: member.id,
+    clubId: club.id,
+    rank: 0,
+    name: member.name,
+    club: club.name,
+    position: member.position,
+    platform: getLeaderboardPlatformLabel(platform),
+    region: "Worldwide",
+    games: member.matches,
+    goals: member.goals,
+    assists: member.assists,
+    rating: member.rating,
+    winRate: member.winRate,
+    redCards: member.redCards,
+    tackles: member.tackles,
+    tackleRate: member.tackleSuccessRate,
+  };
+}
+
+function rankLeaderboardPlayers(players: EaLeaderboardPlayer[]) {
+  return players
+    .sort(
+      (left, right) =>
+        right.rating - left.rating ||
+        right.goals + right.assists - (left.goals + left.assists) ||
+        right.goals - left.goals ||
+        right.games - left.games ||
+        left.name.localeCompare(right.name),
+    )
+    .map((player, index) => ({
+      ...player,
+      rank: index + 1,
+    }));
+}
+
+function dedupeLeaderboardPlayers(players: EaLeaderboardPlayer[]) {
+  return Array.from(
+    new Map(
+      players.map((player) => [
+        `${player.platform}:${player.clubId}:${player.id}:${player.name}`.toLowerCase(),
+        player,
+      ]),
+    ).values(),
+  );
+}
+
+export async function getEaClubLeaderboard(
+  platform = DEFAULT_EA_PLATFORM,
+  limit = 25,
+): Promise<EaLeaderboardClub[]> {
+  const safePlatform = normalizeEaPlatform(platform);
+  const payload = await fetchEaJson(
+    "/currentSeasonLeaderboard",
+    new URLSearchParams({
+      platform: safePlatform,
+      maxResultCount: String(limit),
+    }),
+  );
+
+  return asArray(payload)
+    .map((entry, index) => normalizeLeaderboardClubRow(safePlatform, entry, index))
+    .filter((entry): entry is EaLeaderboardClub => Boolean(entry))
+    .sort(
+      (left, right) =>
+        left.rank - right.rank ||
+        right.skillRating - left.skillRating ||
+        right.wins - left.wins,
+    )
+    .slice(0, limit);
+}
+
+export async function getEaLeaderboards(
+  platform = DEFAULT_EA_PLATFORM,
+  clubLimit = 25,
+  playerClubScanLimit = 12,
+): Promise<EaLeaderboards> {
+  const safePlatform = normalizeEaPlatform(platform);
+  const clubs = await getEaClubLeaderboard(safePlatform, clubLimit);
+  const scannedClubs = clubs.slice(0, playerClubScanLimit);
+  const membersPayloads = await Promise.all(
+    scannedClubs.map(async (club) => {
+      const payload = await fetchOptionalEaJson(
+        "/members/stats",
+        new URLSearchParams({
+          platform: safePlatform,
+          clubId: club.id,
+        }),
+      );
+
+      return {
+        club,
+        payload,
+      };
+    }),
+  );
+  const players = rankLeaderboardPlayers(
+    dedupeLeaderboardPlayers(
+      membersPayloads.flatMap(({ club, payload }) =>
+        asArray(payload)
+          .map((entry) => normalizeLeaderboardPlayerRow(safePlatform, club, entry))
+          .filter((entry): entry is EaLeaderboardPlayer => Boolean(entry)),
+      ),
+    ),
+  ).slice(0, clubLimit);
+
+  return {
+    clubs,
+    players,
   };
 }
 

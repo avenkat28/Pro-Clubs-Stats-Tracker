@@ -2,7 +2,7 @@ import type {
   CompareClub,
   CompareMode,
   ComparePlayer,
-} from "../lib/compareMockData";
+} from "../lib/compareTypes";
 
 type CompareSearchBoxProps = {
   mode: CompareMode;
@@ -24,7 +24,7 @@ export default function CompareSearchBox({
   const label = mode === "players" ? "Player" : "Club";
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur">
+    <section>
       <div className="grid gap-4 md:grid-cols-2">
         <Selector
           label={`Left ${label}`}
@@ -54,19 +54,27 @@ function Selector({
   options: Array<ComparePlayer | CompareClub>;
   onChange: (id: string) => void;
 }) {
+  function optionLabel(option: ComparePlayer | CompareClub) {
+    if ("club" in option) {
+      return `${option.name} / ${option.club}`;
+    }
+
+    return option.name;
+  }
+
   return (
     <label className="space-y-2">
-      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
         {label}
       </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm font-bold text-white outline-none transition hover:border-blue-500/50 focus:border-blue-500"
+        className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-sm font-medium text-white outline-none transition hover:border-white/25 focus:border-emerald-300/70"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>
-            {option.name}
+            {optionLabel(option)}
           </option>
         ))}
       </select>

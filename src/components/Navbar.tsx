@@ -13,7 +13,7 @@ export default function Navbar() {
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <a href="/" className="text-2xl font-black tracking-tight text-white">
-          FC26 Tracker
+          ProClubsHQ
         </a>
 
         <div className="flex max-w-full flex-wrap gap-1.5 text-sm font-semibold text-gray-300 sm:gap-2">

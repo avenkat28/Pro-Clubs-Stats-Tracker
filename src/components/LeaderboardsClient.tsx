@@ -1,0 +1,172 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { TopClub, TopPlayer } from "../lib/mockData";
+import LeaderboardFilters, {
+  type PlatformFilter,
+  type RegionFilter,
+  type SortKey,
+} from "./LeaderboardFilters";
+import LeaderboardTable from "./LeaderboardTable";
+import LeaderboardTabs, { type LeaderboardTab } from "./LeaderboardTabs";
+import { StatLabel } from "./StatIcon";
+import TopThreePodium from "./TopThreePodium";
+
+type LeaderboardsClientProps = {
+  players: TopPlayer[];
+  clubs: TopClub[];
+};
+
+function playerSortValue(player: TopPlayer, sortBy: SortKey) {
+  if (sortBy === "goalContributions") {
+    return player.goals + player.assists;
+  }
+
+  if (sortBy in player) {
+    const value = player[sortBy as keyof TopPlayer];
+    return typeof value === "number" ? value : 0;
+  }
+
+  return player.rank;
+}
+
+function clubWinRate(club: TopClub) {
+  return club.games > 0 ? Math.round((club.wins / club.games) * 100) : 0;
+}
+
+function clubSortValue(club: TopClub, sortBy: SortKey) {
+  if (sortBy === "winRate") {
+    return clubWinRate(club);
+  }
+
+  if (sortBy in club) {
+    const value = club[sortBy as keyof TopClub];
+    return typeof value === "number" ? value : 0;
+  }
+
+  return club.rank;
+}
+
+export default function LeaderboardsClient({
+  players,
+  clubs,
+}: LeaderboardsClientProps) {
+  const [activeTab, setActiveTab] = useState<LeaderboardTab>("players");
+  const [platform, setPlatform] = useState<PlatformFilter>("all");
+  const [region, setRegion] = useState<RegionFilter>("all");
+  const [sortBy, setSortBy] = useState<SortKey>("rank");
+
+  const filteredPlayers = useMemo(() => {
+    return players
+      .filter((player) => platform === "all" || player.platform === platform)
+      .filter((player) => region === "all" || player.region === region)
+      .toSorted((first, second) => {
+        if (sortBy === "rank" || sortBy === "redCards") {
+          return playerSortValue(first, sortBy) - playerSortValue(second, sortBy);
+        }
+
+        return playerSortValue(second, sortBy) - playerSortValue(first, sortBy);
+      });
+  }, [platform, players, region, sortBy]);
+
+  const filteredClubs = useMemo(() => {
+    return clubs
+      .filter((club) => platform === "all" || club.platform === platform)
+      .filter((club) => region === "all" || club.region === region)
+      .toSorted((first, second) => {
+        if (sortBy === "rank" || sortBy === "goalsAgainst") {
+          return clubSortValue(first, sortBy) - clubSortValue(second, sortBy);
+        }
+
+        return clubSortValue(second, sortBy) - clubSortValue(first, sortBy);
+      });
+  }, [clubs, platform, region, sortBy]);
+
+  const activePlayers = activeTab === "players" ? filteredPlayers : players;
+  const activeClubs = activeTab === "clubs" ? filteredClubs : clubs;
+  const featuredPlayer = filteredPlayers[0] ?? players[0];
+  const featuredClub = filteredClubs[0] ?? clubs[0];
+
+  function handleTabChange(tab: LeaderboardTab) {
+    setActiveTab(tab);
+    setSortBy("rank");
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+          <p className="text-sm text-gray-400">
+            <StatLabel label="Top Player" />
+          </p>
+          <p className="mt-2 text-2xl font-black text-white">
+            {featuredPlayer?.name ?? "Unavailable"}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-green-400">
+            <StatLabel
+              label={
+                featuredPlayer
+                  ? `${featuredPlayer.goals + featuredPlayer.assists} G/A`
+                  : "Waiting for EA"
+              }
+              iconClassName="text-yellow-300"
+            />
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+          <p className="text-sm text-gray-400">
+            <StatLabel label="Best Club" />
+          </p>
+          <p className="mt-2 text-2xl font-black text-white">
+            {featuredClub?.name ?? "Unavailable"}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-blue-300">
+            <StatLabel
+              label={
+                featuredClub
+                  ? `${featuredClub.skillRating} Skill Rating`
+                  : "Waiting for EA"
+              }
+              iconClassName="text-yellow-300"
+            />
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+          <p className="text-sm text-gray-400">Active View</p>
+          <p className="mt-2 text-2xl font-black capitalize text-white">
+            {activeTab}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-gray-400">
+            Sorted by {sortBy}
+          </p>
+        </div>
+      </div>
+
+      <LeaderboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+      <LeaderboardFilters
+        activeTab={activeTab}
+        platform={platform}
+        region={region}
+        sortBy={sortBy}
+        onPlatformChange={setPlatform}
+        onRegionChange={setRegion}
+        onSortChange={setSortBy}
+      />
+
+      <TopThreePodium
+        activeTab={activeTab}
+        players={activePlayers}
+        clubs={activeClubs}
+      />
+
+      <LeaderboardTable
+        activeTab={activeTab}
+        players={filteredPlayers}
+        clubs={filteredClubs}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+    </>
+  );
+}

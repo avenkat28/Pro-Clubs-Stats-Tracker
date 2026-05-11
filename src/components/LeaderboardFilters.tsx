@@ -1,6 +1,6 @@
 import type { LeaderboardTab } from "./LeaderboardTabs";
 
-export type PlatformFilter = "all" | "Gen5" | "Old Gen";
+export type PlatformFilter = "all" | "Gen5" | "Old Gen" | "Switch";
 export type RegionFilter = "all" | "Worldwide" | "NA" | "EU";
 export type PlayerSortKey =
   | "rank"
@@ -77,6 +77,7 @@ export default function LeaderboardFilters({
             <option value="all">All</option>
             <option value="Gen5">Gen5</option>
             <option value="Old Gen">Old Gen</option>
+            <option value="Switch">Switch</option>
           </select>
         </label>
 

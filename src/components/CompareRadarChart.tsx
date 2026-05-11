@@ -49,19 +49,19 @@ export default function CompareRadarChart({
   const rings = [20, 40, 60, 80, 100];
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-blue-950/10 backdrop-blur">
+    <section className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-300/75">
             Radar
           </p>
-          <h2 className="mt-1 text-2xl font-black text-white">
+          <h2 className="mt-1 text-xl font-semibold text-white">
             Attribute Comparison
           </h2>
         </div>
-        <div className="flex gap-3 text-xs font-bold">
-          <span className="text-green-400">{leftName}</span>
-          <span className="text-blue-300">{rightName}</span>
+        <div className="flex flex-wrap gap-3 text-xs font-semibold">
+          <span className="text-emerald-300">{leftName}</span>
+          <span className="text-sky-300">{rightName}</span>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ export default function CompareRadarChart({
                 })
                 .join(" ")}
               fill="none"
-              stroke="rgba(255,255,255,0.1)"
+              stroke="rgba(255,255,255,0.12)"
               strokeWidth="1"
             />
           ))}
@@ -106,7 +106,7 @@ export default function CompareRadarChart({
                   y={label.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-gray-400 text-[10px] font-bold"
+                  className="fill-white/45 text-[10px] font-semibold"
                 >
                   {metric.label}
                 </text>
@@ -116,14 +116,14 @@ export default function CompareRadarChart({
 
           <polygon
             points={polygon(metrics, "left")}
-            fill="rgba(34,197,94,0.22)"
-            stroke="rgb(34,197,94)"
+            fill="rgba(110,231,183,0.18)"
+            stroke="rgb(110,231,183)"
             strokeWidth="2"
           />
           <polygon
             points={polygon(metrics, "right")}
-            fill="rgba(59,130,246,0.22)"
-            stroke="rgb(96,165,250)"
+            fill="rgba(125,211,252,0.16)"
+            stroke="rgb(125,211,252)"
             strokeWidth="2"
           />
         </svg>

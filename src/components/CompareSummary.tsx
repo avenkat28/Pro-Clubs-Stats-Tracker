@@ -2,7 +2,7 @@ import type {
   CompareClub,
   CompareMode,
   ComparePlayer,
-} from "../lib/compareMockData";
+} from "../lib/compareTypes";
 
 type CompareSummaryProps = {
   mode: CompareMode;
@@ -25,24 +25,24 @@ export default function CompareSummary({
       : `${(right as CompareClub).skillRating} SR`;
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur">
+    <section className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-300/75">
             Active Matchup
           </p>
-          <h2 className="mt-2 text-3xl font-black text-white">
-            {left.name} <span className="text-gray-500">vs</span> {right.name}
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            {left.name} <span className="text-white/35">vs</span> {right.name}
           </h2>
         </div>
         <div className="grid grid-cols-2 gap-3 text-right">
-          <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
-            <p className="text-xs text-gray-500">{left.name}</p>
-            <p className="font-black text-green-400">{leftMetric}</p>
+          <div className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.04] px-4 py-3">
+            <p className="text-xs text-white/45">{left.name}</p>
+            <p className="font-semibold text-emerald-300">{leftMetric}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
-            <p className="text-xs text-gray-500">{right.name}</p>
-            <p className="font-black text-blue-300">{rightMetric}</p>
+          <div className="rounded-md border border-sky-300/15 bg-sky-300/[0.04] px-4 py-3">
+            <p className="text-xs text-white/45">{right.name}</p>
+            <p className="font-semibold text-sky-300">{rightMetric}</p>
           </div>
         </div>
       </div>

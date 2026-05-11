@@ -16,9 +16,9 @@ export default function SearchPanel() {
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-6 pb-10">
-      <div className="rounded-2xl border border-white/12 bg-black/45 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md">
-        <h2 className="mb-4 text-2xl font-bold text-white">
+    <section>
+      <div className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
+        <h2 className="mb-4 text-xl font-semibold text-white">
           Search Club or Player
         </h2>
 
@@ -33,12 +33,12 @@ export default function SearchPanel() {
                 handleSearch();
               }
             }}
-            className="flex-1 rounded-xl border border-white/10 bg-black/65 px-4 py-3 text-white outline-none placeholder:text-gray-500"
+            className="flex-1 rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
           />
 
           <button
             onClick={handleSearch}
-            className="rounded-xl bg-emerald-400 px-6 py-3 font-semibold text-black shadow-[0_14px_34px_rgba(16,185,129,0.24)] hover:bg-emerald-300"
+            className="rounded-md bg-white px-5 py-2.5 font-semibold text-black transition hover:bg-emerald-200"
           >
             Search
           </button>

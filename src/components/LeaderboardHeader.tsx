@@ -12,7 +12,7 @@ export default function LeaderboardHeader({
       <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">
-            EA FC 26 Pro Clubs Tracker
+            ProClubsHQ
           </p>
           <h1 className="mt-3 text-4xl font-bold text-white md:text-6xl">
             Global Leaderboards

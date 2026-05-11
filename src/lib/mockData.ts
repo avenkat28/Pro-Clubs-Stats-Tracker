@@ -78,11 +78,12 @@ export const mockClub = {
   ],
 };
 
-export type LeaderboardPlatform = "Gen5" | "Old Gen";
+export type LeaderboardPlatform = "Gen5" | "Old Gen" | "Switch";
 export type LeaderboardRegion = "Worldwide" | "NA" | "EU";
 
 export type TopPlayer = {
   id: string;
+  clubId?: string;
   rank: number;
   name: string;
   club: string;

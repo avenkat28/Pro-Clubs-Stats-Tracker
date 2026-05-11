@@ -52,6 +52,8 @@ export type PlayerCompInput = {
   games?: number | null;
   matches?: number | null;
   goals?: number | null;
+  shots?: number | null;
+  shotSuccessRate?: number | null;
   assists?: number | null;
   goalContributions?: number | null;
   goalsPerGame?: number | null;
@@ -87,6 +89,7 @@ export type PlayerCompScores = {
   output: number;
   overall?: number;
   height?: number;
+  shotEfficiency?: number;
   influence: number;
   form?: number;
   defense?: number;
@@ -132,6 +135,9 @@ type DerivedPlayerStats = {
   games: number;
   goals: number;
   goalVolumeBand: GoalVolumeBand;
+  shots: number;
+  shotsPerGame: number;
+  shotSuccessRate?: number;
   assists: number;
   goalContributions: number;
   goalsPerGame: number;
@@ -172,6 +178,14 @@ type PlayerProfile = {
   positionGroups: PositionGroup[];
   ideal: Partial<PlayerCompScores>;
   thresholds: (context: ScoreContext) => Array<boolean | undefined>;
+};
+
+type PlayerSeasonProductionProfile = {
+  goalsPerGame: number;
+  assistsPerGame: number;
+  goalContributionsPerGame: number;
+  goalBias: number;
+  shotSuccessRate?: number;
 };
 
 type PositionGroup = "forward" | "midfielder" | "defender" | "goalkeeper" | "unknown";
@@ -282,6 +296,100 @@ const PLAYER_PROFILE_HEIGHT_CM: Record<PlayerCompName, number> = {
   "Omar Marmoush": 183,
   "Rayan Cherki": 177,
   "Viktor Gyökeres": 187,
+};
+
+const PLAYER_PROFILE_SHOT_SUCCESS_RATE: Record<PlayerCompName, number> = {
+  "Lionel Messi": 18,
+  "Cristiano Ronaldo": 15,
+  "Neymar": 14,
+  "Kylian Mbappé": 18,
+  "Erling Haaland": 24,
+  "Harry Kane": 20,
+  "Robert Lewandowski": 22,
+  "Mohamed Salah": 16,
+  "Kevin De Bruyne": 10,
+  "Bruno Fernandes": 10,
+  "Martin Ødegaard": 10,
+  "Thomas Müller": 18,
+  "Jude Bellingham": 16,
+  "Bukayo Saka": 14,
+  "Vinícius Jr.": 13,
+  "Son Heung-min": 18,
+  "Antoine Griezmann": 15,
+  "Trent Alexander-Arnold": 5,
+  "N’Golo Kanté": 6,
+  "Declan Rice": 7,
+  "Rodri": 8,
+  "Casemiro": 8,
+  "Virgil van Dijk": 9,
+  "Rúben Dias": 5,
+  "Sergio Ramos": 8,
+  "Federico Valverde": 10,
+  "Steven Gerrard": 10,
+  "Frank Lampard": 13,
+  "Yaya Touré": 12,
+  "Arturo Vidal": 12,
+  "Alexander Isak": 21,
+  "Antoine Semenyo": 12,
+  "Bryan Mbeumo": 16,
+  "Cole Palmer": 15,
+  "Florian Wirtz": 13,
+  "Gianluigi Donnarumma": 0,
+  "Igor Thiago": 22,
+  "João Cancelo": 6,
+  "João Pedro": 16,
+  "Julián Álvarez": 15,
+  "Nico O’Reilly": 8,
+  "Omar Marmoush": 16,
+  "Rayan Cherki": 11,
+  "Viktor Gyökeres": 20,
+};
+
+const PLAYER_PROFILE_SEASON_PRODUCTION: Record<PlayerCompName, PlayerSeasonProductionProfile> = {
+  "Lionel Messi": { goalsPerGame: 0.7, assistsPerGame: 0.45, goalContributionsPerGame: 1.15, goalBias: 0.61, shotSuccessRate: 18 },
+  "Cristiano Ronaldo": { goalsPerGame: 0.82, assistsPerGame: 0.16, goalContributionsPerGame: 0.98, goalBias: 0.84, shotSuccessRate: 15 },
+  "Neymar": { goalsPerGame: 0.35, assistsPerGame: 0.35, goalContributionsPerGame: 0.7, goalBias: 0.5, shotSuccessRate: 14 },
+  "Kylian Mbappé": { goalsPerGame: 0.78, assistsPerGame: 0.18, goalContributionsPerGame: 0.96, goalBias: 0.81, shotSuccessRate: 18 },
+  "Erling Haaland": { goalsPerGame: 0.92, assistsPerGame: 0.1, goalContributionsPerGame: 1.02, goalBias: 0.9, shotSuccessRate: 24 },
+  "Harry Kane": { goalsPerGame: 0.82, assistsPerGame: 0.24, goalContributionsPerGame: 1.06, goalBias: 0.77, shotSuccessRate: 20 },
+  "Robert Lewandowski": { goalsPerGame: 0.68, assistsPerGame: 0.12, goalContributionsPerGame: 0.8, goalBias: 0.85, shotSuccessRate: 22 },
+  "Mohamed Salah": { goalsPerGame: 0.58, assistsPerGame: 0.34, goalContributionsPerGame: 0.92, goalBias: 0.63, shotSuccessRate: 16 },
+  "Kevin De Bruyne": { goalsPerGame: 0.2, assistsPerGame: 0.46, goalContributionsPerGame: 0.66, goalBias: 0.3, shotSuccessRate: 10 },
+  "Bruno Fernandes": { goalsPerGame: 0.24, assistsPerGame: 0.28, goalContributionsPerGame: 0.52, goalBias: 0.46, shotSuccessRate: 10 },
+  "Martin Ødegaard": { goalsPerGame: 0.2, assistsPerGame: 0.24, goalContributionsPerGame: 0.44, goalBias: 0.45, shotSuccessRate: 10 },
+  "Thomas Müller": { goalsPerGame: 0.24, assistsPerGame: 0.36, goalContributionsPerGame: 0.6, goalBias: 0.4, shotSuccessRate: 18 },
+  "Jude Bellingham": { goalsPerGame: 0.34, assistsPerGame: 0.26, goalContributionsPerGame: 0.6, goalBias: 0.57, shotSuccessRate: 16 },
+  "Bukayo Saka": { goalsPerGame: 0.32, assistsPerGame: 0.26, goalContributionsPerGame: 0.58, goalBias: 0.55, shotSuccessRate: 14 },
+  "Vinícius Jr.": { goalsPerGame: 0.5, assistsPerGame: 0.28, goalContributionsPerGame: 0.78, goalBias: 0.64, shotSuccessRate: 13 },
+  "Son Heung-min": { goalsPerGame: 0.42, assistsPerGame: 0.26, goalContributionsPerGame: 0.68, goalBias: 0.62, shotSuccessRate: 18 },
+  "Antoine Griezmann": { goalsPerGame: 0.28, assistsPerGame: 0.26, goalContributionsPerGame: 0.54, goalBias: 0.52, shotSuccessRate: 15 },
+  "Trent Alexander-Arnold": { goalsPerGame: 0.06, assistsPerGame: 0.24, goalContributionsPerGame: 0.3, goalBias: 0.2, shotSuccessRate: 5 },
+  "N’Golo Kanté": { goalsPerGame: 0.04, assistsPerGame: 0.1, goalContributionsPerGame: 0.14, goalBias: 0.29, shotSuccessRate: 6 },
+  "Declan Rice": { goalsPerGame: 0.16, assistsPerGame: 0.18, goalContributionsPerGame: 0.34, goalBias: 0.47, shotSuccessRate: 7 },
+  "Rodri": { goalsPerGame: 0.12, assistsPerGame: 0.14, goalContributionsPerGame: 0.26, goalBias: 0.46, shotSuccessRate: 8 },
+  "Casemiro": { goalsPerGame: 0.08, assistsPerGame: 0.06, goalContributionsPerGame: 0.14, goalBias: 0.57, shotSuccessRate: 8 },
+  "Virgil van Dijk": { goalsPerGame: 0.1, assistsPerGame: 0.02, goalContributionsPerGame: 0.12, goalBias: 0.83, shotSuccessRate: 9 },
+  "Rúben Dias": { goalsPerGame: 0.02, assistsPerGame: 0.02, goalContributionsPerGame: 0.04, goalBias: 0.5, shotSuccessRate: 5 },
+  "Sergio Ramos": { goalsPerGame: 0.12, assistsPerGame: 0.02, goalContributionsPerGame: 0.14, goalBias: 0.86, shotSuccessRate: 8 },
+  "Federico Valverde": { goalsPerGame: 0.14, assistsPerGame: 0.16, goalContributionsPerGame: 0.3, goalBias: 0.47, shotSuccessRate: 10 },
+  "Steven Gerrard": { goalsPerGame: 0.26, assistsPerGame: 0.24, goalContributionsPerGame: 0.5, goalBias: 0.52, shotSuccessRate: 10 },
+  "Frank Lampard": { goalsPerGame: 0.36, assistsPerGame: 0.16, goalContributionsPerGame: 0.52, goalBias: 0.69, shotSuccessRate: 13 },
+  "Yaya Touré": { goalsPerGame: 0.22, assistsPerGame: 0.2, goalContributionsPerGame: 0.42, goalBias: 0.52, shotSuccessRate: 12 },
+  "Arturo Vidal": { goalsPerGame: 0.14, assistsPerGame: 0.12, goalContributionsPerGame: 0.26, goalBias: 0.54, shotSuccessRate: 12 },
+  "Alexander Isak": { goalsPerGame: 0.72, assistsPerGame: 0.12, goalContributionsPerGame: 0.84, goalBias: 0.86, shotSuccessRate: 21 },
+  "Antoine Semenyo": { goalsPerGame: 0.34, assistsPerGame: 0.22, goalContributionsPerGame: 0.56, goalBias: 0.61, shotSuccessRate: 12 },
+  "Bryan Mbeumo": { goalsPerGame: 0.42, assistsPerGame: 0.2, goalContributionsPerGame: 0.62, goalBias: 0.68, shotSuccessRate: 16 },
+  "Cole Palmer": { goalsPerGame: 0.42, assistsPerGame: 0.28, goalContributionsPerGame: 0.7, goalBias: 0.6, shotSuccessRate: 15 },
+  "Florian Wirtz": { goalsPerGame: 0.24, assistsPerGame: 0.42, goalContributionsPerGame: 0.66, goalBias: 0.36, shotSuccessRate: 13 },
+  "Gianluigi Donnarumma": { goalsPerGame: 0, assistsPerGame: 0, goalContributionsPerGame: 0, goalBias: 0, shotSuccessRate: 0 },
+  "Igor Thiago": { goalsPerGame: 0.62, assistsPerGame: 0.08, goalContributionsPerGame: 0.7, goalBias: 0.89, shotSuccessRate: 22 },
+  "João Cancelo": { goalsPerGame: 0.08, assistsPerGame: 0.22, goalContributionsPerGame: 0.3, goalBias: 0.27, shotSuccessRate: 6 },
+  "João Pedro": { goalsPerGame: 0.36, assistsPerGame: 0.16, goalContributionsPerGame: 0.52, goalBias: 0.69, shotSuccessRate: 16 },
+  "Julián Álvarez": { goalsPerGame: 0.42, assistsPerGame: 0.2, goalContributionsPerGame: 0.62, goalBias: 0.68, shotSuccessRate: 15 },
+  "Nico O’Reilly": { goalsPerGame: 0.08, assistsPerGame: 0.1, goalContributionsPerGame: 0.18, goalBias: 0.44, shotSuccessRate: 8 },
+  "Omar Marmoush": { goalsPerGame: 0.5, assistsPerGame: 0.18, goalContributionsPerGame: 0.68, goalBias: 0.74, shotSuccessRate: 16 },
+  "Rayan Cherki": { goalsPerGame: 0.18, assistsPerGame: 0.42, goalContributionsPerGame: 0.6, goalBias: 0.3, shotSuccessRate: 11 },
+  "Viktor Gyökeres": { goalsPerGame: 0.9, assistsPerGame: 0.16, goalContributionsPerGame: 1.06, goalBias: 0.85, shotSuccessRate: 20 },
 };
 
 const FORWARD_ELIGIBLE_COMPS: PlayerCompName[] = [
@@ -915,6 +1023,47 @@ const PLAYER_PROFILES: PlayerProfile[] = [
   },
 ];
 
+const FAMOUS_PLAYER_COMP_NAMES = new Set<PlayerCompName>([
+  "Lionel Messi",
+  "Cristiano Ronaldo",
+  "Neymar",
+  "Kylian Mbappé",
+  "Erling Haaland",
+  "Harry Kane",
+  "Robert Lewandowski",
+  "Mohamed Salah",
+  "Kevin De Bruyne",
+  "Bruno Fernandes",
+  "Martin Ødegaard",
+  "Thomas Müller",
+  "Jude Bellingham",
+  "Bukayo Saka",
+  "Vinícius Jr.",
+  "Son Heung-min",
+  "Antoine Griezmann",
+  "Trent Alexander-Arnold",
+  "N’Golo Kanté",
+  "Declan Rice",
+  "Rodri",
+  "Casemiro",
+  "Virgil van Dijk",
+  "Rúben Dias",
+  "Sergio Ramos",
+  "Federico Valverde",
+  "Steven Gerrard",
+  "Frank Lampard",
+  "Yaya Touré",
+  "Arturo Vidal",
+  "Gianluigi Donnarumma",
+  "João Cancelo",
+  "João Pedro",
+  "Julián Álvarez",
+]);
+
+const FAMOUS_PLAYER_PROFILES = PLAYER_PROFILES.filter((profile) =>
+  FAMOUS_PLAYER_COMP_NAMES.has(profile.name),
+);
+
 const GOAL_FIRST_COMP_NAMES: PlayerCompName[] = [
   "Alexander Isak",
   "Cristiano Ronaldo",
@@ -1263,6 +1412,14 @@ function scoreCloseness(actual: number | undefined, ideal: number | undefined) {
   return clamp(100 - Math.abs(actual - ideal) * 1.18);
 }
 
+function scoreRateCloseness(actual: number | undefined, ideal: number | undefined, penaltyPerUnit: number) {
+  if (actual === undefined || ideal === undefined) {
+    return undefined;
+  }
+
+  return clamp(100 - Math.abs(actual - ideal) * penaltyPerUnit);
+}
+
 function averageNumbers(values: Array<number | undefined>) {
   const usableValues = values.filter((value): value is number => value !== undefined);
 
@@ -1297,6 +1454,26 @@ function getGoalVolumeLabel(goalVolumeBand: GoalVolumeBand) {
   if (goalVolumeBand === "high") return "high-volume scorer";
   if (goalVolumeBand === "productive") return "productive scorer";
   return "low-volume scorer";
+}
+
+function getProfileSeasonProduction(profile: PlayerProfile) {
+  return PLAYER_PROFILE_SEASON_PRODUCTION[profile.name];
+}
+
+function getSeasonProductionFit(profile: PlayerProfile, player: DerivedPlayerStats) {
+  const season = getProfileSeasonProduction(profile);
+
+  return averageNumbers([
+    scoreRateCloseness(player.goalsPerGame, season.goalsPerGame, 72),
+    scoreRateCloseness(player.assistsPerGame, season.assistsPerGame, 72),
+    scoreRateCloseness(
+      player.goalContributionsPerGame,
+      season.goalContributionsPerGame,
+      54,
+    ),
+    scoreRateCloseness(player.goalBias, season.goalBias, 86),
+    scoreRateCloseness(player.shotSuccessRate, season.shotSuccessRate, 2.5),
+  ]);
 }
 
 function getHeightCm(height: PlayerCompInput["height"], heightCm?: number | null) {
@@ -1353,6 +1530,71 @@ function getHeightScore(heightCm: number | undefined) {
 
 function getProfileHeightIdeal(profile: PlayerProfile) {
   return PLAYER_PROFILE_HEIGHT_CM[profile.name];
+}
+
+function getHeightGap(profile: PlayerProfile, player: DerivedPlayerStats) {
+  if (player.heightCm === undefined) {
+    return undefined;
+  }
+
+  return Math.abs(player.heightCm - getProfileHeightIdeal(profile));
+}
+
+function getHeightFitScore(profile: PlayerProfile, player: DerivedPlayerStats) {
+  const heightGap = getHeightGap(profile, player);
+
+  if (heightGap === undefined) {
+    return undefined;
+  }
+
+  return round(
+    interpolate(heightGap, [
+      [0, 100],
+      [3, 94],
+      [6, 82],
+      [10, 62],
+      [14, 38],
+      [18, 18],
+      [24, 0],
+    ]),
+  );
+}
+
+function getHeightFitMultiplier(profile: PlayerProfile, player: DerivedPlayerStats) {
+  const heightGap = getHeightGap(profile, player);
+
+  if (heightGap === undefined) {
+    return 1;
+  }
+
+  if (heightGap <= 3) return 1.12;
+  if (heightGap <= 6) return 1.06;
+  if (heightGap <= 10) return 0.96;
+  if (heightGap <= 14) return 0.82;
+  if (heightGap <= 18) return 0.68;
+  if (heightGap <= 24) return 0.52;
+  return 0.38;
+}
+
+function getShotEfficiencyScore(shotSuccessRate: number | undefined) {
+  if (shotSuccessRate === undefined) {
+    return undefined;
+  }
+
+  return round(
+    interpolate(shotSuccessRate, [
+      [0, 0],
+      [8, 25],
+      [12, 45],
+      [16, 65],
+      [20, 85],
+      [24, 100],
+    ]),
+  );
+}
+
+function getProfileShotSuccessRate(profile: PlayerProfile) {
+  return PLAYER_PROFILE_SHOT_SUCCESS_RATE[profile.name];
 }
 
 function getOverallScore(overall: number) {
@@ -1465,6 +1707,13 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
   const positionGroup = getPositionGroup(input.position);
   const games = valueOrZero(input.games ?? input.matches);
   const goals = valueOrZero(input.goals);
+  const shots = valueOrZero(input.shots);
+  const shotSuccessRate =
+    input.shotSuccessRate !== undefined && input.shotSuccessRate !== null
+      ? normalizePercent(input.shotSuccessRate)
+      : shots > 0
+        ? (goals / shots) * 100
+        : undefined;
   const assists = valueOrZero(input.assists);
   const goalContributions =
     valueOrZero(input.goalContributions) || goals + assists;
@@ -1530,6 +1779,9 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
     games,
     goals,
     goalVolumeBand: getGoalVolumeBand(goals, goalsPerGame),
+    shots,
+    shotsPerGame: games > 0 ? shots / games : 0,
+    shotSuccessRate,
     assists,
     goalContributions,
     goalsPerGame,
@@ -1712,6 +1964,7 @@ function calculateScores(input: PlayerCompInput, player: DerivedPlayerStats): Pl
     output,
     overall,
     height: getHeightScore(player.heightCm),
+    shotEfficiency: getShotEfficiencyScore(player.shotSuccessRate),
     influence,
     form: getFormScore(input.form, output, player),
     defense,
@@ -1728,12 +1981,12 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
     return Number.NEGATIVE_INFINITY;
   }
 
-  const profileFit = averageNumbers([
+  const statFit = averageNumbers([
     scoreCloseness(context.scores.scoring, profile.ideal.scoring),
     scoreCloseness(context.scores.creation, profile.ideal.creation),
     scoreCloseness(context.scores.output, profile.ideal.output),
     scoreCloseness(context.scores.overall, getOverallScore(getProfileOverallIdeal(profile))),
-    scoreCloseness(context.scores.height, getHeightScore(getProfileHeightIdeal(profile))),
+    scoreCloseness(context.scores.shotEfficiency, getShotEfficiencyScore(getProfileShotSuccessRate(profile))),
     scoreCloseness(context.scores.influence, profile.ideal.influence),
     scoreCloseness(context.scores.form, profile.ideal.form),
     scoreCloseness(context.scores.defense, profile.ideal.defense),
@@ -1743,6 +1996,12 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
     scoreCloseness(context.scores.aggression, profile.ideal.aggression),
     scoreCloseness(context.scores.passing, profile.ideal.passing),
   ]);
+  const heightFit = getHeightFitScore(profile, context.player);
+  const seasonProductionFit = getSeasonProductionFit(profile, context.player);
+  const profileFit =
+    heightFit === undefined
+      ? 0.56 * statFit + 0.44 * seasonProductionFit
+      : 0.46 * statFit + 0.34 * seasonProductionFit + 0.2 * heightFit;
   const thresholdFit = averageBooleans(profile.thresholds(context)) * 100;
 
   const positionFit = getPositionFit(profile, context.player);
@@ -1754,6 +2013,9 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
   const realLifeRoleModifier = getRealLifeRoleModifier(profile, context.player);
   const overallModifier = getOverallModifier(profile, context.player);
   const heightModifier = getHeightModifier(profile, context.player);
+  const heightMultiplier = getHeightFitMultiplier(profile, context.player);
+  const realLifeShotModifier = getRealLifeShotModifier(profile, context.player);
+  const formModifier = getFormModifier(profile, context.player, context.scores);
   const roleFit = getRoleFit(profile, context.player);
 
   return (
@@ -1766,7 +2028,10 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
       goalVolumeModifier +
       realLifeRoleModifier +
       overallModifier +
-      heightModifier) *
+      heightModifier +
+      realLifeShotModifier +
+      formModifier) *
+    heightMultiplier *
     positionFit *
     roleFit
   );
@@ -1774,6 +2039,62 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
 
 function passesHardProfileGate(profile: PlayerProfile, context: ScoreContext) {
   const { player } = context;
+  const profileHeight = getProfileHeightIdeal(profile);
+  const heightGap = Math.abs((player.heightCm ?? profileHeight) - profileHeight);
+  const season = getProfileSeasonProduction(profile);
+
+  if (
+    (profile.name === "Lionel Messi" || profile.name === "Cristiano Ronaldo") &&
+    player.averageRating < 8.5
+  ) {
+    return false;
+  }
+
+  if (player.heightCm !== undefined && profileHeight < player.heightCm) {
+    return false;
+  }
+
+  if (player.heightCm !== undefined) {
+    if (heightGap > 24) {
+      return false;
+    }
+
+    if (
+      heightGap > 18 &&
+      player.goalVolumeBand !== "legendary" &&
+      player.averageRating < 8.6
+    ) {
+      return false;
+    }
+  }
+
+  if (player.positionGroup === "forward" || player.positionGroup === "unknown") {
+    if (
+      player.goalContributionsPerGame >= 2 &&
+      season.goalContributionsPerGame < 0.9
+    ) {
+      return false;
+    }
+
+    if (
+      player.goalContributionsPerGame >= 1.4 &&
+      season.goalContributionsPerGame < 0.65
+    ) {
+      return false;
+    }
+
+    if (player.goalsPerGame >= 1.2 && season.goalsPerGame < 0.55) {
+      return false;
+    }
+
+    if (
+      player.goalsPerGame >= 0.9 &&
+      player.goalBias >= 0.68 &&
+      season.goalsPerGame < 0.45
+    ) {
+      return false;
+    }
+  }
 
   if (profile.name !== "Cole Palmer") {
     return true;
@@ -1824,12 +2145,59 @@ function getHeightModifier(profile: PlayerProfile, player: DerivedPlayerStats) {
 
   const heightGap = Math.abs(player.heightCm - getProfileHeightIdeal(profile));
 
-  if (heightGap <= 3) return 8;
-  if (heightGap <= 6) return 5;
-  if (heightGap <= 10) return 1;
-  if (heightGap <= 15) return -5;
-  if (heightGap <= 20) return -11;
-  return -18;
+  if (heightGap <= 2) return 16;
+  if (heightGap <= 5) return 11;
+  if (heightGap <= 8) return 4;
+  if (heightGap <= 12) return -8;
+  if (heightGap <= 16) return -18;
+  if (heightGap <= 22) return -28;
+  return -40;
+}
+
+function getRealLifeShotModifier(profile: PlayerProfile, player: DerivedPlayerStats) {
+  if (player.shotSuccessRate === undefined) {
+    return 0;
+  }
+
+  const shotGap = Math.abs(player.shotSuccessRate - getProfileShotSuccessRate(profile));
+
+  if (shotGap <= 2) return 7;
+  if (shotGap <= 4) return 4;
+  if (shotGap <= 7) return 0;
+  if (shotGap <= 11) return -6;
+  return -12;
+}
+
+function getFormModifier(
+  profile: PlayerProfile,
+  player: DerivedPlayerStats,
+  scores: PlayerCompScores,
+) {
+  if (scores.form === undefined || profile.ideal.form === undefined) {
+    return 0;
+  }
+
+  const formGap = Math.abs(scores.form - profile.ideal.form);
+  let modifier = 0;
+
+  if (formGap <= 6) modifier += 7;
+  else if (formGap <= 12) modifier += 4;
+  else if (formGap <= 20) modifier -= 2;
+  else modifier -= 6;
+
+  const hotProfile = profile.ideal.form >= 76;
+  const coolerProfile = profile.ideal.form <= 60;
+
+  if (hotProfile && player.formTrend === "hot") modifier += 4;
+  if (hotProfile && (player.formTrend === "slumping" || player.formTrend === "cold")) {
+    modifier -= 5;
+  }
+  if (coolerProfile && (player.formTrend === "slumping" || player.formTrend === "cold")) {
+    modifier += 3;
+  }
+  if (coolerProfile && player.formTrend === "hot") modifier -= 4;
+
+  return modifier;
 }
 
 function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | null {
@@ -2134,6 +2502,10 @@ function getProfileModifier(
       modifier += 4;
     }
     if (isRightForwardPosition(player.position)) modifier += 4;
+    if (player.goalsPerGame >= 0.9 || player.goalContributionsPerGame >= 1.35) {
+      modifier -= 24;
+    }
+    if (player.goalBias >= 0.68) modifier -= 10;
 
     return modifier;
   }
@@ -2316,6 +2688,16 @@ function getProfileModifier(
     if (scores.teamSuccess >= 55) modifier += 3;
     if ((player.playerRole === "striker" || player.playerRole === "secondStriker") && player.assistsPerGame >= 0.35) modifier += 6;
     if (profile.name === "João Pedro" && player.overall <= 85 && player.goalBias >= 0.5) modifier += 4;
+    if (
+      profile.name === "João Pedro" &&
+      (player.playerRole === "striker" || player.playerRole === "secondStriker")
+    ) {
+      if (scores.output <= 62) modifier += 14;
+      if (scores.scoring <= 64) modifier += 8;
+      if (player.averageRating < 8) modifier += 5;
+      if (player.goalContributionsPerGame < 0.85) modifier += 5;
+      if (scores.output >= 78 || player.goalsPerGame >= 0.9) modifier -= 14;
+    }
     if (profile.name === "Julián Álvarez" && scores.teamSuccess >= 58 && scores.balance >= 62) modifier += 4;
     if (veryHighGoalShare && player.assistsPerGame < 0.25) modifier -= 6;
 
@@ -2602,13 +2984,27 @@ function getHeightSentence(player: DerivedPlayerStats, primary: PlayerProfile) {
   }
 
   const profileHeight = getProfileHeightIdeal(primary);
-  const heightGap = Math.abs(player.heightCm - profileHeight);
+  const heightGap = profileHeight - player.heightCm;
 
   if (heightGap <= 3) {
-    return `${player.heightCm} cm height is very close to ${primary.name}'s real-life ${profileHeight} cm build.`;
+    return `${player.heightCm} cm height is close to ${primary.name}'s real-life ${profileHeight} cm build, and shorter comps are excluded.`;
   }
 
-  return `${player.heightCm} cm height is compared against ${primary.name}'s real-life ${profileHeight} cm build, so body type affects the final match.`;
+  return `${player.heightCm} cm height is compared against ${primary.name}'s real-life ${profileHeight} cm build, with shorter comps removed from the pool.`;
+}
+
+function getShotEfficiencySentence(player: DerivedPlayerStats, primary: PlayerProfile) {
+  if (player.shotSuccessRate === undefined) {
+    return "Shot conversion was not available, so finishing style leans on goals, assists, and role.";
+  }
+
+  return `${Math.round(player.shotSuccessRate)}% shot success is compared against ${primary.name}'s real-life finishing profile around ${getProfileShotSuccessRate(primary)}%.`;
+}
+
+function getSeasonProductionSentence(player: DerivedPlayerStats, primary: PlayerProfile) {
+  const season = getProfileSeasonProduction(primary);
+
+  return `Season production fit compares ${player.goalContributionsPerGame.toFixed(2)} G/A per match against ${primary.name}'s current-profile benchmark around ${season.goalContributionsPerGame.toFixed(2)}.`;
 }
 
 function createSummary(profile: PlayerProfile, similarityScore: number): PlayerCompSummary {
@@ -2629,6 +3025,8 @@ function createReasons(player: DerivedPlayerStats, scores: PlayerCompScores, pri
     getRoleSentence(player, primary),
     getOverallSentence(player, primary),
     getHeightSentence(player, primary),
+    getShotEfficiencySentence(player, primary),
+    getSeasonProductionSentence(player, primary),
   ];
 
   reasons.push(getFormSentence(player));
@@ -2645,7 +3043,7 @@ function createReasons(player: DerivedPlayerStats, scores: PlayerCompScores, pri
     reasons.push(`${player.redCards} red cards across ${player.games} games.`);
   }
 
-  return reasons.slice(0, 7);
+  return reasons.slice(0, 9);
 }
 
 function createExplanation(
@@ -2675,30 +3073,50 @@ function createExplanation(
       : "";
   const heightNote =
     player.heightCm !== undefined
-      ? ` Height is included too, comparing their ${player.heightCm} cm build with ${primary.name}'s real-life ${getProfileHeightIdeal(primary)} cm profile.`
+      ? ` Height is a hard filter too: comps shorter than their ${player.heightCm} cm build are removed, then compared with ${primary.name}'s real-life ${getProfileHeightIdeal(primary)} cm profile.`
+      : "";
+  const shotNote =
+    player.shotSuccessRate !== undefined
+      ? ` Their ${Math.round(player.shotSuccessRate)}% shot success is also matched against real-life finishing benchmarks.`
       : "";
 
-  return `This player matches a ${primary.name}-style profile because they fit a ${primary.styleLabel.toLowerCase()} stat profile. They average ${player.goalsPerGame.toFixed(2)} goals and ${player.assistsPerGame.toFixed(2)} assists per match, producing ${player.goalContributionsPerGame.toFixed(2)} G/A per game with an ${player.averageRating.toFixed(1)} average rating and a ${formatPercent(player.motmPercent)} MOTM rate.${carryNote}${goalVolumeNote}${positionNote}${overallNote}${heightNote}${formNote}`;
+  return `This player matches a ${primary.name}-style profile because they fit a ${primary.styleLabel.toLowerCase()} stat profile. They average ${player.goalsPerGame.toFixed(2)} goals and ${player.assistsPerGame.toFixed(2)} assists per match, producing ${player.goalContributionsPerGame.toFixed(2)} G/A per game with an ${player.averageRating.toFixed(1)} average rating and a ${formatPercent(player.motmPercent)} MOTM rate.${carryNote}${goalVolumeNote}${positionNote}${overallNote}${heightNote}${shotNote}${formNote}`;
 }
 
 export function getPlayerStatComp(input: PlayerCompInput): PlayerStatCompResult {
   const player = derivePlayerStats(input);
   const scores = calculateScores(input, player);
   const context = { player, scores };
-  const eligibleProfiles = PLAYER_PROFILES.filter((profile) =>
+  const profilePool =
+    FAMOUS_PLAYER_PROFILES.length > 0 ? FAMOUS_PLAYER_PROFILES : PLAYER_PROFILES;
+  const eligibleProfiles = profilePool.filter((profile) =>
     isProfileEligibleForPosition(profile, player.positionGroup),
   );
-  const positionProfiles = eligibleProfiles.length > 0 ? eligibleProfiles : PLAYER_PROFILES;
+  const positionProfiles = eligibleProfiles.length > 0 ? eligibleProfiles : profilePool;
   const rankingProfiles = applyRoleCandidatePool(positionProfiles, player);
-  const rankedProfiles = rankingProfiles.map((profile) => ({
-    profile,
-    similarityScore: scorePlayerProfile(profile, context),
-  })).filter((entry) => Number.isFinite(entry.similarityScore))
-    .sort((left, right) => right.similarityScore - left.similarityScore);
+  const rankProfiles = (profiles: PlayerProfile[]) =>
+    profiles.map((profile) => ({
+      profile,
+      similarityScore: scorePlayerProfile(profile, context),
+    })).filter((entry) => Number.isFinite(entry.similarityScore))
+      .sort((left, right) => right.similarityScore - left.similarityScore);
+  const rankedProfiles = rankProfiles(rankingProfiles);
+  const fallbackRankedProfiles =
+    rankedProfiles.length > 0 ? rankedProfiles : rankProfiles(positionProfiles);
+  const emergencyRankedProfiles =
+    fallbackRankedProfiles.length > 0
+      ? fallbackRankedProfiles
+      : profilePool
+          .map((profile) => ({
+            profile,
+            similarityScore:
+              scorePlayerProfile(profile, context) - Math.max(0, (player.heightCm ?? 0) - getProfileHeightIdeal(profile)) * 24,
+          }))
+          .sort((left, right) => right.similarityScore - left.similarityScore);
   const archetype = getArchetype(player, scores);
-  const primary = rankedProfiles[0];
-  const secondary = rankedProfiles[1];
-  const third = rankedProfiles[2];
+  const primary = emergencyRankedProfiles[0];
+  const secondary = emergencyRankedProfiles[1] ?? primary;
+  const third = emergencyRankedProfiles[2] ?? secondary;
 
   return {
     primaryComp: createSummary(primary.profile, primary.similarityScore),
