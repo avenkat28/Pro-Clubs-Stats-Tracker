@@ -49,21 +49,29 @@ function winRate(wins: number, games: number) {
   return Math.round((wins / games) * 100);
 }
 
+function platformQueryValue(platform: string) {
+  if (platform === "Old Gen") {
+    return "common-gen4";
+  }
+
+  if (platform === "Switch") {
+    return "nx";
+  }
+
+  return "common-gen5";
+}
+
 export default function LeaderboardRow(props: LeaderboardRowProps) {
   const href =
     props.activeTab === "players"
       ? `/player/${encodeURIComponent(props.item.id)}${
           props.item.clubId
-            ? `?clubId=${encodeURIComponent(props.item.clubId)}&platform=${
-                props.item.platform === "Old Gen"
-                  ? "common-gen4"
-                  : props.item.platform === "Switch"
-                    ? "nx"
-                    : "common-gen5"
-              }`
+            ? `?clubId=${encodeURIComponent(props.item.clubId)}&platform=${platformQueryValue(
+                props.item.platform,
+              )}`
             : ""
         }`
-      : `/club/${props.item.id}`;
+      : `/club/${props.item.id}?platform=${platformQueryValue(props.item.platform)}`;
 
   if (props.activeTab === "players") {
     const player = props.item;
@@ -164,16 +172,12 @@ export function MobileLeaderboardCard({
     activeTab === "players"
       ? `/player/${encodeURIComponent(item.id)}${
           (item as TopPlayer).clubId
-            ? `?clubId=${encodeURIComponent((item as TopPlayer).clubId ?? "")}&platform=${
-                item.platform === "Old Gen"
-                  ? "common-gen4"
-                  : item.platform === "Switch"
-                    ? "nx"
-                    : "common-gen5"
-              }`
+            ? `?clubId=${encodeURIComponent(
+                (item as TopPlayer).clubId ?? "",
+              )}&platform=${platformQueryValue(item.platform)}`
             : ""
         }`
-      : `/club/${item.id}`;
+      : `/club/${item.id}?platform=${platformQueryValue(item.platform)}`;
 
   if (activeTab === "players") {
     const player = item as TopPlayer;

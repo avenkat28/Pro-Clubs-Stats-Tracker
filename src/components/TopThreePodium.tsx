@@ -29,6 +29,18 @@ const podiumStyles = [
   },
 ];
 
+function platformQueryValue(platform: string) {
+  if (platform === "Old Gen") {
+    return "common-gen4";
+  }
+
+  if (platform === "Switch") {
+    return "nx";
+  }
+
+  return "common-gen5";
+}
+
 export default function TopThreePodium({
   activeTab,
   players,
@@ -44,16 +56,12 @@ export default function TopThreePodium({
           activeTab === "players"
             ? `/player/${encodeURIComponent(item.id)}${
                 (item as TopPlayer).clubId
-                  ? `?clubId=${encodeURIComponent((item as TopPlayer).clubId ?? "")}&platform=${
-                      item.platform === "Old Gen"
-                        ? "common-gen4"
-                        : item.platform === "Switch"
-                          ? "nx"
-                          : "common-gen5"
-                    }`
+                  ? `?clubId=${encodeURIComponent(
+                      (item as TopPlayer).clubId ?? "",
+                    )}&platform=${platformQueryValue(item.platform)}`
                   : ""
               }`
-            : `/club/${item.id}`;
+            : `/club/${item.id}?platform=${platformQueryValue(item.platform)}`;
         const detail =
           activeTab === "players"
             ? `${(item as TopPlayer).position} / ${(item as TopPlayer).club}`

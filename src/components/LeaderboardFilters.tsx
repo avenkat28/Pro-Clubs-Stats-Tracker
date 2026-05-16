@@ -61,10 +61,10 @@ export default function LeaderboardFilters({
     activeTab === "players" ? playerSortOptions : clubSortOptions;
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
+    <section className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
       <div className="grid gap-3 md:grid-cols-3">
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
             Platform
           </span>
           <select
@@ -72,7 +72,7 @@ export default function LeaderboardFilters({
             onChange={(event) =>
               onPlatformChange(event.target.value as PlatformFilter)
             }
-            className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm font-semibold text-white outline-none transition hover:border-blue-500/50 focus:border-blue-500"
+            className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-sm font-semibold text-white outline-none transition hover:border-white/25 focus:border-emerald-300/70"
           >
             <option value="all">All</option>
             <option value="Gen5">Gen5</option>
@@ -82,7 +82,7 @@ export default function LeaderboardFilters({
         </label>
 
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
             Region
           </span>
           <select
@@ -90,7 +90,7 @@ export default function LeaderboardFilters({
             onChange={(event) =>
               onRegionChange(event.target.value as RegionFilter)
             }
-            className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm font-semibold text-white outline-none transition hover:border-blue-500/50 focus:border-blue-500"
+            className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-sm font-semibold text-white outline-none transition hover:border-white/25 focus:border-emerald-300/70"
           >
             <option value="all">All</option>
             <option value="Worldwide">Worldwide</option>
@@ -100,13 +100,13 @@ export default function LeaderboardFilters({
         </label>
 
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
             Sort By
           </span>
           <select
             value={sortBy}
             onChange={(event) => onSortChange(event.target.value as SortKey)}
-            className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm font-semibold text-white outline-none transition hover:border-blue-500/50 focus:border-blue-500"
+            className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-sm font-semibold text-white outline-none transition hover:border-white/25 focus:border-emerald-300/70"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>

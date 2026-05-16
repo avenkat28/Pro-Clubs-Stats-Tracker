@@ -6,7 +6,8 @@ import type {
 
 type CompareSearchBoxProps = {
   mode: CompareMode;
-  options: Array<ComparePlayer | CompareClub>;
+  leftOptions: Array<ComparePlayer | CompareClub>;
+  rightOptions: Array<ComparePlayer | CompareClub>;
   leftId: string;
   rightId: string;
   onLeftChange: (id: string) => void;
@@ -15,7 +16,8 @@ type CompareSearchBoxProps = {
 
 export default function CompareSearchBox({
   mode,
-  options,
+  leftOptions,
+  rightOptions,
   leftId,
   rightId,
   onLeftChange,
@@ -29,13 +31,13 @@ export default function CompareSearchBox({
         <Selector
           label={`Left ${label}`}
           value={leftId}
-          options={options}
+          options={leftOptions}
           onChange={onLeftChange}
         />
         <Selector
           label={`Right ${label}`}
           value={rightId}
-          options={options}
+          options={rightOptions}
           onChange={onRightChange}
         />
       </div>

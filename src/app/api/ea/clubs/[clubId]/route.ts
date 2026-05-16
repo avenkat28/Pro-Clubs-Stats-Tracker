@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getEaClubProfile, normalizeEaPlatform } from "../../../../../lib/ea";
+import {
+  getEaClubProfile,
+  normalizeEaClubId,
+  normalizeEaPlatform,
+} from "../../../../../lib/ea";
 
 export async function GET(
   request: Request,
@@ -11,7 +15,7 @@ export async function GET(
   const platform = normalizeEaPlatform(searchParams.get("platform"));
 
   try {
-    const profile = await getEaClubProfile(clubId, platform);
+    const profile = await getEaClubProfile(normalizeEaClubId(clubId), platform);
 
     return NextResponse.json(profile);
   } catch (error) {

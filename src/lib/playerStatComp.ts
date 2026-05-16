@@ -35,6 +35,9 @@ export type PlayerCompName =
   | "Cole Palmer"
   | "Florian Wirtz"
   | "Gianluigi Donnarumma"
+  | "Ederson"
+  | "Alisson"
+  | "André Onana"
   | "Igor Thiago"
   | "João Cancelo"
   | "João Pedro"
@@ -54,6 +57,10 @@ export type PlayerCompInput = {
   goals?: number | null;
   shots?: number | null;
   shotSuccessRate?: number | null;
+  saves?: number | null;
+  saveSuccessRate?: number | null;
+  goalsAgainst?: number | null;
+  cleanSheets?: number | null;
   assists?: number | null;
   goalContributions?: number | null;
   goalsPerGame?: number | null;
@@ -90,6 +97,8 @@ export type PlayerCompScores = {
   overall?: number;
   height?: number;
   shotEfficiency?: number;
+  shotVolume?: number;
+  goalkeeping?: number;
   influence: number;
   form?: number;
   defense?: number;
@@ -138,6 +147,13 @@ type DerivedPlayerStats = {
   shots: number;
   shotsPerGame: number;
   shotSuccessRate?: number;
+  saves: number;
+  savesPerGame?: number;
+  saveSuccessRate?: number;
+  goalsAgainst: number;
+  goalsAgainstPerGame?: number;
+  cleanSheets: number;
+  cleanSheetRate?: number;
   assists: number;
   goalContributions: number;
   goalsPerGame: number;
@@ -240,6 +256,9 @@ export const PLAYER_COMP_IMAGES = {
   colePalmer: "/player-comps/cole palmer.png",
   florianWirtz: "/player-comps/florian-wirtz.png",
   gianluigiDonnarumma: "/player-comps/gianluigi-donnarumma.png",
+  ederson: "/player-comps/ederson.png",
+  alisson: "/player-comps/alisson.png",
+  andreOnana: "/player-comps/andre-onana.png",
   igorThiago: "/player-comps/igor-thiago.png",
   joaoCancelo: "/player-comps/joao-cancelo.png",
   joaoPedro: "/player-comps/joao-pedro.png",
@@ -288,6 +307,9 @@ const PLAYER_PROFILE_HEIGHT_CM: Record<PlayerCompName, number> = {
   "Cole Palmer": 189,
   "Florian Wirtz": 177,
   "Gianluigi Donnarumma": 196,
+  "Ederson": 188,
+  "Alisson": 193,
+  "André Onana": 190,
   "Igor Thiago": 188,
   "João Cancelo": 182,
   "João Pedro": 182,
@@ -335,6 +357,9 @@ const PLAYER_PROFILE_SHOT_SUCCESS_RATE: Record<PlayerCompName, number> = {
   "Cole Palmer": 15,
   "Florian Wirtz": 13,
   "Gianluigi Donnarumma": 0,
+  "Ederson": 0,
+  "Alisson": 0,
+  "André Onana": 0,
   "Igor Thiago": 22,
   "João Cancelo": 6,
   "João Pedro": 16,
@@ -382,6 +407,9 @@ const PLAYER_PROFILE_SEASON_PRODUCTION: Record<PlayerCompName, PlayerSeasonProdu
   "Cole Palmer": { goalsPerGame: 0.42, assistsPerGame: 0.28, goalContributionsPerGame: 0.7, goalBias: 0.6, shotSuccessRate: 15 },
   "Florian Wirtz": { goalsPerGame: 0.24, assistsPerGame: 0.42, goalContributionsPerGame: 0.66, goalBias: 0.36, shotSuccessRate: 13 },
   "Gianluigi Donnarumma": { goalsPerGame: 0, assistsPerGame: 0, goalContributionsPerGame: 0, goalBias: 0, shotSuccessRate: 0 },
+  "Ederson": { goalsPerGame: 0, assistsPerGame: 0.04, goalContributionsPerGame: 0.04, goalBias: 0, shotSuccessRate: 0 },
+  "Alisson": { goalsPerGame: 0, assistsPerGame: 0.02, goalContributionsPerGame: 0.02, goalBias: 0, shotSuccessRate: 0 },
+  "André Onana": { goalsPerGame: 0, assistsPerGame: 0, goalContributionsPerGame: 0, goalBias: 0, shotSuccessRate: 0 },
   "Igor Thiago": { goalsPerGame: 0.62, assistsPerGame: 0.08, goalContributionsPerGame: 0.7, goalBias: 0.89, shotSuccessRate: 22 },
   "João Cancelo": { goalsPerGame: 0.08, assistsPerGame: 0.22, goalContributionsPerGame: 0.3, goalBias: 0.27, shotSuccessRate: 6 },
   "João Pedro": { goalsPerGame: 0.36, assistsPerGame: 0.16, goalContributionsPerGame: 0.52, goalBias: 0.69, shotSuccessRate: 16 },
@@ -907,14 +935,53 @@ const PLAYER_PROFILES: PlayerProfile[] = [
   {
     key: "gianluigiDonnarumma",
     name: "Gianluigi Donnarumma",
-    styleLabel: "Shot-Stopping Match Winner",
+    styleLabel: "Shot-Stopper With Basic Distribution",
     positionGroups: ["goalkeeper", "unknown"],
-    ideal: { scoring: 0, creation: 5, output: 5, influence: 82, discipline: 96, teamSuccess: 72, form: 78 },
+    ideal: { scoring: 0, creation: 5, output: 5, influence: 84, discipline: 94, teamSuccess: 68, form: 78, passing: 38 },
     thresholds: ({ player, scores }) => [
       player.positionGroup === "goalkeeper" || player.goalContributionsPerGame <= 0.15,
       player.averageRating >= 8,
-      player.winRate >= 0.55,
+      scores.passing !== undefined ? scores.passing < 58 : undefined,
       scores.discipline >= 90,
+    ],
+  },
+  {
+    key: "ederson",
+    name: "Ederson",
+    styleLabel: "Distributor First Keeper",
+    positionGroups: ["goalkeeper", "unknown"],
+    ideal: { scoring: 0, creation: 8, output: 5, influence: 64, discipline: 92, teamSuccess: 68, form: 60, passing: 88 },
+    thresholds: ({ player, scores }) => [
+      player.positionGroup === "goalkeeper" || player.goalContributionsPerGame <= 0.15,
+      scores.passing !== undefined ? scores.passing >= 72 : undefined,
+      player.averageRating < 8.1,
+      scores.influence < 76,
+    ],
+  },
+  {
+    key: "alisson",
+    name: "Alisson",
+    styleLabel: "Complete Modern Keeper",
+    positionGroups: ["goalkeeper", "unknown"],
+    ideal: { scoring: 0, creation: 8, output: 5, influence: 86, discipline: 94, teamSuccess: 72, form: 78, passing: 82 },
+    thresholds: ({ player, scores }) => [
+      player.positionGroup === "goalkeeper" || player.goalContributionsPerGame <= 0.15,
+      player.averageRating >= 8,
+      scores.passing !== undefined ? scores.passing >= 68 : undefined,
+      scores.influence >= 78,
+    ],
+  },
+  {
+    key: "andreOnana",
+    name: "André Onana",
+    styleLabel: "Low-Form Keeper",
+    positionGroups: ["goalkeeper", "unknown"],
+    ideal: { scoring: 0, creation: 4, output: 3, influence: 52, discipline: 86, teamSuccess: 46, form: 48, passing: 42 },
+    thresholds: ({ player, scores }) => [
+      player.positionGroup === "goalkeeper" || player.goalContributionsPerGame <= 0.15,
+      player.averageRating < 7.6,
+      scores.passing !== undefined ? scores.passing < 62 : undefined,
+      scores.influence < 68,
     ],
   },
   {
@@ -1050,14 +1117,19 @@ const FAMOUS_PLAYER_COMP_NAMES = new Set<PlayerCompName>([
   "Rúben Dias",
   "Sergio Ramos",
   "Federico Valverde",
-  "Steven Gerrard",
-  "Frank Lampard",
-  "Yaya Touré",
-  "Arturo Vidal",
+  "Alexander Isak",
+  "Antoine Semenyo",
+  "Bryan Mbeumo",
   "Gianluigi Donnarumma",
+  "Ederson",
+  "Alisson",
+  "André Onana",
   "João Cancelo",
   "João Pedro",
   "Julián Álvarez",
+  "Omar Marmoush",
+  "Rayan Cherki",
+  "Viktor Gyökeres",
 ]);
 
 const FAMOUS_PLAYER_PROFILES = PLAYER_PROFILES.filter((profile) =>
@@ -1076,7 +1148,6 @@ const GOAL_FIRST_COMP_NAMES: PlayerCompName[] = [
   "Mohamed Salah",
   "Omar Marmoush",
   "Son Heung-min",
-  "Frank Lampard",
   "Viktor Gyökeres",
 ];
 
@@ -1117,12 +1188,18 @@ const LEGENDARY_SCORER_COMP_NAMES: PlayerCompName[] = [
 const WIDE_FORWARD_COMP_NAMES: PlayerCompName[] = [
   "Antoine Semenyo",
   "Bryan Mbeumo",
+  "Kylian Mbappé",
+  "Cristiano Ronaldo",
   "Mohamed Salah",
   "Neymar",
   "Bukayo Saka",
   "Vinícius Jr.",
   "Son Heung-min",
   "Omar Marmoush",
+  "Cole Palmer",
+  "Rayan Cherki",
+  "João Pedro",
+  "Julián Álvarez",
 ];
 
 function clamp(value: number, min = 0, max = 100) {
@@ -1300,6 +1377,9 @@ function getProfileRealLifeRoles(profile: PlayerProfile): PlayerRole[] {
     case "Sergio Ramos":
       return ["centerBack"];
     case "Gianluigi Donnarumma":
+    case "Ederson":
+    case "Alisson":
+    case "André Onana":
       return ["goalkeeper"];
     default:
       return ["unknown"];
@@ -1335,8 +1415,17 @@ function isMidfielderEligibleComp(name: PlayerCompName) {
   return MIDFIELDER_ELIGIBLE_COMPS.includes(name);
 }
 
+function isGoalkeeperComp(name: PlayerCompName) {
+  return (
+    name === "Gianluigi Donnarumma" ||
+    name === "Ederson" ||
+    name === "Alisson" ||
+    name === "André Onana"
+  );
+}
+
 function isDefenderEligibleComp(name: PlayerCompName) {
-  return !isForwardEligibleComp(name) && !isMidfielderEligibleComp(name) && name !== "Gianluigi Donnarumma";
+  return !isForwardEligibleComp(name) && !isMidfielderEligibleComp(name) && !isGoalkeeperComp(name);
 }
 
 function isProfileEligibleForPosition(profile: PlayerProfile, positionGroup: PositionGroup) {
@@ -1357,7 +1446,7 @@ function isProfileEligibleForPosition(profile: PlayerProfile, positionGroup: Pos
   }
 
   if (positionGroup === "goalkeeper") {
-    return profile.name === "Gianluigi Donnarumma";
+    return isGoalkeeperComp(profile.name);
   }
 
   return true;
@@ -1561,6 +1650,10 @@ function getHeightFitScore(profile: PlayerProfile, player: DerivedPlayerStats) {
 }
 
 function getHeightFitMultiplier(profile: PlayerProfile, player: DerivedPlayerStats) {
+  if (player.positionGroup === "goalkeeper" && isGoalkeeperComp(profile.name)) {
+    return 1;
+  }
+
   const heightGap = getHeightGap(profile, player);
 
   if (heightGap === undefined) {
@@ -1593,8 +1686,108 @@ function getShotEfficiencyScore(shotSuccessRate: number | undefined) {
   );
 }
 
+function getShotVolumeScore(shotsPerGame: number | undefined) {
+  if (shotsPerGame === undefined) {
+    return undefined;
+  }
+
+  return round(
+    interpolate(shotsPerGame, [
+      [0, 0],
+      [1, 24],
+      [2, 44],
+      [3.5, 66],
+      [5, 84],
+      [7, 100],
+    ]),
+  );
+}
+
 function getProfileShotSuccessRate(profile: PlayerProfile) {
   return PLAYER_PROFILE_SHOT_SUCCESS_RATE[profile.name];
+}
+
+function getProfileShotVolumeIdeal(profile: PlayerProfile) {
+  if (isGoalkeeperComp(profile.name)) {
+    return undefined;
+  }
+
+  const season = getProfileSeasonProduction(profile);
+  const shotSuccessRate = getProfileShotSuccessRate(profile);
+
+  if (season.goalsPerGame <= 0 || shotSuccessRate <= 0) {
+    return 12;
+  }
+
+  return getShotVolumeScore(season.goalsPerGame / (shotSuccessRate / 100));
+}
+
+function getProfileGoalkeepingIdeal(profile: PlayerProfile) {
+  if (profile.name === "Gianluigi Donnarumma") return 90;
+  if (profile.name === "Alisson") return 88;
+  if (profile.name === "Ederson") return 70;
+  if (profile.name === "André Onana") return 52;
+
+  return undefined;
+}
+
+function getGoalkeepingScore(player: DerivedPlayerStats, passing: number | undefined) {
+  if (player.positionGroup !== "goalkeeper") {
+    return undefined;
+  }
+
+  const saveScore =
+    player.saveSuccessRate !== undefined
+      ? interpolate(player.saveSuccessRate, [
+          [0, 0],
+          [55, 30],
+          [65, 55],
+          [72, 74],
+          [80, 92],
+          [86, 100],
+        ])
+      : undefined;
+  const volumeScore =
+    player.savesPerGame !== undefined
+      ? interpolate(player.savesPerGame, [
+          [0, 0],
+          [1.5, 35],
+          [3, 62],
+          [4.5, 82],
+          [6, 100],
+        ])
+      : undefined;
+  const cleanSheetScore =
+    player.cleanSheetRate !== undefined
+      ? interpolate(player.cleanSheetRate, [
+          [0, 18],
+          [0.15, 42],
+          [0.3, 66],
+          [0.45, 84],
+          [0.6, 100],
+        ])
+      : undefined;
+  const goalsAgainstScore =
+    player.goalsAgainstPerGame !== undefined
+      ? interpolate(player.goalsAgainstPerGame, [
+          [0, 100],
+          [0.8, 88],
+          [1.3, 68],
+          [1.8, 48],
+          [2.5, 22],
+          [3.5, 0],
+        ])
+      : undefined;
+
+  return round(
+    averageNumbers([
+      saveScore,
+      volumeScore,
+      cleanSheetScore,
+      goalsAgainstScore,
+      passing !== undefined ? 0.32 * passing + 34 : undefined,
+    ]),
+  );
 }
 
 function getOverallScore(overall: number) {
@@ -1714,6 +1907,15 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
       : shots > 0
         ? (goals / shots) * 100
         : undefined;
+  const saves = valueOrZero(input.saves);
+  const goalsAgainst = valueOrZero(input.goalsAgainst);
+  const saveSuccessRate =
+    input.saveSuccessRate !== undefined && input.saveSuccessRate !== null
+      ? normalizePercent(input.saveSuccessRate)
+      : saves + goalsAgainst > 0
+        ? (saves / (saves + goalsAgainst)) * 100
+        : undefined;
+  const cleanSheets = valueOrZero(input.cleanSheets);
   const assists = valueOrZero(input.assists);
   const goalContributions =
     valueOrZero(input.goalContributions) || goals + assists;
@@ -1782,6 +1984,13 @@ function derivePlayerStats(input: PlayerCompInput): DerivedPlayerStats {
     shots,
     shotsPerGame: games > 0 ? shots / games : 0,
     shotSuccessRate,
+    saves,
+    savesPerGame: games > 0 ? saves / games : undefined,
+    saveSuccessRate,
+    goalsAgainst,
+    goalsAgainstPerGame: games > 0 ? goalsAgainst / games : undefined,
+    cleanSheets,
+    cleanSheetRate: games > 0 ? cleanSheets / games : undefined,
     assists,
     goalContributions,
     goalsPerGame,
@@ -1957,6 +2166,11 @@ function calculateScores(input: PlayerCompInput, player: DerivedPlayerStats): Pl
               ]),
         )
       : undefined;
+  const shotVolume =
+    input.shots !== undefined && input.shots !== null
+      ? getShotVolumeScore(player.shotsPerGame)
+      : undefined;
+  const goalkeeping = getGoalkeepingScore(player, passing);
 
   return {
     scoring,
@@ -1965,6 +2179,8 @@ function calculateScores(input: PlayerCompInput, player: DerivedPlayerStats): Pl
     overall,
     height: getHeightScore(player.heightCm),
     shotEfficiency: getShotEfficiencyScore(player.shotSuccessRate),
+    shotVolume,
+    goalkeeping,
     influence,
     form: getFormScore(input.form, output, player),
     defense,
@@ -1986,7 +2202,10 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
     scoreCloseness(context.scores.creation, profile.ideal.creation),
     scoreCloseness(context.scores.output, profile.ideal.output),
     scoreCloseness(context.scores.overall, getOverallScore(getProfileOverallIdeal(profile))),
+    scoreCloseness(context.scores.height, getHeightScore(getProfileHeightIdeal(profile))),
     scoreCloseness(context.scores.shotEfficiency, getShotEfficiencyScore(getProfileShotSuccessRate(profile))),
+    scoreCloseness(context.scores.shotVolume, getProfileShotVolumeIdeal(profile)),
+    scoreCloseness(context.scores.goalkeeping, getProfileGoalkeepingIdeal(profile)),
     scoreCloseness(context.scores.influence, profile.ideal.influence),
     scoreCloseness(context.scores.form, profile.ideal.form),
     scoreCloseness(context.scores.defense, profile.ideal.defense),
@@ -2001,7 +2220,7 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
   const profileFit =
     heightFit === undefined
       ? 0.56 * statFit + 0.44 * seasonProductionFit
-      : 0.46 * statFit + 0.34 * seasonProductionFit + 0.2 * heightFit;
+      : 0.43 * statFit + 0.29 * seasonProductionFit + 0.28 * heightFit;
   const thresholdFit = averageBooleans(profile.thresholds(context)) * 100;
 
   const positionFit = getPositionFit(profile, context.player);
@@ -2016,6 +2235,8 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
   const heightMultiplier = getHeightFitMultiplier(profile, context.player);
   const realLifeShotModifier = getRealLifeShotModifier(profile, context.player);
   const formModifier = getFormModifier(profile, context.player, context.scores);
+  const goalkeeperModifier = getGoalkeeperModifier(profile, context.player, context.scores);
+  const wingerModifier = getWingerModifier(profile, context.player, context.scores);
   const roleFit = getRoleFit(profile, context.player);
 
   return (
@@ -2030,7 +2251,9 @@ function scorePlayerProfile(profile: PlayerProfile, context: ScoreContext) {
       overallModifier +
       heightModifier +
       realLifeShotModifier +
-      formModifier) *
+      formModifier +
+      goalkeeperModifier +
+      wingerModifier) *
     heightMultiplier *
     positionFit *
     roleFit
@@ -2050,17 +2273,17 @@ function passesHardProfileGate(profile: PlayerProfile, context: ScoreContext) {
     return false;
   }
 
-  if (player.heightCm !== undefined && profileHeight < player.heightCm) {
-    return false;
-  }
-
   if (player.heightCm !== undefined) {
-    if (heightGap > 24) {
+    if (profileHeight < player.heightCm) {
+      return false;
+    }
+
+    if (heightGap > 26) {
       return false;
     }
 
     if (
-      heightGap > 18 &&
+      heightGap > 20 &&
       player.goalVolumeBand !== "legendary" &&
       player.averageRating < 8.6
     ) {
@@ -2143,6 +2366,10 @@ function getHeightModifier(profile: PlayerProfile, player: DerivedPlayerStats) {
     return 0;
   }
 
+  if (player.positionGroup === "goalkeeper" && isGoalkeeperComp(profile.name)) {
+    return 0;
+  }
+
   const heightGap = Math.abs(player.heightCm - getProfileHeightIdeal(profile));
 
   if (heightGap <= 2) return 16;
@@ -2200,6 +2427,226 @@ function getFormModifier(
   return modifier;
 }
 
+function getGoalkeeperModifier(
+  profile: PlayerProfile,
+  player: DerivedPlayerStats,
+  scores: PlayerCompScores,
+) {
+  if (player.positionGroup !== "goalkeeper" || !isGoalkeeperComp(profile.name)) {
+    return 0;
+  }
+
+  const passing = scores.passing;
+  const goodShotStopping =
+    player.saveSuccessRate !== undefined
+      ? player.saveSuccessRate >= 72
+      : player.averageRating >= 8 || scores.influence >= 76;
+  const badShotStopping =
+    player.saveSuccessRate !== undefined
+      ? player.saveSuccessRate < 62
+      : player.averageRating < 7.7 && scores.influence < 70;
+  const goodPassing = passing !== undefined && passing >= 68;
+  const badPassing = passing !== undefined && passing < 58;
+  let modifier = 0;
+
+  if (profile.name === "Gianluigi Donnarumma") {
+    if (goodShotStopping) modifier += 24;
+    if (badPassing) modifier += 20;
+    if (goodPassing) modifier -= 24;
+    if (badShotStopping) modifier -= 18;
+    if (scores.goalkeeping !== undefined && scores.goalkeeping >= 84) modifier += 6;
+  }
+
+  if (profile.name === "Ederson") {
+    if (goodPassing) modifier += 24;
+    if (badShotStopping) modifier += 14;
+    if (badPassing) modifier -= 24;
+    if (goodShotStopping) modifier -= 12;
+    if (scores.goalkeeping !== undefined && scores.goalkeeping >= 82 && goodPassing) modifier += 4;
+  }
+
+  if (profile.name === "Alisson") {
+    if (goodShotStopping) modifier += 22;
+    if (goodPassing) modifier += 22;
+    if (badShotStopping) modifier -= 24;
+    if (badPassing) modifier -= 24;
+    if (scores.goalkeeping !== undefined && scores.goalkeeping >= 84) modifier += 5;
+  }
+
+  if (profile.name === "André Onana") {
+    if (badShotStopping) modifier += 22;
+    if (badPassing) modifier += 20;
+    if (goodShotStopping) modifier -= 26;
+    if (goodPassing) modifier -= 18;
+    if (scores.goalkeeping !== undefined && scores.goalkeeping > 72) modifier -= 8;
+  }
+
+  return modifier;
+}
+
+function isWidePlayerRole(playerRole: PlayerRole) {
+  return playerRole === "leftWinger" || playerRole === "rightWinger";
+}
+
+function getSideFit(profile: PlayerProfile, player: DerivedPlayerStats) {
+  if (!isWidePlayerRole(player.playerRole)) {
+    return 0;
+  }
+
+  const profileRoles = getProfileRealLifeRoles(profile);
+
+  if (profileRoles.includes(player.playerRole)) return 10;
+  if (
+    (player.playerRole === "leftWinger" && profileRoles.includes("rightWinger")) ||
+    (player.playerRole === "rightWinger" && profileRoles.includes("leftWinger"))
+  ) {
+    return -3;
+  }
+  if (
+    profileRoles.includes("secondStriker") ||
+    profileRoles.includes("striker") ||
+    profileRoles.includes("attackingMidfielder")
+  ) {
+    return 2;
+  }
+
+  return -8;
+}
+
+function scoreRange(value: number, min: number, max: number, reward: number, penalty: number) {
+  if (value >= min && value <= max) return reward;
+
+  const gap = value < min ? min - value : value - max;
+
+  return -Math.min(penalty, gap * penalty);
+}
+
+function getWingerModifier(
+  profile: PlayerProfile,
+  player: DerivedPlayerStats,
+  scores: PlayerCompScores,
+) {
+  if (!isWidePlayerRole(player.playerRole)) {
+    return 0;
+  }
+
+  if (!WIDE_FORWARD_COMP_NAMES.includes(profile.name)) {
+    return -10;
+  }
+
+  const passing = scores.passing ?? 50;
+  const defense = scores.defense ?? 45;
+  const shotVolume = scores.shotVolume ?? 50;
+  const shotEfficiency = scores.shotEfficiency ?? 50;
+  let modifier = getSideFit(profile, player);
+
+  if (profile.name === "Mohamed Salah") {
+    modifier += scoreRange(player.goalBias, 0.58, 0.68, 3, 34);
+    modifier += scoreRange(player.assistsPerGame, 0.26, 0.58, 3, 16);
+    if (player.heightCm === undefined) modifier -= 8;
+    if (player.playerRole !== "rightWinger") modifier -= 14;
+    if (player.goalBias > 0.72 || player.assistsPerGame > 0.75) modifier -= 12;
+    if (passing >= 78 || defense >= 68) modifier -= 8;
+    if (shotVolume < 44) modifier -= 5;
+
+    return modifier;
+  }
+
+  if (profile.name === "Bukayo Saka") {
+    modifier += scoreRange(player.goalBias, 0.42, 0.6, 8, 22);
+    if (player.assistsPerGame >= 0.42) modifier += 7;
+    if (passing >= 64) modifier += 5;
+    if (defense >= 50) modifier += 4;
+    if (player.goalBias >= 0.68 || player.goalsPerGame >= 0.95) modifier -= 10;
+
+    return modifier;
+  }
+
+  if (profile.name === "Bryan Mbeumo") {
+    modifier += scoreRange(player.goalBias, 0.6, 0.78, 7, 18);
+    if (shotEfficiency >= 62) modifier += 6;
+    if (scores.discipline >= 78) modifier += 4;
+    if (player.assistsPerGame > 0.7 || passing >= 78) modifier -= 8;
+
+    return modifier;
+  }
+
+  if (profile.name === "Neymar") {
+    modifier += scoreRange(player.goalBias, 0.34, 0.56, 8, 24);
+    if (scores.creation >= 64) modifier += 12;
+    if (passing >= 66) modifier += 5;
+    if (player.assistsPerGame >= 0.5) modifier += 8;
+    if (player.goalsPerGame >= 0.9 || player.goalBias >= 0.66) modifier -= 12;
+
+    return modifier;
+  }
+
+  if (profile.name === "Vinícius Jr.") {
+    modifier += scoreRange(player.goalBias, 0.52, 0.72, 10, 18);
+    if (shotVolume >= 52) modifier += 10;
+    if (scores.influence >= 76) modifier += 7;
+    if (scores.creation >= 44 && scores.creation <= 78) modifier += 6;
+    if (player.playerRole === "leftWinger") modifier += 6;
+    if (player.assistsPerGame > 0.85 || passing >= 82) modifier -= 8;
+
+    return modifier;
+  }
+
+  if (profile.name === "Son Heung-min") {
+    modifier += scoreRange(player.goalBias, 0.54, 0.72, 7, 18);
+    if (shotEfficiency >= 68) modifier += 8;
+    if (scores.discipline >= 84) modifier += 5;
+    if (player.assistsPerGame >= 0.3 && player.assistsPerGame <= 0.62) modifier += 4;
+
+    return modifier;
+  }
+
+  if (profile.name === "Antoine Semenyo") {
+    modifier += scoreRange(player.goalBias, 0.52, 0.72, 5, 18);
+    if (defense >= 48 || scores.aggression !== undefined && scores.aggression >= 52) modifier += 7;
+    if (shotVolume >= 56) modifier += 5;
+    if (passing >= 76 || player.assistsPerGame > 0.75) modifier -= 8;
+
+    return modifier;
+  }
+
+  if (profile.name === "Omar Marmoush") {
+    modifier += scoreRange(player.goalBias, 0.64, 0.82, 7, 18);
+    if (scores.form !== undefined && scores.form <= 75) modifier += 5;
+    if (shotEfficiency >= 60) modifier += 4;
+    if (player.assistsPerGame > 0.65) modifier -= 7;
+
+    return modifier;
+  }
+
+  if (profile.name === "Kylian Mbappé" || profile.name === "Cristiano Ronaldo") {
+    modifier += scoreRange(player.goalBias, 0.68, 0.9, 4, 18);
+    if (scores.scoring >= 86 && shotVolume >= 66) modifier += 6;
+    if (player.assistsPerGame >= 0.6 || scores.creation >= 78) modifier -= 10;
+
+    return modifier;
+  }
+
+  if (profile.name === "Cole Palmer" || profile.name === "Rayan Cherki") {
+    if (scores.creation >= 70 && passing >= 68) modifier += 7;
+    if (player.assistBias >= 0.42) modifier += 5;
+    if (player.goalBias >= 0.72) modifier -= 10;
+
+    return modifier;
+  }
+
+  if (profile.name === "João Pedro" || profile.name === "Julián Álvarez") {
+    if (player.assistsPerGame >= 0.28 && player.goalBias >= 0.5 && player.goalBias <= 0.74) {
+      modifier += 5;
+    }
+    if (player.goalsPerGame >= 0.85 && player.assistsPerGame < 0.22) modifier -= 6;
+
+    return modifier;
+  }
+
+  return modifier;
+}
+
 function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | null {
   if (player.playerRole === "attackingMidfielder") {
     return [
@@ -2212,8 +2659,7 @@ function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | n
       "Antoine Griezmann",
       "Thomas Müller",
       "Jude Bellingham",
-      "Steven Gerrard",
-      "Yaya Touré",
+      "Federico Valverde",
     ];
   }
 
@@ -2223,6 +2669,12 @@ function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | n
       "Bryan Mbeumo",
       "Mohamed Salah",
       "Lionel Messi",
+      "Antoine Semenyo",
+      "Son Heung-min",
+      "Vinícius Jr.",
+      "Neymar",
+      "Omar Marmoush",
+      "Kylian Mbappé",
       "Rayan Cherki",
       "Cole Palmer",
       "João Pedro",
@@ -2239,6 +2691,13 @@ function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | n
       "Antoine Semenyo",
       "Omar Marmoush",
       "Cristiano Ronaldo",
+      "Bukayo Saka",
+      "Bryan Mbeumo",
+      "Mohamed Salah",
+      "Cole Palmer",
+      "Rayan Cherki",
+      "João Pedro",
+      "Julián Álvarez",
       "Antoine Griezmann",
     ];
   }
@@ -2269,7 +2728,25 @@ function applyRoleCandidatePool(profiles: PlayerProfile[], player: DerivedPlayer
     return profiles;
   }
 
-  const pooledProfiles = profiles.filter((profile) => candidateNames.includes(profile.name));
+  const creativeForwardNames: PlayerCompName[] = [
+    "Bruno Fernandes",
+    "Cole Palmer",
+    "Florian Wirtz",
+    "Kevin De Bruyne",
+    "Martin Ødegaard",
+    "Rayan Cherki",
+    "Thomas Müller",
+    "Antoine Griezmann",
+  ];
+  const shouldAddCreativeMids =
+    player.positionGroup === "forward" &&
+    (player.assistsPerGame >= 0.55 ||
+      player.assistBias >= 0.44 ||
+      (player.assistsPerGame >= 0.4 && player.goalContributionsPerGame >= 1.15));
+  const expandedCandidateNames = shouldAddCreativeMids
+    ? [...new Set([...candidateNames, ...creativeForwardNames])]
+    : candidateNames;
+  const pooledProfiles = profiles.filter((profile) => expandedCandidateNames.includes(profile.name));
 
   return pooledProfiles.length >= 3 ? pooledProfiles : profiles;
 }
@@ -2677,6 +3154,7 @@ function getProfileModifier(
     if (player.positionGroup === "goalkeeper") modifier += 20;
     if (player.goalContributionsPerGame > 0.25) modifier -= 20;
     if (scores.influence >= 78 && scores.teamSuccess >= 55) modifier += 6;
+    if (scores.goalkeeping !== undefined && scores.goalkeeping >= 84) modifier += 8;
 
     return modifier;
   }
@@ -2984,13 +3462,13 @@ function getHeightSentence(player: DerivedPlayerStats, primary: PlayerProfile) {
   }
 
   const profileHeight = getProfileHeightIdeal(primary);
-  const heightGap = profileHeight - player.heightCm;
+  const heightGap = Math.abs(profileHeight - player.heightCm);
 
   if (heightGap <= 3) {
-    return `${player.heightCm} cm height is close to ${primary.name}'s real-life ${profileHeight} cm build, and shorter comps are excluded.`;
+    return `${player.heightCm} cm height is close to ${primary.name}'s real-life ${profileHeight} cm build, so body type strongly supports this comp.`;
   }
 
-  return `${player.heightCm} cm height is compared against ${primary.name}'s real-life ${profileHeight} cm build, with shorter comps removed from the pool.`;
+  return `${player.heightCm} cm height is compared against ${primary.name}'s real-life ${profileHeight} cm build, with larger gaps lowering the match.`;
 }
 
 function getShotEfficiencySentence(player: DerivedPlayerStats, primary: PlayerProfile) {
@@ -2999,6 +3477,27 @@ function getShotEfficiencySentence(player: DerivedPlayerStats, primary: PlayerPr
   }
 
   return `${Math.round(player.shotSuccessRate)}% shot success is compared against ${primary.name}'s real-life finishing profile around ${getProfileShotSuccessRate(primary)}%.`;
+}
+
+function getGoalkeepingSentence(player: DerivedPlayerStats) {
+  if (player.positionGroup !== "goalkeeper") {
+    return undefined;
+  }
+
+  const saveText =
+    player.saveSuccessRate !== undefined
+      ? `${Math.round(player.saveSuccessRate)}% save success`
+      : "save success unavailable";
+  const cleanSheetText =
+    player.cleanSheetRate !== undefined
+      ? `${Math.round(player.cleanSheetRate * 100)}% clean-sheet rate`
+      : "clean-sheet rate unavailable";
+  const goalsAgainstText =
+    player.goalsAgainstPerGame !== undefined
+      ? `${player.goalsAgainstPerGame.toFixed(2)} goals against per match`
+      : "goals against per match unavailable";
+
+  return `Goalkeeper fit uses ${saveText}, ${player.savesPerGame?.toFixed(2) ?? "0.00"} saves per match, ${goalsAgainstText}, and ${cleanSheetText}.`;
 }
 
 function getSeasonProductionSentence(player: DerivedPlayerStats, primary: PlayerProfile) {
@@ -3028,8 +3527,17 @@ function createReasons(player: DerivedPlayerStats, scores: PlayerCompScores, pri
     getShotEfficiencySentence(player, primary),
     getSeasonProductionSentence(player, primary),
   ];
+  const goalkeepingSentence = getGoalkeepingSentence(player);
+
+  if (goalkeepingSentence) {
+    reasons.push(goalkeepingSentence);
+  }
 
   reasons.push(getFormSentence(player));
+
+  if (scores.shotVolume !== undefined && player.shots > 0) {
+    reasons.push(`${player.shotsPerGame.toFixed(2)} shots per game adds shot-volume context to the finishing profile.`);
+  }
 
   if (scores.passing !== undefined && player.passesMadePerGame !== undefined) {
     reasons.push(`${player.passesMadePerGame.toFixed(2)} passes made per game with ${Math.round(player.passAccuracy ?? 0)}% pass success.`);
@@ -3048,6 +3556,7 @@ function createReasons(player: DerivedPlayerStats, scores: PlayerCompScores, pri
 
 function createExplanation(
   player: DerivedPlayerStats,
+  scores: PlayerCompScores,
   primary: PlayerProfile,
   archetype: string,
 ) {
@@ -3073,14 +3582,18 @@ function createExplanation(
       : "";
   const heightNote =
     player.heightCm !== undefined
-      ? ` Height is a hard filter too: comps shorter than their ${player.heightCm} cm build are removed, then compared with ${primary.name}'s real-life ${getProfileHeightIdeal(primary)} cm profile.`
+      ? ` Height now carries real weight: their ${player.heightCm} cm build is compared with ${primary.name}'s real-life ${getProfileHeightIdeal(primary)} cm profile before the final score is ranked.`
       : "";
   const shotNote =
     player.shotSuccessRate !== undefined
-      ? ` Their ${Math.round(player.shotSuccessRate)}% shot success is also matched against real-life finishing benchmarks.`
+      ? ` Their ${Math.round(player.shotSuccessRate)}% shot success and ${player.shotsPerGame.toFixed(2)} shots per match are also matched against real-life finishing benchmarks.`
+      : "";
+  const goalkeeperNote =
+    player.positionGroup === "goalkeeper" && scores.goalkeeping !== undefined
+      ? ` Keeper comps additionally use save percentage, saves per match, goals against, clean sheets, and distribution.`
       : "";
 
-  return `This player matches a ${primary.name}-style profile because they fit a ${primary.styleLabel.toLowerCase()} stat profile. They average ${player.goalsPerGame.toFixed(2)} goals and ${player.assistsPerGame.toFixed(2)} assists per match, producing ${player.goalContributionsPerGame.toFixed(2)} G/A per game with an ${player.averageRating.toFixed(1)} average rating and a ${formatPercent(player.motmPercent)} MOTM rate.${carryNote}${goalVolumeNote}${positionNote}${overallNote}${heightNote}${shotNote}${formNote}`;
+  return `This player matches a ${primary.name}-style profile because they fit a ${primary.styleLabel.toLowerCase()} stat profile. They average ${player.goalsPerGame.toFixed(2)} goals and ${player.assistsPerGame.toFixed(2)} assists per match, producing ${player.goalContributionsPerGame.toFixed(2)} G/A per game with an ${player.averageRating.toFixed(1)} average rating and a ${formatPercent(player.motmPercent)} MOTM rate.${carryNote}${goalVolumeNote}${positionNote}${overallNote}${heightNote}${shotNote}${goalkeeperNote}${formNote}`;
 }
 
 export function getPlayerStatComp(input: PlayerCompInput): PlayerStatCompResult {
@@ -3124,7 +3637,7 @@ export function getPlayerStatComp(input: PlayerCompInput): PlayerStatCompResult 
     thirdComp: createSummary(third.profile, third.similarityScore),
     archetype,
     styleLabel: getResultStyleLabel(archetype, primary.profile.styleLabel),
-    explanation: createExplanation(player, primary.profile, archetype),
+    explanation: createExplanation(player, scores, primary.profile, archetype),
     scores,
     tiers: {
       outputTier: getOutputTier(player.goalContributionsPerGame),

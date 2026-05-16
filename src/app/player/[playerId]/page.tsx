@@ -185,6 +185,10 @@ export default async function PlayerPage({
       goals: profile.player.goals,
       shots: profile.player.shots,
       shotSuccessRate: profile.player.shotSuccessRate,
+      saves: profile.player.saves,
+      saveSuccessRate: profile.player.saveSuccessRate,
+      goalsAgainst: profile.player.goalsAgainst,
+      cleanSheets: profile.player.cleanSheets,
       assists: profile.player.assists,
       averageRating: profile.player.rating,
       winRate: profile.player.winRate,
@@ -211,7 +215,7 @@ export default async function PlayerPage({
           <div>
             <a
               href={`/club/${clubId}?platform=${platform}`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-emerald-300/40 hover:text-emerald-100"
+              className="player-back-link inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-emerald-300/40 hover:text-emerald-100"
             >
               <span aria-hidden="true">←</span>
               Return to Club Stats
@@ -230,10 +234,15 @@ export default async function PlayerPage({
           />
 
           <PlayerStatsGrid
+            position={profile.player.position}
             games={profile.player.matches}
             overall={profile.player.overall}
             goals={profile.player.goals}
             assists={profile.player.assists}
+            saves={profile.player.saves}
+            saveSuccessRate={profile.player.saveSuccessRate}
+            goalsAgainst={profile.player.goalsAgainst}
+            cleanSheets={profile.player.cleanSheets}
             averageRating={profile.player.rating}
             winRate={profile.player.winRate}
             redCards={profile.player.redCards}

@@ -43,9 +43,9 @@ export default function SearchResults({
 
   if (!hasResults) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-white">
-        <h2 className="text-2xl font-bold">No results found</h2>
-        <p className="mt-2 text-gray-400">
+      <div className="rounded-lg border border-white/10 bg-[#080b0a] p-8 text-white">
+        <h2 className="text-2xl font-black">No results found</h2>
+        <p className="mt-2 text-white/55">
           Try searching for a live club name from FC 26 rankings or paste a club ID.
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function SearchResults({
     <div className="space-y-10">
       {showClubs && clubs.length > 0 && (
         <section>
-          <h2 className="mb-4 text-2xl font-bold text-white">Live Clubs</h2>
+          <h2 className="mb-4 text-2xl font-black text-white">Live Clubs</h2>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {clubs.map((club) => (
