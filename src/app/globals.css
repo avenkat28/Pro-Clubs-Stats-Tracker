@@ -24,7 +24,7 @@ body {
   padding: 0;
   min-height: 100%;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(3, 7, 5, 0.92)),
+    linear-gradient(180deg, rgba(4, 6, 6, 0.78), rgba(3, 8, 6, 0.9)),
     url("/image.png"),
     linear-gradient(180deg, #030504 0%, #06100b 45%, #020302 100%);
   background-attachment: fixed;
@@ -53,7 +53,8 @@ body {
 
 .home-page-background {
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(3, 7, 5, 0.92)),
+    linear-gradient(180deg, rgba(5, 8, 8, 0.62) 0%, rgba(3, 7, 6, 0.78) 34%, rgba(3, 7, 5, 0.9) 100%),
+    linear-gradient(90deg, rgba(3, 5, 5, 0.82) 0%, rgba(3, 5, 5, 0.56) 38%, rgba(3, 5, 5, 0.36) 100%),
     url("/pro-clubs-team.png"),
     linear-gradient(180deg, #030504 0%, #06100b 45%, #020302 100%);
   background-attachment: fixed;
@@ -63,7 +64,7 @@ body {
 
 html.light body {
   background:
-    linear-gradient(180deg, rgba(247, 252, 248, 0.94), rgba(234, 244, 238, 0.96)),
+    linear-gradient(180deg, rgba(248, 252, 249, 0.94), rgba(234, 244, 238, 0.97)),
     url("/image.png"),
     linear-gradient(180deg, #f6fbf7 0%, #e6f3ea 55%, #f8fbf8 100%);
   color: var(--tracker-text);
@@ -71,7 +72,8 @@ html.light body {
 
 html.light .home-page-background {
   background:
-    linear-gradient(180deg, rgba(248, 252, 249, 0.96), rgba(237, 246, 241, 0.97)),
+    linear-gradient(180deg, rgba(248, 252, 249, 0.74) 0%, rgba(237, 246, 241, 0.84) 35%, rgba(242, 248, 244, 0.92) 100%),
+    linear-gradient(90deg, rgba(248, 252, 249, 0.9) 0%, rgba(244, 249, 246, 0.7) 38%, rgba(240, 247, 243, 0.5) 100%),
     url("/pro-clubs-team.png"),
     linear-gradient(180deg, #f6fbf7 0%, #e6f3ea 55%, #f8fbf8 100%);
   background-attachment: fixed;
@@ -84,20 +86,26 @@ html.light .home-hero-layout {
 }
 
 html.light .home-hero-copy {
-  max-width: 42rem;
+  max-width: 58rem;
+}
+
+html.light .home-hero-shell {
+  background: rgba(255, 255, 255, 0.48) !important;
+  border-color: rgba(16, 43, 32, 0.08) !important;
+  box-shadow: 0 20px 52px rgba(16, 43, 32, 0.08) !important;
 }
 
 html.light .home-search-card,
 html.light .home-stat-card,
 html.light .home-feature-card {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border-color: rgba(16, 43, 32, 0.1) !important;
-  box-shadow: 0 14px 32px rgba(16, 43, 32, 0.08) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(16, 43, 32, 0.08) !important;
+  box-shadow: 0 10px 24px rgba(16, 43, 32, 0.06) !important;
 }
 
 html.light .home-search-card {
-  max-width: 36rem;
-  justify-self: end;
+  max-width: none;
+  justify-self: stretch;
 }
 
 html.light .home-feature-card {
