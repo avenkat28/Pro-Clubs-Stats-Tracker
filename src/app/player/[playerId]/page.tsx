@@ -6,12 +6,23 @@ import PlayerStatsGrid, {
 import MatchHistory from "../../../components/MatchHistory";
 import RecentPlayerSection from "../../../components/RecentPlayerSection";
 import {
+  type EaClubSummary,
+  type EaPlayerMatch,
   type EaSquadMember,
+  type EaPlatform,
   eaPlatformLabels,
   getEaPlayerProfile,
   normalizeEaPlatform,
 } from "../../../lib/ea";
+import { getCachedEaPlayerProfile } from "../../../lib/database/eaProfileCache";
 import { getPlayerStatComp } from "../../../lib/playerStatComp";
+
+type PlayerProfileData = {
+  club: EaClubSummary;
+  player: EaSquadMember;
+  squad: EaSquadMember[];
+  recentMatches: EaPlayerMatch[];
+};
 
 function isClubLeader(
   player: EaSquadMember,
@@ -110,6 +121,119 @@ function getPlayerAwardBadges(
     }));
 }
 
+function PlayerProfileView({
+  playerId,
+  clubId,
+  platform,
+  profile,
+  cachedNotice,
+}: {
+  playerId: string;
+  clubId: string;
+  platform: EaPlatform;
+  profile: PlayerProfileData;
+  cachedNotice?: string;
+}) {
+  const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
+  const playerStatComp = getPlayerStatComp({
+    position: profile.player.position,
+    overall: profile.player.overall,
+    height: profile.player.height,
+    games: profile.player.matches,
+    goals: profile.player.goals,
+    shots: profile.player.shots,
+    shotSuccessRate: profile.player.shotSuccessRate,
+    saves: profile.player.saves,
+    saveSuccessRate: profile.player.saveSuccessRate,
+    goalsAgainst: profile.player.goalsAgainst,
+    cleanSheets: profile.player.cleanSheets,
+    assists: profile.player.assists,
+    averageRating: profile.player.rating,
+    winRate: profile.player.winRate,
+    tackles: profile.player.tackles,
+    tacklePercent: profile.player.tackleSuccessRate,
+    passesMade: profile.player.passesMade,
+    passAttempts: profile.player.passAttempts,
+    passAccuracy: profile.player.passAccuracy,
+    motm: profile.player.manOfTheMatch,
+    motmPercent: profile.player.manOfTheMatchRate,
+    redCards: profile.player.redCards,
+    recentMatches: profile.recentMatches,
+  });
+
+  return (
+    <main className="min-h-screen bg-black/35 text-white">
+      <Navbar />
+
+      <section className="mx-auto flex max-w-[84rem] flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
+        {cachedNotice ? (
+          <div className="app-banner-warning">
+            <p className="text-sm font-semibold uppercase tracking-wide">
+              Cached player profile
+            </p>
+            <p className="mt-2 text-sm text-gray-300">{cachedNotice}</p>
+          </div>
+        ) : null}
+
+        <p className="text-sm text-gray-500">
+          Player ID: {playerId} / Club ID: {clubId}
+        </p>
+
+        <div>
+          <a
+            href={`/club/${clubId}?platform=${platform}`}
+            className="player-back-link inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-emerald-300/40 hover:text-emerald-100"
+          >
+            <span aria-hidden="true">←</span>
+            Return to Club Stats
+          </a>
+        </div>
+
+        <PlayerHeader
+          name={profile.player.name}
+          club={profile.club.name}
+          position={profile.player.position}
+          platform={eaPlatformLabels[platform]}
+          overall={profile.player.overall}
+          height={profile.player.height}
+          nationality={profile.player.nationality}
+          comp={playerStatComp.primaryComp}
+        />
+
+        <PlayerStatsGrid
+          position={profile.player.position}
+          games={profile.player.matches}
+          overall={profile.player.overall}
+          goals={profile.player.goals}
+          assists={profile.player.assists}
+          saves={profile.player.saves}
+          saveSuccessRate={profile.player.saveSuccessRate}
+          goalsAgainst={profile.player.goalsAgainst}
+          cleanSheets={profile.player.cleanSheets}
+          averageRating={profile.player.rating}
+          winRate={profile.player.winRate}
+          redCards={profile.player.redCards}
+          shotSuccessRate={profile.player.shotSuccessRate}
+          tackles={profile.player.tackles}
+          tackleSuccessRate={profile.player.tackleSuccessRate}
+          passesMade={profile.player.passesMade}
+          passAttempts={profile.player.passAttempts}
+          passAccuracy={profile.player.passAccuracy}
+          manOfTheMatch={profile.player.manOfTheMatch}
+          manOfTheMatchRate={profile.player.manOfTheMatchRate}
+          recentMatches={profile.recentMatches}
+          matchWindow={10}
+          awardBadges={awardBadges}
+        />
+
+        <RecentPlayerSection matches={profile.recentMatches} matchWindow={10} />
+
+        <MatchHistory matches={profile.recentMatches} matchWindow={10} />
+      </section>
+    </main>
+  );
+}
+
 export default async function PlayerPage({
   params,
   searchParams,
@@ -170,104 +294,34 @@ export default async function PlayerPage({
       );
     }
 
-    const ratings = profile.recentMatches.map((match) => ({
-      rating: match.rating,
-      matchIndex: match.matchIndex,
-      matchId: match.id,
-    }));
-    const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
-    const playerStatComp = getPlayerStatComp({
-      position: profile.player.position,
-      overall: profile.player.overall,
-      height: profile.player.height,
-      games: profile.player.matches,
-      goals: profile.player.goals,
-      shots: profile.player.shots,
-      shotSuccessRate: profile.player.shotSuccessRate,
-      saves: profile.player.saves,
-      saveSuccessRate: profile.player.saveSuccessRate,
-      goalsAgainst: profile.player.goalsAgainst,
-      cleanSheets: profile.player.cleanSheets,
-      assists: profile.player.assists,
-      averageRating: profile.player.rating,
-      winRate: profile.player.winRate,
-      tackles: profile.player.tackles,
-      tacklePercent: profile.player.tackleSuccessRate,
-      passesMade: profile.player.passesMade,
-      passAttempts: profile.player.passAttempts,
-      passAccuracy: profile.player.passAccuracy,
-      motm: profile.player.manOfTheMatch,
-      motmPercent: profile.player.manOfTheMatchRate,
-      redCards: profile.player.redCards,
-      recentMatches: profile.recentMatches,
-    });
-
     return (
-      <main className="min-h-screen bg-black/35 text-white">
-        <Navbar />
-
-        <section className="mx-auto flex max-w-[84rem] flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-          <p className="text-sm text-gray-500">
-            Player ID: {playerId} / Club ID: {clubId}
-          </p>
-
-          <div>
-            <a
-              href={`/club/${clubId}?platform=${platform}`}
-              className="player-back-link inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:border-emerald-300/40 hover:text-emerald-100"
-            >
-              <span aria-hidden="true">←</span>
-              Return to Club Stats
-            </a>
-          </div>
-
-          <PlayerHeader
-            name={profile.player.name}
-            club={profile.club.name}
-            position={profile.player.position}
-            platform={eaPlatformLabels[platform]}
-            overall={profile.player.overall}
-            height={profile.player.height}
-            nationality={profile.player.nationality}
-            comp={playerStatComp.primaryComp}
-          />
-
-          <PlayerStatsGrid
-            position={profile.player.position}
-            games={profile.player.matches}
-            overall={profile.player.overall}
-            goals={profile.player.goals}
-            assists={profile.player.assists}
-            saves={profile.player.saves}
-            saveSuccessRate={profile.player.saveSuccessRate}
-            goalsAgainst={profile.player.goalsAgainst}
-            cleanSheets={profile.player.cleanSheets}
-            averageRating={profile.player.rating}
-            winRate={profile.player.winRate}
-            redCards={profile.player.redCards}
-            shotSuccessRate={profile.player.shotSuccessRate}
-            tackles={profile.player.tackles}
-            tackleSuccessRate={profile.player.tackleSuccessRate}
-            passesMade={profile.player.passesMade}
-            passAttempts={profile.player.passAttempts}
-            passAccuracy={profile.player.passAccuracy}
-            manOfTheMatch={profile.player.manOfTheMatch}
-            manOfTheMatchRate={profile.player.manOfTheMatchRate}
-            recentMatches={profile.recentMatches}
-            matchWindow={10}
-            awardBadges={awardBadges}
-          />
-
-          <RecentPlayerSection
-            matches={profile.recentMatches}
-            matchWindow={10}
-          />
-
-          <MatchHistory matches={profile.recentMatches} matchWindow={10} />
-        </section>
-      </main>
+      <PlayerProfileView
+        playerId={playerId}
+        clubId={clubId}
+        platform={platform}
+        profile={{ ...profile, player: profile.player }}
+      />
     );
   } catch (error) {
+    const cachedProfile = await getCachedEaPlayerProfile(clubId, playerId).catch(
+      (cacheError) => {
+        console.warn("Unable to load cached EA player profile", cacheError);
+        return null;
+      },
+    );
+
+    if (cachedProfile?.player) {
+      return (
+        <PlayerProfileView
+          playerId={playerId}
+          clubId={clubId}
+          platform={platform}
+          profile={{ ...cachedProfile, player: cachedProfile.player }}
+          cachedNotice="EA blocked the live request, so this page is showing the latest player stats saved in your database."
+        />
+      );
+    }
+
     const message =
       error instanceof Error ? error.message : "Unable to load live EA player stats.";
 

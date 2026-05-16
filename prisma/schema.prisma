@@ -13,6 +13,7 @@ model Club {
   eaClubId     String   @unique
   name         String
   platform     String
+  badgeUrl     String?
   region       String?
   division     String?
   skillRating  Int?
@@ -42,15 +43,30 @@ model Player {
   position          String?
   platform          String
   region            String?
+  height            String?
+  nationality       String?
+  overall           Int      @default(0)
+  imageUrl          String?
   clubId            String?
   games             Int      @default(0)
   goals             Int      @default(0)
   assists           Int      @default(0)
+  shots             Int      @default(0)
+  shotSuccessRate   Float?
+  saves             Int      @default(0)
+  saveSuccessRate   Float?
+  goalsAgainst      Int      @default(0)
+  cleanSheets       Int      @default(0)
   averageRating     Float?
   winRate           Float?
   redCards          Int      @default(0)
   tackles           Int?
   tackleSuccessRate Float?
+  passesMade        Int      @default(0)
+  passAttempts      Int      @default(0)
+  passAccuracy      Float?
+  manOfTheMatch     Int      @default(0)
+  manOfTheMatchRate Float?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -63,6 +79,8 @@ model Player {
   @@index([clubId])
   @@index([position])
   @@index([platform])
+  @@index([nationality])
+  @@index([overall])
   @@index([averageRating])
   @@index([goals])
   @@index([assists])

@@ -1,5 +1,10 @@
 import { prisma } from "../db";
-import type { EaClubProfile, EaClubRecentMatch, EaSquadMember } from "../ea";
+import type {
+  EaClubProfile,
+  EaClubRecentMatch,
+  EaPlayerMatch,
+  EaSquadMember,
+} from "../ea";
 
 function getTotalMatches(wins: number, draws: number, losses: number) {
   return wins + draws + losses;
@@ -34,6 +39,7 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
     update: {
       name: club.name,
       platform: club.platform,
+      badgeUrl: club.badgeUrl,
       division: club.division,
       skillRating: club.skillRating,
       wins: club.wins,
@@ -47,6 +53,7 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
       eaClubId: club.id,
       name: club.name,
       platform: club.platform,
+      badgeUrl: club.badgeUrl,
       division: club.division,
       skillRating: club.skillRating,
       wins: club.wins,
@@ -88,30 +95,58 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
           name: player.name,
           position: player.position,
           platform: club.platform,
+          height: player.height,
+          nationality: player.nationality,
+          overall: player.overall,
           clubId: savedClub.id,
           games: player.matches,
           goals: player.goals,
           assists: player.assists,
+          shots: player.shots,
+          shotSuccessRate: player.shotSuccessRate,
+          saves: player.saves,
+          saveSuccessRate: player.saveSuccessRate,
+          goalsAgainst: player.goalsAgainst,
+          cleanSheets: player.cleanSheets,
           averageRating: player.rating,
           winRate: player.winRate,
           redCards: player.redCards,
           tackles: player.tackles,
           tackleSuccessRate: player.tackleSuccessRate,
+          passesMade: player.passesMade,
+          passAttempts: player.passAttempts,
+          passAccuracy: player.passAccuracy,
+          manOfTheMatch: player.manOfTheMatch,
+          manOfTheMatchRate: player.manOfTheMatchRate,
         },
         create: {
           eaPlayerId: player.id,
           name: player.name,
           position: player.position,
           platform: club.platform,
+          height: player.height,
+          nationality: player.nationality,
+          overall: player.overall,
           clubId: savedClub.id,
           games: player.matches,
           goals: player.goals,
           assists: player.assists,
+          shots: player.shots,
+          shotSuccessRate: player.shotSuccessRate,
+          saves: player.saves,
+          saveSuccessRate: player.saveSuccessRate,
+          goalsAgainst: player.goalsAgainst,
+          cleanSheets: player.cleanSheets,
           averageRating: player.rating,
           winRate: player.winRate,
           redCards: player.redCards,
           tackles: player.tackles,
           tackleSuccessRate: player.tackleSuccessRate,
+          passesMade: player.passesMade,
+          passAttempts: player.passAttempts,
+          passAccuracy: player.passAccuracy,
+          manOfTheMatch: player.manOfTheMatch,
+          manOfTheMatchRate: player.manOfTheMatchRate,
         },
         select: {
           id: true,
@@ -191,28 +226,28 @@ export async function getCachedEaClubProfile(
     id: player.eaPlayerId,
     name: player.name,
     position: player.position ?? "Unknown",
-    height: null,
-    nationality: null,
-    overall: 0,
+    height: player.height,
+    nationality: player.nationality,
+    overall: player.overall,
     matches: player.games,
     goals: player.goals,
     assists: player.assists,
-    shots: 0,
-    shotSuccessRate: 0,
-    saves: 0,
-    saveSuccessRate: 0,
-    goalsAgainst: 0,
-    cleanSheets: 0,
+    shots: player.shots,
+    shotSuccessRate: clampPercent(player.shotSuccessRate),
+    saves: player.saves,
+    saveSuccessRate: clampPercent(player.saveSuccessRate),
+    goalsAgainst: player.goalsAgainst,
+    cleanSheets: player.cleanSheets,
     rating: player.averageRating ?? 0,
     winRate: clampPercent(player.winRate),
     redCards: player.redCards,
     tackles: player.tackles ?? 0,
     tackleSuccessRate: clampPercent(player.tackleSuccessRate),
-    passesMade: 0,
-    passAttempts: 0,
-    passAccuracy: 0,
-    manOfTheMatch: 0,
-    manOfTheMatchRate: 0,
+    passesMade: player.passesMade,
+    passAttempts: player.passAttempts,
+    passAccuracy: clampPercent(player.passAccuracy),
+    manOfTheMatch: player.manOfTheMatch,
+    manOfTheMatchRate: clampPercent(player.manOfTheMatchRate),
   }));
 
   return {
@@ -220,7 +255,7 @@ export async function getCachedEaClubProfile(
       id: cachedClub.eaClubId,
       name: cachedClub.name,
       platform: cachedClub.platform,
-      badgeUrl: null,
+      badgeUrl: cachedClub.badgeUrl,
       division: cachedClub.division ?? "Cached profile",
       skillRating: cachedClub.skillRating ?? 0,
       wins: cachedClub.wins,
@@ -242,5 +277,33 @@ export async function getCachedEaClubProfile(
     squad,
     recentMatches: [],
     recentClubMatches,
+  };
+}
+
+export async function getCachedEaPlayerProfile(
+  eaClubId: string,
+  eaPlayerId: string,
+): Promise<{
+  club: EaClubProfile["club"];
+  player: EaSquadMember | null;
+  squad: EaSquadMember[];
+  recentMatches: EaPlayerMatch[];
+} | null> {
+  const profile = await getCachedEaClubProfile(eaClubId);
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    club: profile.club,
+    player:
+      profile.squad.find((player) => player.id === eaPlayerId) ??
+      profile.squad.find(
+        (player) => player.name.toLowerCase() === eaPlayerId.toLowerCase(),
+      ) ??
+      null,
+    squad: profile.squad,
+    recentMatches: [],
   };
 }
