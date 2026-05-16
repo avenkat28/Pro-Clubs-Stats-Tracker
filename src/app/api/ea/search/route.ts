@@ -128,7 +128,11 @@ export async function GET(request: Request) {
     (result) => result.status === "rejected",
   );
 
-  if (rejectedResult?.status === "rejected") {
+  if (
+    rejectedResult?.status === "rejected" &&
+    players.length === 0 &&
+    clubs.length === 0
+  ) {
     const error = rejectedResult.reason;
 
     if (error instanceof EaRequestError) {

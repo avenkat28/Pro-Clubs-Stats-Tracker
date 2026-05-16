@@ -2007,8 +2007,82 @@ async function tryEaClubSearchRequest(
       }),
     );
   } catch (error) {
-    if (error instanceof EaRequestError && error.status === 400) {
+    if (
+      error instanceof EaRequestError &&
+      (error.status === 400 || error.status === 403)
+    ) {
       return null;
+    }
+
+    throw error;
+  }
+}
+
+const SEARCH_FALLBACK_CLUBS: Array<{
+  aliases: string[];
+  id: string;
+  name: string;
+}> = [
+  {
+    aliases: ["oil merchants"],
+    id: "3456623",
+    name: "Oil Merchants",
+  },
+];
+
+function getKnownClubFallbacks(
+  query: string,
+  platform: EaPlatform,
+): EaClubSearchResult[] {
+  const normalizedQuery = query.toLowerCase();
+
+  return SEARCH_FALLBACK_CLUBS.filter((club) =>
+    [club.id, club.name, ...club.aliases]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedQuery),
+  ).map((club) => ({
+    id: club.id,
+    name: club.name,
+    platform,
+    division: "Direct club lookup",
+    record: "Open live club profile",
+    skillRating: 0,
+  }));
+}
+
+function leaderboardClubToSearchResult(
+  club: EaLeaderboardClub,
+  platform: EaPlatform,
+): EaClubSearchResult {
+  return {
+    id: club.id,
+    name: club.name,
+    platform,
+    skillRating: club.skillRating,
+    division: club.division,
+    record: `${club.wins}W - ${club.draws}D - ${club.losses}L`,
+  };
+}
+
+async function getLeaderboardClubSearchFallbacks(
+  query: string,
+  platform: EaPlatform,
+) {
+  const normalizedQuery = query.toLowerCase();
+
+  try {
+    return (await getEaClubLeaderboard(platform, 100))
+      .map((club) => leaderboardClubToSearchResult(club, platform))
+      .filter((entry) =>
+        [entry.name, entry.id, entry.division, entry.record]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedQuery),
+      );
+  } catch (error) {
+    if (error instanceof EaRequestError) {
+      return [];
     }
 
     throw error;
@@ -2069,7 +2143,18 @@ export async function searchEaClubs(
       .includes(normalizedQuery),
   );
 
-  const trimmedResults = results.slice(0, 24);
+  const fallbackResults =
+    results.length > 0
+      ? []
+      : [
+          ...getKnownClubFallbacks(safeQuery, safePlatform),
+          ...(await getLeaderboardClubSearchFallbacks(safeQuery, safePlatform)),
+        ];
+
+  const trimmedResults = dedupeClubSearchResults([
+    ...results,
+    ...fallbackResults,
+  ]).slice(0, 24);
   const enrichedResults = await Promise.all(
     trimmedResults.map(async (entry) => {
       const overall = await getClubOverallStatsEntry(platform, entry.id);

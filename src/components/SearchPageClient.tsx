@@ -45,23 +45,51 @@ type SearchApiResponse = {
   searchError: string;
 };
 
+const knownClubFallbacks = [
+  {
+    aliases: ["oil merchants"],
+    id: "3456623",
+    name: "Oil Merchants",
+  },
+];
+
 function getDirectClubFallback(query: string, platform: string): ClubResult[] {
   const trimmedQuery = query.trim();
 
-  if (!/^\d+$/.test(trimmedQuery) || !trimmedQuery) {
+  if (!trimmedQuery) {
     return [];
   }
 
-  return [
-    {
-      id: trimmedQuery,
-      name: `Club ${trimmedQuery}`,
+  const directIdFallback = /^\d+$/.test(trimmedQuery)
+    ? [
+        {
+          id: trimmedQuery,
+          name: `Club ${trimmedQuery}`,
+          platform,
+          division: "Direct club lookup",
+          record: "Open live club profile",
+          skillRating: 0,
+        },
+      ]
+    : [];
+  const normalizedQuery = trimmedQuery.toLowerCase();
+  const knownFallbacks = knownClubFallbacks
+    .filter((club) =>
+      [club.id, club.name, ...club.aliases]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedQuery),
+    )
+    .map((club) => ({
+      id: club.id,
+      name: club.name,
       platform,
       division: "Direct club lookup",
       record: "Open live club profile",
       skillRating: 0,
-    },
-  ];
+    }));
+
+  return [...directIdFallback, ...knownFallbacks];
 }
 
 function dedupeClubs(clubs: ClubResult[], fallbackClubs: ClubResult[]) {
@@ -114,9 +142,11 @@ export default function SearchPageClient({
 
         const payload = (await response.json()) as SearchApiResponse;
 
+        const mergedClubs = dedupeClubs(payload.clubs ?? [], fallbackClubs);
+
         setPlayers(payload.players ?? []);
-        setClubs(dedupeClubs(payload.clubs ?? [], fallbackClubs));
-        setSearchError(payload.searchError ?? "");
+        setClubs(mergedClubs);
+        setSearchError(mergedClubs.length > 0 ? "" : payload.searchError ?? "");
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -125,7 +155,11 @@ export default function SearchPageClient({
         setPlayers([]);
         setClubs(fallbackClubs);
         setSearchError(
-          error instanceof Error ? error.message : "Live EA search failed.",
+          fallbackClubs.length > 0
+            ? ""
+            : error instanceof Error
+              ? error.message
+              : "Live EA search failed.",
         );
       } finally {
         if (!controller.signal.aborted) {
