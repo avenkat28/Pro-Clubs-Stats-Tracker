@@ -256,7 +256,7 @@ export async function getCachedEaClubProfile(
       name: cachedClub.name,
       platform: cachedClub.platform,
       badgeUrl: cachedClub.badgeUrl,
-      division: cachedClub.division ?? "Cached profile",
+      division: cachedClub.division ?? "Club profile",
       skillRating: cachedClub.skillRating ?? 0,
       wins: cachedClub.wins,
       draws: cachedClub.draws,

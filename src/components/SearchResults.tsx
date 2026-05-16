@@ -95,7 +95,11 @@ export default function SearchResults({
                 meta={club.record}
                 href={`/club/${club.id}?platform=${club.platform}`}
                 statLabel="Skill Rating"
-                statValue={club.skillRating || "Open"}
+                statValue={
+                  typeof club.skillRating === "number" && club.skillRating > 0
+                    ? club.skillRating.toLocaleString("en-US")
+                    : "--"
+                }
                 statClassName={
                   typeof club.skillRating === "number"
                     ? skillRatingTextClassName(club.skillRating)

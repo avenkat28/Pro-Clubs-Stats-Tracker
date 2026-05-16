@@ -55,12 +55,10 @@ function ClubProfileView({
   clubId,
   platform,
   profile,
-  cachedNotice,
 }: {
   clubId: string;
   platform: EaPlatform;
   profile: EaClubProfile;
-  cachedNotice?: string;
 }) {
   const proTeamComp = getClubProfileComp(profile);
 
@@ -69,15 +67,6 @@ function ClubProfileView({
       <Navbar />
 
       <section className="mx-auto flex max-w-[84rem] flex-col gap-5 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        {cachedNotice ? (
-          <div className="app-banner-warning">
-            <p className="text-sm font-semibold uppercase tracking-wide">
-              Cached profile
-            </p>
-            <p className="mt-2 text-sm text-gray-300">{cachedNotice}</p>
-          </div>
-        ) : null}
-
         <div className="club-control-panel rounded-[1.25rem] border border-emerald-300/10 bg-[#07100c]/70 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.18)] ring-1 ring-white/[0.03]">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -147,6 +136,18 @@ export default async function ClubPage({
     searchParams,
   ]);
   const platform = normalizeEaPlatform(resolvedSearchParams.platform);
+  const cachedProfile = await getCachedEaClubProfile(clubId).catch(
+    (cacheError) => {
+      console.warn("Unable to load cached EA club profile", cacheError);
+      return null;
+    },
+  );
+
+  if (cachedProfile) {
+    return (
+      <ClubProfileView clubId={clubId} platform={platform} profile={cachedProfile} />
+    );
+  }
 
   try {
     const profile = await getEaClubProfile(clubId, platform);
@@ -156,24 +157,6 @@ export default async function ClubPage({
 
     return <ClubProfileView clubId={clubId} platform={platform} profile={profile} />;
   } catch (error) {
-    const cachedProfile = await getCachedEaClubProfile(clubId).catch(
-      (cacheError) => {
-        console.warn("Unable to load cached EA club profile", cacheError);
-        return null;
-      },
-    );
-
-    if (cachedProfile) {
-      return (
-        <ClubProfileView
-          clubId={clubId}
-          platform={platform}
-          profile={cachedProfile}
-          cachedNotice="EA blocked the live request, so this page is showing the latest profile saved in your database."
-        />
-      );
-    }
-
     const message =
       error instanceof EaRequestError && error.status === 403
         ? "EA is blocking this live profile request from Vercel. Search shortcuts can still open the right club ID, but the full profile needs EA to allow the server request or a cached database copy."

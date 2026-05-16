@@ -2,7 +2,6 @@ import LeaderboardHeader from "../../components/LeaderboardHeader";
 import LeaderboardsClient from "../../components/LeaderboardsClient";
 import Navbar from "../../components/Navbar";
 import {
-  EaRequestError,
   type EaLeaderboardClub,
   type EaLeaderboardPlayer,
   eaPlatformLabels,
@@ -28,40 +27,32 @@ export default async function LeaderboardsPage({
   const platform = normalizeEaPlatform(params.platform);
   let players: EaLeaderboardPlayer[] = [];
   let clubs: EaLeaderboardClub[] = [];
-  let leaderboardError = "";
+  const cachedLeaderboards = await getCachedEaLeaderboards(platform).catch(
+    (cacheError) => {
+      console.warn("Unable to load cached EA leaderboards", cacheError);
+      return null;
+    },
+  );
 
-  try {
-    const leaderboards = await getEaLeaderboards(platform);
+  if (cachedLeaderboards) {
+    players = cachedLeaderboards.players;
+    clubs = cachedLeaderboards.clubs;
+  } else {
+    try {
+      const leaderboards = await getEaLeaderboards(platform);
 
-    players = leaderboards.players;
-    clubs = leaderboards.clubs;
-    await cacheEaLeaderboards({
-      platform,
-      clubLimit: 25,
-      playerClubScanLimit: 12,
-      leaderboards,
-    }).catch((cacheError) => {
-      console.warn("Unable to cache EA leaderboards", cacheError);
-    });
-  } catch (error) {
-    const cachedLeaderboards = await getCachedEaLeaderboards(platform).catch(
-      (cacheError) => {
-        console.warn("Unable to load cached EA leaderboards", cacheError);
-        return null;
-      },
-    );
-
-    if (cachedLeaderboards) {
-      players = cachedLeaderboards.players;
-      clubs = cachedLeaderboards.clubs;
-      leaderboardError =
-        "Showing the latest leaderboard saved in the database because the live EA request failed.";
-    } else if (error instanceof EaRequestError) {
-      leaderboardError = `EA rejected the live leaderboard request (${error.status}).`;
-    } else if (error instanceof Error) {
-      leaderboardError = error.message;
-    } else {
-      leaderboardError = "Live EA leaderboard fetch failed.";
+      players = leaderboards.players;
+      clubs = leaderboards.clubs;
+      await cacheEaLeaderboards({
+        platform,
+        clubLimit: 25,
+        playerClubScanLimit: 12,
+        leaderboards,
+      }).catch((cacheError) => {
+        console.warn("Unable to cache EA leaderboards", cacheError);
+      });
+    } catch (error) {
+      console.warn("Unable to load EA leaderboards", error);
     }
   }
 
@@ -90,15 +81,6 @@ export default async function LeaderboardsPage({
             );
           })}
         </div>
-
-        {leaderboardError ? (
-          <div className="app-banner-warning">
-            <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
-              Live leaderboard unavailable
-            </p>
-            <p className="mt-2">{leaderboardError}</p>
-          </div>
-        ) : null}
 
         <LeaderboardsClient players={players} clubs={clubs} />
       </section>

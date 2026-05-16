@@ -209,18 +209,6 @@ export default function SearchPageClient({
 
       <SearchFilters activeFilter={filter} query={query} platform={platform} />
 
-      {searchError ? (
-        <div className="app-banner-warning">
-          <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
-            Live search fallback
-          </p>
-          <p className="mt-2">
-            {searchError} Club ID lookups still work, and available results
-            will continue rendering when one data source succeeds.
-          </p>
-        </div>
-      ) : null}
-
       {query ? (
         isLoading ? (
           <div className="app-empty-state">

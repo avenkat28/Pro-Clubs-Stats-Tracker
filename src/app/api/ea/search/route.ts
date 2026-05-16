@@ -2,11 +2,20 @@ import { NextResponse } from "next/server";
 
 import {
   EaRequestError,
+  type EaClubSearchResult,
+  type EaLeaderboardPlayer,
   getEaLeaderboards,
   normalizeEaPlatform,
   normalizeEaSearchQuery,
   searchEaClubs,
 } from "../../../../lib/ea";
+import { cacheEaLeaderboards } from "../../../../lib/database/leaderboardCache";
+import {
+  cacheSearchClubs,
+  leaderboardPlayersToSearchResults,
+  searchCachedClubs,
+  searchCachedPlayers,
+} from "../../../../lib/database/searchCache";
 
 const searchFilters = ["all", "players", "clubs"] as const;
 
@@ -41,15 +50,51 @@ export async function GET(request: Request) {
   }
 
   const normalizedQuery = query.toLowerCase();
-  let players = [];
-  let clubs = [];
+  let players: Array<{
+    id: string;
+    clubId?: string;
+    name: string;
+    position: string;
+    club: string;
+    platform: typeof platform;
+    rating: number;
+    goals: number;
+    assists: number;
+  }> =
+    filter !== "clubs" ? await searchCachedPlayers(query, platform) : [];
+  let clubs: EaClubSearchResult[] =
+    filter !== "players" ? await searchCachedClubs(query, platform) : [];
   let searchError = "";
+
+  if (
+    (filter === "all" && (players.length > 0 || clubs.length > 0)) ||
+    (filter === "players" && players.length > 0) ||
+    (filter === "clubs" && clubs.length > 0)
+  ) {
+    return NextResponse.json({
+      query,
+      filter,
+      platform,
+      players,
+      clubs,
+      searchError,
+    });
+  }
 
   const [clubSearchResult, playerSearchResult] = await Promise.allSettled([
     filter !== "players" ? searchEaClubs(query, platform) : Promise.resolve([]),
     filter !== "clubs"
-      ? getEaLeaderboards(platform, 30, 20).then((leaderboards) =>
-          leaderboards.players
+      ? getEaLeaderboards(platform, 30, 20).then(async (leaderboards) => {
+          await cacheEaLeaderboards({
+            platform,
+            clubLimit: 30,
+            playerClubScanLimit: 20,
+            leaderboards,
+          }).catch((cacheError) => {
+            console.warn("Unable to cache EA leaderboards from search", cacheError);
+          });
+
+          const matchedPlayers = leaderboards.players
             .filter((player) =>
               [
                 player.name,
@@ -62,24 +107,18 @@ export async function GET(request: Request) {
                 .toLowerCase()
                 .includes(normalizedQuery),
             )
-            .slice(0, 24)
-            .map((player) => ({
-              id: player.id,
-              clubId: player.clubId,
-              name: player.name,
-              position: player.position,
-              club: player.club,
-              platform,
-              rating: player.rating,
-              goals: player.goals,
-              assists: player.assists,
-            })),
-        )
+            .slice(0, 24) satisfies EaLeaderboardPlayer[];
+
+          return leaderboardPlayersToSearchResults(matchedPlayers, platform);
+        })
       : Promise.resolve([]),
   ]);
 
   if (clubSearchResult.status === "fulfilled") {
     clubs = clubSearchResult.value;
+    await cacheSearchClubs(clubs, platform).catch((cacheError) => {
+      console.warn("Unable to cache EA club search results", cacheError);
+    });
   } else {
     const error = clubSearchResult.reason;
     if (error instanceof EaRequestError) {
@@ -121,26 +160,6 @@ export async function GET(request: Request) {
         filter,
         queryLength: query.length,
       });
-    }
-  }
-
-  const rejectedResult = [clubSearchResult, playerSearchResult].find(
-    (result) => result.status === "rejected",
-  );
-
-  if (
-    rejectedResult?.status === "rejected" &&
-    players.length === 0 &&
-    clubs.length === 0
-  ) {
-    const error = rejectedResult.reason;
-
-    if (error instanceof EaRequestError) {
-      searchError = `EA rejected part of the live search request (${error.status}).`;
-    } else if (error instanceof Error) {
-      searchError = error.message;
-    } else {
-      searchError = "Live EA search failed.";
     }
   }
 

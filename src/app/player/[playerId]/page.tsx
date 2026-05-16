@@ -126,13 +126,11 @@ function PlayerProfileView({
   clubId,
   platform,
   profile,
-  cachedNotice,
 }: {
   playerId: string;
   clubId: string;
   platform: EaPlatform;
   profile: PlayerProfileData;
-  cachedNotice?: string;
 }) {
   const awardBadges = getPlayerAwardBadges(profile.player, profile.squad);
   const playerStatComp = getPlayerStatComp({
@@ -166,15 +164,6 @@ function PlayerProfileView({
       <Navbar />
 
       <section className="mx-auto flex max-w-[84rem] flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        {cachedNotice ? (
-          <div className="app-banner-warning">
-            <p className="text-sm font-semibold uppercase tracking-wide">
-              Cached player profile
-            </p>
-            <p className="mt-2 text-sm text-gray-300">{cachedNotice}</p>
-          </div>
-        ) : null}
-
         <p className="text-sm text-gray-500">
           Player ID: {playerId} / Club ID: {clubId}
         </p>
@@ -269,6 +258,24 @@ export default async function PlayerPage({
     );
   }
 
+  const cachedProfile = await getCachedEaPlayerProfile(clubId, playerId).catch(
+    (cacheError) => {
+      console.warn("Unable to load cached EA player profile", cacheError);
+      return null;
+    },
+  );
+
+  if (cachedProfile?.player) {
+    return (
+      <PlayerProfileView
+        playerId={playerId}
+        clubId={clubId}
+        platform={platform}
+        profile={{ ...cachedProfile, player: cachedProfile.player }}
+      />
+    );
+  }
+
   try {
     const profile = await getEaPlayerProfile(clubId, playerId, platform);
 
@@ -303,25 +310,6 @@ export default async function PlayerPage({
       />
     );
   } catch (error) {
-    const cachedProfile = await getCachedEaPlayerProfile(clubId, playerId).catch(
-      (cacheError) => {
-        console.warn("Unable to load cached EA player profile", cacheError);
-        return null;
-      },
-    );
-
-    if (cachedProfile?.player) {
-      return (
-        <PlayerProfileView
-          playerId={playerId}
-          clubId={clubId}
-          platform={platform}
-          profile={{ ...cachedProfile, player: cachedProfile.player }}
-          cachedNotice="EA blocked the live request, so this page is showing the latest player stats saved in your database."
-        />
-      );
-    }
-
     const message =
       error instanceof Error ? error.message : "Unable to load live EA player stats.";
 
