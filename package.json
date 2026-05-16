@@ -12,6 +12,8 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
     "cache:club": "tsx scripts/cache-club.ts",
+    "cache:leaderboards": "tsx scripts/cache-leaderboards.ts",
+    "db:summary": "tsx scripts/db-summary.ts",
     "db:test": "tsx scripts/test-db.ts"
   },
   "dependencies": {

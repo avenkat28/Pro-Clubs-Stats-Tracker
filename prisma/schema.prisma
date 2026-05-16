@@ -36,6 +36,77 @@ model Club {
   @@index([skillRating])
 }
 
+model LeaderboardSnapshot {
+  id                  String   @id @default(cuid())
+  platform            String
+  clubLimit           Int
+  playerClubScanLimit Int
+  capturedAt          DateTime @default(now())
+
+  clubs   LeaderboardClubRow[]
+  players LeaderboardPlayerRow[]
+
+  @@index([platform])
+  @@index([capturedAt])
+}
+
+model LeaderboardClubRow {
+  id           String @id @default(cuid())
+  snapshotId   String
+  eaClubId     String
+  rank         Int
+  name         String
+  division     String
+  platform     String
+  region       String
+  games        Int
+  wins         Int
+  draws        Int
+  losses       Int
+  goalsFor     Int
+  goalsAgainst Int
+  cleanSheets  Int
+  skillRating  Int
+
+  snapshot LeaderboardSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+  @@index([eaClubId])
+  @@index([rank])
+  @@index([skillRating])
+}
+
+model LeaderboardPlayerRow {
+  id           String @id @default(cuid())
+  snapshotId   String
+  eaPlayerId   String
+  clubEaClubId String
+  rank         Int
+  name         String
+  club         String
+  position     String
+  platform     String
+  region       String
+  games        Int
+  goals        Int
+  assists      Int
+  rating       Float
+  winRate      Int
+  redCards     Int
+  tackles      Int
+  tackleRate   Int
+
+  snapshot LeaderboardSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+  @@index([eaPlayerId])
+  @@index([clubEaClubId])
+  @@index([rank])
+  @@index([rating])
+  @@index([goals])
+  @@index([assists])
+}
+
 model Player {
   id                String   @id @default(cuid())
   eaPlayerId        String   @unique

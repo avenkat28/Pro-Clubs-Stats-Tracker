@@ -10,6 +10,10 @@ import {
   getEaLeaderboards,
   normalizeEaPlatform,
 } from "../../lib/ea";
+import {
+  cacheEaLeaderboards,
+  getCachedEaLeaderboards,
+} from "../../lib/database/leaderboardCache";
 
 type LeaderboardsPageProps = {
   searchParams: Promise<{
@@ -31,8 +35,28 @@ export default async function LeaderboardsPage({
 
     players = leaderboards.players;
     clubs = leaderboards.clubs;
+    await cacheEaLeaderboards({
+      platform,
+      clubLimit: 25,
+      playerClubScanLimit: 12,
+      leaderboards,
+    }).catch((cacheError) => {
+      console.warn("Unable to cache EA leaderboards", cacheError);
+    });
   } catch (error) {
-    if (error instanceof EaRequestError) {
+    const cachedLeaderboards = await getCachedEaLeaderboards(platform).catch(
+      (cacheError) => {
+        console.warn("Unable to load cached EA leaderboards", cacheError);
+        return null;
+      },
+    );
+
+    if (cachedLeaderboards) {
+      players = cachedLeaderboards.players;
+      clubs = cachedLeaderboards.clubs;
+      leaderboardError =
+        "Showing the latest leaderboard saved in the database because the live EA request failed.";
+    } else if (error instanceof EaRequestError) {
       leaderboardError = `EA rejected the live leaderboard request (${error.status}).`;
     } else if (error instanceof Error) {
       leaderboardError = error.message;
