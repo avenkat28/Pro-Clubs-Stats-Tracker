@@ -120,6 +120,7 @@ Useful scripts:
 
 ```bash
 npm run build
+npm run preview
 npm run db:test
 npm run prisma:generate
 npm run prisma:migrate
@@ -164,6 +165,23 @@ Before deploying:
 - run `npm run build`
 - verify live EA connectivity for the target environment
 - confirm route coverage for homepage, search, club, player, leaderboards, compare, and patches
+
+## Deploying to Vercel
+
+ProClubsHQ deploys to Vercel as a Next.js app.
+
+- Framework preset: `Next.js`
+- Build command: `npm run build`
+- Install command: `npm install`
+- Preview locally: `npm run preview`
+- Output directory: use Vercel's default Next.js output handling
+
+Notes:
+
+- Do not configure this project as a Vite static build
+- Do not set `dist` as the output directory
+- No SPA rewrite `vercel.json` is needed for route refreshes because Next.js handles routing natively
+- Add `DATABASE_URL` and `DIRECT_URL` in the Vercel project environment variables before deploying
 
 ## Disclaimer
 
