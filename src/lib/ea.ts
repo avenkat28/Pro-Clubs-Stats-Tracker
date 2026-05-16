@@ -437,8 +437,12 @@ async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
   const url = createEaUrl(pathname, searchParams);
   const response = await fetch(url, {
     headers: {
-      Accept: "application/json",
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "en-US,en;q=0.9",
+      Origin: "https://www.ea.com",
       Referer: "https://www.ea.com/",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     },
     next: {
       revalidate: DEFAULT_REVALIDATE_SECONDS,

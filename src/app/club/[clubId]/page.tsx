@@ -3,6 +3,7 @@ import ClubStatsGrid from "../../../components/ClubStatsGrid";
 import Navbar from "../../../components/Navbar";
 import SquadTable from "../../../components/SquadTable";
 import {
+  EaRequestError,
   eaPlatformLabels,
   eaPlatforms,
   getEaClubProfile,
@@ -119,7 +120,11 @@ export default async function ClubPage({
     );
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Unable to load live EA stats.";
+      error instanceof EaRequestError && error.status === 403
+        ? "EA is blocking this live profile request from Vercel. Search shortcuts can still open the right club ID, but the full profile needs EA to allow the server request or a cached database copy."
+        : error instanceof Error
+          ? error.message
+          : "Unable to load live EA stats.";
 
     return (
       <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
