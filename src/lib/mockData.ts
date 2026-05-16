@@ -7,19 +7,39 @@ export const featuredStats = [
 
 export const features = [
   {
-    title: "Advanced Club Analytics",
+    eyebrow: "Form",
+    statLabel: "Form",
+    title: "Club Form Tracking",
     description:
-      "Track win rate, form, goals per match, skill rating trends, and more.",
+      "Read recent runs, win rate swings, and scoring pace before your next match-up.",
   },
   {
-    title: "Player Performance Ratings",
+    eyebrow: "Squad",
+    statLabel: "Player",
+    title: "Player Output",
     description:
-      "Compare goals, assists, match ratings, consistency, and impact scores.",
+      "Break down goals, assists, ratings, and contributions across the full XI.",
   },
   {
-    title: "Leaderboards",
+    eyebrow: "Matches",
+    statLabel: "Games",
+    title: "Match History",
     description:
-      "Find the top clubs, players, attackers, midfielders, defenders, and goalkeepers.",
+      "Review recent results, scorelines, and momentum without leaving the club page.",
+  },
+  {
+    eyebrow: "Ranks",
+    statLabel: "Live Updates",
+    title: "Leaderboard Movement",
+    description:
+      "Spot ranking changes fast and see which clubs are climbing or dropping.",
+  },
+  {
+    eyebrow: "Compare",
+    statLabel: "Club",
+    title: "Compare Clubs",
+    description:
+      "Stack two clubs side by side for skill rating, record, goals, and form trends.",
   },
 ];
 

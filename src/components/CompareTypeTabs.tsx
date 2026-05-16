@@ -15,7 +15,7 @@ export default function CompareTypeTabs({
   onModeChange,
 }: CompareTypeTabsProps) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#080b0a] p-1">
+    <div className="app-surface p-1">
       <div className="grid grid-cols-2 gap-1">
         {tabs.map((tab) => {
           const isActive = activeMode === tab.value;
@@ -25,11 +25,7 @@ export default function CompareTypeTabs({
               key={tab.value}
               type="button"
               onClick={() => onModeChange(tab.value)}
-              className={`rounded-md px-5 py-2.5 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-white text-black"
-                  : "text-white/55 hover:bg-white/[0.06] hover:text-white"
-              }`}
+              className={`app-pill-button ${isActive ? "app-pill-button-active" : ""}`}
             >
               {tab.label}
             </button>

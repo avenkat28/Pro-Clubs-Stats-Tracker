@@ -48,6 +48,10 @@ export default function TopThreePodium({
 }: TopThreePodiumProps) {
   const items = activeTab === "players" ? players.slice(0, 3) : clubs.slice(0, 3);
 
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <section className="grid gap-4 lg:grid-cols-3">
       {items.map((item, index) => {
@@ -79,11 +83,11 @@ export default function TopThreePodium({
           <a
             key={item.id}
             href={href}
-            className={`group rounded-xl border p-5 shadow-2xl transition hover:-translate-y-1 hover:border-blue-400/60 hover:shadow-blue-600/20 ${style.className}`}
+            className={`group rounded-xl border p-5 shadow-xl transition hover:border-blue-400/45 hover:bg-white/[0.05] ${style.className}`}
           >
             <div className="flex items-center justify-between">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-black ${style.badgeClassName} animate-pulse`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${style.badgeClassName}`}
               >
                 {style.label}
               </span>
@@ -93,7 +97,7 @@ export default function TopThreePodium({
             </div>
 
             <div className="mt-8">
-              <h2 className="text-2xl font-black text-white transition group-hover:text-blue-200">
+              <h2 className="text-2xl font-semibold text-white transition group-hover:text-blue-200">
                 {item.name}
               </h2>
               <p className="mt-2 text-sm font-medium text-gray-400">{detail}</p>
@@ -104,7 +108,7 @@ export default function TopThreePodium({
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500">
                   Form Index
                 </p>
-                <p className={`mt-1 text-2xl font-black ${primaryStatTone}`}>
+                <p className={`mt-1 text-2xl font-semibold ${primaryStatTone}`}>
                   {primaryStat}
                 </p>
               </div>

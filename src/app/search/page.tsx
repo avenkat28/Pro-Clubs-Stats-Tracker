@@ -3,6 +3,7 @@ import SearchFilters from "../../components/SearchFilters";
 import SearchResults from "../../components/SearchResults";
 import {
   EaRequestError,
+  getEaLeaderboards,
   eaPlatformLabels,
   eaPlatforms,
   normalizeEaPlatform,
@@ -31,19 +32,66 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = normalizeEaSearchQuery(params.q ?? "");
   const filter = normalizeSearchFilter(params.type);
   const platform = normalizeEaPlatform(params.platform);
+  let players = [];
   let clubs = [];
   let searchError = "";
 
   if (query) {
-    try {
-      clubs = await searchEaClubs(query, platform);
-    } catch (error) {
+    const normalizedQuery = query.toLowerCase();
+    const [clubSearchResult, playerSearchResult] = await Promise.allSettled([
+      filter !== "players" ? searchEaClubs(query, platform) : Promise.resolve([]),
+      filter !== "clubs"
+        ? getEaLeaderboards(platform, 30, 20).then((leaderboards) =>
+            leaderboards.players
+              .filter((player) =>
+                [
+                  player.name,
+                  player.club,
+                  player.position,
+                  player.id,
+                  player.clubId ?? "",
+                ]
+                  .join(" ")
+                  .toLowerCase()
+                  .includes(normalizedQuery),
+              )
+              .slice(0, 24)
+              .map((player) => ({
+                id: player.id,
+                clubId: player.clubId,
+                name: player.name,
+                position: player.position,
+                club: player.club,
+                platform,
+                rating: player.rating,
+                goals: player.goals,
+                assists: player.assists,
+              })),
+          )
+        : Promise.resolve([]),
+    ]);
+
+    if (clubSearchResult.status === "fulfilled") {
+      clubs = clubSearchResult.value;
+    }
+
+    if (playerSearchResult.status === "fulfilled") {
+      players = playerSearchResult.value;
+    }
+
+    const rejectedResult = [clubSearchResult, playerSearchResult].find(
+      (result) => result.status === "rejected",
+    );
+
+    if (rejectedResult?.status === "rejected") {
+      const error = rejectedResult.reason;
+
       if (error instanceof EaRequestError) {
-        searchError = `EA rejected the live club search request (${error.status}).`;
+        searchError = `EA rejected part of the live search request (${error.status}).`;
       } else if (error instanceof Error) {
         searchError = error.message;
       } else {
-        searchError = "Live EA club search failed.";
+        searchError = "Live EA search failed.";
       }
     }
   }
@@ -70,39 +118,39 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
-      <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300/80">
+      <section className="app-page-shell">
+        <div className="app-page-header">
+          <p className="app-page-eyebrow">
             Search Results
           </p>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">
+          <h1 className="app-page-title">
             {query ? `Results for "${query}"` : "Search Clubs and Players"}
           </h1>
 
-          <p className="mt-3 max-w-2xl text-white/55">
-            Search real FC 26 clubs from the live EA leaderboard data, or paste
-            a club ID directly to open its live profile.
+          <p className="app-page-copy max-w-3xl">
+            Search live FC 26 clubs, leaderboard players, or paste a club ID to
+            open its profile directly.
           </p>
         </div>
 
-        <form className="flex flex-col gap-3 rounded-lg border border-white/10 bg-[#080b0a] p-4 md:flex-row">
+        <form className="app-surface flex flex-col gap-3 p-4 md:flex-row">
           <input
             name="q"
             defaultValue={query}
             placeholder="Search club name, club ID, or player name"
-            className="flex-1 rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
+            className="app-input flex-1"
           />
 
           <input type="hidden" name="type" value={filter} />
           <input type="hidden" name="platform" value={platform} />
 
-          <button className="rounded-md bg-white px-5 py-2.5 font-semibold text-black transition hover:bg-emerald-200">
+          <button type="submit" className="app-button-primary">
             Search
           </button>
         </form>
 
-        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
+        <div className="app-surface app-toolbar">
           {eaPlatforms.map((platformOption) => {
             const isActive = platformOption === platform;
 
@@ -110,11 +158,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <a
                 key={platformOption}
                 href={`/search?q=${encodeURIComponent(query)}&type=${filter}&platform=${platformOption}`}
-                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "bg-white text-black"
-                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
-                }`}
+                className={`app-pill-link ${isActive ? "app-pill-link-active" : ""}`}
               >
                 {eaPlatformLabels[platformOption]}
               </a>
@@ -125,29 +169,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <SearchFilters activeFilter={filter} query={query} platform={platform} />
 
         {searchError ? (
-          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
+          <div className="app-banner-warning">
             <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
               Live search fallback
             </p>
             <p className="mt-2">
-              {searchError} You can still open a club directly by ID, and we can
-              keep refining the name-search request shape.
+              {searchError} Club ID lookups still work, and available results
+              will continue rendering when one data source succeeds.
             </p>
           </div>
         ) : null}
 
         {query ? (
           <SearchResults
-            players={[]}
+            players={players}
             clubs={dedupedClubs}
             filter={filter}
           />
         ) : (
-          <div className="rounded-lg border border-white/10 bg-[#080b0a] p-8">
-            <h2 className="text-2xl font-black">Start searching</h2>
+          <div className="app-empty-state">
+            <h2 className="text-2xl font-semibold">Start searching</h2>
             <p className="mt-2 text-white/55">
-              Try a real FC 26 club name from the rankings, or paste a club ID
-              like “885419”.
+              Try a live FC 26 club or player name, or paste a club ID like
+              “885419”.
             </p>
           </div>
         )}

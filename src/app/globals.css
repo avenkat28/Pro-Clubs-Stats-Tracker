@@ -24,7 +24,7 @@ body {
   padding: 0;
   min-height: 100%;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(3, 7, 5, 0.92)),
+    linear-gradient(180deg, rgba(4, 6, 6, 0.78), rgba(3, 8, 6, 0.9)),
     url("/image.png"),
     linear-gradient(180deg, #030504 0%, #06100b 45%, #020302 100%);
   background-attachment: fixed;
@@ -51,9 +51,280 @@ body {
   box-sizing: border-box;
 }
 
+:is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid rgba(52, 211, 153, 0.92);
+  outline-offset: 2px;
+}
+
+.app-page-shell {
+  width: min(100%, 84rem);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1rem 3.5rem;
+}
+
+.app-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.app-page-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(110, 231, 183, 0.78);
+}
+
+.app-page-title {
+  margin: 0;
+  max-width: 48rem;
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  font-weight: 650;
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+  color: #fff;
+}
+
+.app-page-copy {
+  max-width: 46rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: rgba(245, 247, 251, 0.62);
+}
+
+.app-surface {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.15rem;
+  background: rgba(8, 11, 10, 0.82);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16);
+}
+
+.app-surface-soft {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.5rem;
+}
+
+.app-pill-link,
+.app-pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border-radius: 0.8rem;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(245, 247, 251, 0.66);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.app-pill-link:hover,
+.app-pill-button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.app-pill-link-active,
+.app-pill-button-active {
+  background: #fff;
+  color: #0b1110;
+}
+
+.app-input,
+.app-select {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.8rem;
+  background: rgba(0, 0, 0, 0.42);
+  padding: 0.8rem 0.95rem;
+  color: #fff;
+  font-size: 0.95rem;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.app-input:hover,
+.app-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-input:focus,
+.app-select:focus {
+  border-color: rgba(110, 231, 183, 0.55);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.app-input::placeholder {
+  color: rgba(245, 247, 251, 0.35);
+}
+
+.app-button-primary,
+.app-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  border-radius: 0.8rem;
+  padding: 0.8rem 1.1rem;
+  font-size: 0.94rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.app-button-primary {
+  background: #fff;
+  color: #0b1110;
+}
+
+.app-button-primary:hover {
+  background: #d1fae5;
+}
+
+.app-button-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(245, 247, 251, 0.78);
+}
+
+.app-button-secondary:hover {
+  border-color: rgba(110, 231, 183, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.app-banner-warning {
+  border: 1px solid rgba(234, 179, 8, 0.24);
+  border-radius: 1rem;
+  background: rgba(234, 179, 8, 0.08);
+  padding: 1rem 1.1rem;
+  color: #fef3c7;
+}
+
+.app-empty-state {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  background: rgba(8, 11, 10, 0.72);
+  padding: 1.75rem;
+}
+
+html.light .app-page-title {
+  color: #0b1110;
+}
+
+html.light .app-page-copy {
+  color: rgba(11, 17, 16, 0.64);
+}
+
+html.light .app-surface,
+html.light .app-surface-soft,
+html.light .app-empty-state {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(16, 43, 32, 0.1);
+  box-shadow: 0 10px 24px rgba(16, 43, 32, 0.07);
+}
+
+html.light .app-pill-link,
+html.light .app-pill-button {
+  color: rgba(11, 17, 16, 0.62);
+}
+
+html.light .app-pill-link:hover,
+html.light .app-pill-button:hover {
+  background: rgba(16, 43, 32, 0.05);
+  color: #0b1110;
+}
+
+html.light .app-pill-link-active,
+html.light .app-pill-button-active {
+  background: #0b1110;
+  color: #fff;
+}
+
+html.light .app-input,
+html.light .app-select {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(16, 43, 32, 0.12);
+  color: #0b1110;
+}
+
+html.light .app-input:focus,
+html.light .app-select:focus {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+html.light .app-input::placeholder {
+  color: rgba(11, 17, 16, 0.38);
+}
+
+html.light .app-button-primary {
+  background: #0b1110;
+  color: #fff;
+}
+
+html.light .app-button-primary:hover {
+  background: #1f2937;
+}
+
+html.light .app-button-secondary {
+  border-color: rgba(16, 43, 32, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(11, 17, 16, 0.72);
+}
+
+html.light .app-button-secondary:hover {
+  border-color: rgba(4, 120, 87, 0.24);
+  color: #0b1110;
+}
+
+html.light .app-banner-warning {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(161, 98, 7, 0.2);
+  color: #854d0e;
+}
+
+@media (min-width: 640px) {
+  .app-page-shell {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-page-shell {
+    gap: 1.75rem;
+    padding-top: 2.25rem;
+  }
+}
+
 .home-page-background {
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(3, 7, 5, 0.92)),
+    linear-gradient(180deg, rgba(5, 8, 8, 0.62) 0%, rgba(3, 7, 6, 0.78) 34%, rgba(3, 7, 5, 0.9) 100%),
+    linear-gradient(90deg, rgba(3, 5, 5, 0.82) 0%, rgba(3, 5, 5, 0.56) 38%, rgba(3, 5, 5, 0.36) 100%),
     url("/pro-clubs-team.png"),
     linear-gradient(180deg, #030504 0%, #06100b 45%, #020302 100%);
   background-attachment: fixed;
@@ -63,7 +334,7 @@ body {
 
 html.light body {
   background:
-    linear-gradient(180deg, rgba(247, 252, 248, 0.94), rgba(234, 244, 238, 0.96)),
+    linear-gradient(180deg, rgba(248, 252, 249, 0.94), rgba(234, 244, 238, 0.97)),
     url("/image.png"),
     linear-gradient(180deg, #f6fbf7 0%, #e6f3ea 55%, #f8fbf8 100%);
   color: var(--tracker-text);
@@ -71,7 +342,8 @@ html.light body {
 
 html.light .home-page-background {
   background:
-    linear-gradient(180deg, rgba(248, 252, 249, 0.96), rgba(237, 246, 241, 0.97)),
+    linear-gradient(180deg, rgba(248, 252, 249, 0.74) 0%, rgba(237, 246, 241, 0.84) 35%, rgba(242, 248, 244, 0.92) 100%),
+    linear-gradient(90deg, rgba(248, 252, 249, 0.9) 0%, rgba(244, 249, 246, 0.7) 38%, rgba(240, 247, 243, 0.5) 100%),
     url("/pro-clubs-team.png"),
     linear-gradient(180deg, #f6fbf7 0%, #e6f3ea 55%, #f8fbf8 100%);
   background-attachment: fixed;
@@ -84,20 +356,26 @@ html.light .home-hero-layout {
 }
 
 html.light .home-hero-copy {
-  max-width: 42rem;
+  max-width: 58rem;
+}
+
+html.light .home-hero-shell {
+  background: rgba(255, 255, 255, 0.48) !important;
+  border-color: rgba(16, 43, 32, 0.08) !important;
+  box-shadow: 0 20px 52px rgba(16, 43, 32, 0.08) !important;
 }
 
 html.light .home-search-card,
 html.light .home-stat-card,
 html.light .home-feature-card {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border-color: rgba(16, 43, 32, 0.1) !important;
-  box-shadow: 0 14px 32px rgba(16, 43, 32, 0.08) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(16, 43, 32, 0.08) !important;
+  box-shadow: 0 10px 24px rgba(16, 43, 32, 0.06) !important;
 }
 
 html.light .home-search-card {
-  max-width: 36rem;
-  justify-self: end;
+  max-width: none;
+  justify-self: stretch;
 }
 
 html.light .home-feature-card {

@@ -15,7 +15,7 @@ export default function LeaderboardTabs({
   onTabChange,
 }: LeaderboardTabsProps) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#080b0a] p-1">
+    <div className="app-surface p-1">
       <div className="grid grid-cols-2 gap-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.value;
@@ -25,11 +25,7 @@ export default function LeaderboardTabs({
               key={tab.value}
               type="button"
               onClick={() => onTabChange(tab.value)}
-              className={`rounded-md px-5 py-3 text-sm font-bold transition ${
-                isActive
-                  ? "bg-white text-black"
-                  : "text-white/50 hover:bg-white/[0.06] hover:text-white"
-              }`}
+              className={`app-pill-button ${isActive ? "app-pill-button-active" : ""}`}
             >
               {tab.label}
             </button>

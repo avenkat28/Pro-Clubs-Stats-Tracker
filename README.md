@@ -1,214 +1,170 @@
-# Pro Clubs Stats Tracker
-by Arya Venkat and Safwan Rahman
+# ProClubsHQ
 
-EA Sports FC 26 Pro Clubs advanced stats tracker built with Next.js, TypeScript, PostgreSQL, and Prisma. The app pulls live EA club and player data, surfaces squad and player analytics beyond the default Pro Clubs views, and adds stat-profile comps, recent-form views, leaderboards, and comparison tools.
+ProClubsHQ is a responsive EA Sports FC 26 Pro Clubs analytics app built with Next.js, TypeScript, Prisma, and PostgreSQL. It combines live EA club and player data with richer search, leaderboards, comparison tools, and profile-level analytics in a production-focused UI.
 
-## What the app does
+## Features
 
-- Fetches live EA club profiles, squad stats, and player profiles
-- Shows club performance breakdowns, goal production, defensive profile, and team-strength signals
-- Displays sortable squad stats with total and per-match views
-- Surfaces individual player profiles with shared stats, overall stats, per-match stats, and recent-match detail
-- Includes recent rating trends and recent-player summary stats for the last match window
-- Adds stat-profile comps for clubs and players based on production and form
-- Supports search, leaderboards, and comparison views
+- Editorial homepage with live search entry points and Pro Clubs-focused product messaging
+- Club search by name or direct EA club ID
+- Player search powered from live leaderboard data
+- Live leaderboards for clubs and players across current gen, last gen, and Switch
+- Club comparison and player comparison workflows
+- Club profile pages with record, goal output, defensive profile, team-strength indicators, recent form, and squad stats
+- Player profile pages with role-aware stat summaries, recent form, recent match history, and comparison-style player comps
+- Release notes page for product updates
+- Dark mode and light mode support across the app
+- Responsive layouts for desktop, tablet, and mobile
 
-## Latest updates
+## Core Pages
 
-- Added richer live EA player stat handling, including shot success, passing, MOTM, tackling, and recent-match parsing improvements
-- Upgraded squad stats with better ordering, cleaner alignment, updated total/per-match columns, and nationality flag support
-- Split player stats into shared, overall, and per-match sections with improved labels and toggles
-- Added a recent-player section that can toggle between rating trend and recent match stats
-- Connected rating-trend chart points to recent match cards for direct jump/open behavior
-- Redesigned recent match detail cards into a two-row stat layout
-- Removed clean sheets from the club attack/defense panel and expanded goal difference into that space
+- `/` - homepage with search, CTA paths, and product overview
+- `/search` - live club and player search
+- `/leaderboards` - player and club leaderboards with filters and sorting
+- `/compare` - compare clubs or players side by side
+- `/club/[clubId]` - live club analytics page
+- `/player/[playerId]?clubId=...` - live player analytics page
+- `/patches` - updates and release notes
 
-## Live EA setup
+## Tech Stack
 
-The club and player pages use live data from the public Pro Clubs endpoint family at:
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Prisma
+- PostgreSQL
+- Supabase client libraries
+
+## Project Structure
 
 ```text
-https://proclubs.ea.com/api/fc
+src/
+  app/
+    club/[clubId]/         Club profile page
+    compare/               Compare page
+    leaderboards/          Leaderboards page
+    patches/               Release notes page
+    player/[playerId]/     Player profile page
+    search/                Search page
+    globals.css            Global styles and shared UI primitives
+    layout.tsx             Root layout and theme bootstrapping
+    page.tsx               Homepage
+  components/
+    Club*.tsx              Club page UI
+    Compare*.tsx           Compare UI
+    Leaderboard*.tsx       Leaderboard UI
+    Player*.tsx            Player page UI
+    Search*.tsx            Search UI
+    Stat*.tsx              Shared stat labels, cards, and icons
+    Navbar.tsx             Main navigation and theme toggle
+  lib/
+    ea.ts                  Live EA fetch + normalization layer
+    db.ts                  Prisma client
+    database/              Prisma query helpers
+    playerStatComp.ts      Player comparison logic
+    proTeamComp.ts         Club comparison logic
+    colorCoding.ts         Shared color/rating helpers
+    format.ts              Formatting helpers
+prisma/
+  schema.prisma            Database schema
+  migrations/              Prisma migrations
+  seed.ts                  Seed script
+public/
+  club-comps/              Club comparison assets
+  player-comps/            Player comparison assets
 ```
 
-1. Copy `.env.example` to `.env.local`
-2. Keep `EA_PLATFORM=common-gen5` for current-gen clubs, or switch it if needed
-3. Run the app with:
+## Environment Variables
+
+Copy `.env.example` and provide real database credentials.
+
+Required:
+
+- `DATABASE_URL` - pooled PostgreSQL connection for Prisma Client
+- `DIRECT_URL` - direct PostgreSQL connection for Prisma migrations
+
+Optional:
+
+- `EA_PLATFORM` - default EA platform, defaults to `common-gen5`
+- `EA_API_BASE_URL` - override for the EA Pro Clubs API base URL
+
+Recommended local setup:
+
+```bash
+cp .env.example .env
+```
+
+Then replace the placeholder values with your real PostgreSQL credentials.
+
+## Installation
+
+```bash
+npm install
+```
+
+## Local Development
+
+Start the app:
 
 ```bash
 npm run dev
 ```
 
-4. Open a live club page at `/club/<clubId>`
-5. Open a player page from the squad table or directly with `/player/<playerId>?clubId=<clubId>&platform=<platform>`
-
-Useful endpoints currently wired into the app:
-
-- `GET /api/ea/clubs/:clubId`
-- `GET https://proclubs.ea.com/api/fc/clubs/info?platform=common-gen5&clubIds=:clubId`
-- `GET https://proclubs.ea.com/api/fc/clubs/overallStats?platform=common-gen5&clubIds=:clubId`
-- `GET https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId=:clubId`
-- `GET https://proclubs.ea.com/api/fc/members/career/stats?platform=common-gen5&clubId=:clubId`
-
-## Main views
-
-### Club page
-
-- Live club record, form, team strength, attack/defense profile
-- Sortable squad stats with `Overall Totals` and `Per Match` toggles
-- Club comp card with primary and secondary real-life comps
-- Direct links into individual player pages
-
-### Player page
-
-- Live player identity card with nationality, height, position, and overall
-- Club badge awards such as top scorer, top assister, top defender, and most consistent
-- Shared player stats plus `Overall` and `Per Match` stat sections
-- Recent player module with `Rating Trend` and `Match Stats` toggles
-- Recent match cards with expanded two-row stat detail
-- Player comp card with real-life statistical comparisons
-
-### Compare / Search / Leaderboards
-
-- Club and player comparison workflows
-- Search views for clubs and players
-- Leaderboards and top-three podium displays
-
-## Stat comp features
-
-The app includes deterministic real-life comparison features for clubs and players. These are stat-profile comps, not exact playstyle comps.
-
-### Pro Team Comp
-
-Club pages call `getProTeamComp` from `src/lib/proTeamComp.ts` and display the result with `src/components/ProTeamCompCard.tsx`.
-
-The team comp uses record, goals for, goals against, goal difference, form when available, player goal-contribution distribution when available, tackles, tackle success, and red cards. It returns primary and secondary real-life club comps, a style label, explanation, category scores, tiers, and reasons.
-
-Club comp images live in:
+Open:
 
 ```text
-public/club-comps/
+http://localhost:3000
 ```
 
-Expected club image filenames:
-
-```text
-manchester-city.png
-barcelona.png
-real-madrid.png
-bayern-munich.png
-psg.png
-liverpool.png
-arsenal.png
-tottenham.png
-borussia-dortmund.png
-bayer-leverkusen.png
-napoli.png
-inter-milan.png
-atletico-madrid.png
-juventus.png
-chelsea.png
-```
-
-### Player Stat Comp
-
-Player pages call `getPlayerStatComp` from `src/lib/playerStatComp.ts` and display the result with `src/components/PlayerStatCompCard.tsx`.
-
-The player comp uses games, goals, assists, G/A, goals per game, assists per game, G/A per game, overall, average rating, win rate, tackles, tackle success, MOTM, red cards, recent-match form when available, and position when available.
-
-Player comp images live in:
-
-```text
-public/player-comps/
-```
-
-If a player image is missing or fails to load, the UI falls back to:
-
-```text
-public/player-comps/fallback.png
-```
-
-## Project structure
-
-```text
-src/
-  app/
-    api/ea/               # Internal EA proxy routes
-    club/[clubId]/        # Live club profile page
-    player/[playerId]/    # Live player profile page
-    compare/              # Club/player comparison page
-    leaderboards/         # Leaderboards page
-    search/               # Search page
-    globals.css           # Global app styling
-    layout.tsx            # Root layout
-    page.tsx              # Home page
-  components/
-    ClubHeader.tsx
-    ClubStatsGrid.tsx
-    MatchHistory.tsx
-    PerformanceChart.tsx
-    PlayerHeader.tsx
-    PlayerStatsGrid.tsx
-    RecentPlayerSection.tsx
-    ProTeamCompCard.tsx
-    SquadTable.tsx
-    Search*.tsx           # Search UI
-    Compare*.tsx          # Comparison UI
-    Leaderboard*.tsx      # Leaderboard UI
-    Stat*.tsx             # Shared stat labels/cards/icons
-    Navbar.tsx
-  lib/
-    ea.ts                 # Live EA fetch + normalization layer
-    playerStatComp.ts     # Player comparison logic
-    proTeamComp.ts        # Club comparison logic
-    colorCoding.ts        # Shared UI color helpers
-    format.ts             # Shared formatting helpers
-    db.ts                 # Prisma DB client
-    database/             # App query helpers
-    *MockData.ts          # Mock/fallback datasets used in some flows
-```
-
-## Database setup
-
-The app uses Prisma with PostgreSQL. For Supabase, use the pooled connection URL for normal app queries and the direct connection URL for Prisma migrations.
-
-1. Copy `.env.example` to `.env`
-2. Replace `YOUR-PASSWORD` and `PROJECT_REF` with values from your Supabase project
-3. Keep real credentials only in `.env`
-4. Test the connection:
+Useful scripts:
 
 ```bash
+npm run build
 npm run db:test
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:studio
+npm run prisma:seed
 ```
 
-5. Generate Prisma Client:
+## Database Setup
+
+1. Add `DATABASE_URL` and `DIRECT_URL`
+2. Generate the Prisma client:
 
 ```bash
 npm run prisma:generate
 ```
 
-6. Run migrations:
+3. Run migrations:
 
 ```bash
 npm run prisma:migrate
 ```
 
-7. Optional: open Prisma Studio:
+4. Optionally verify connectivity:
 
 ```bash
-npm run prisma:studio
+npm run db:test
 ```
 
-## Prisma scripts
+## Product Notes
 
-- `npm run db:test` checks database connectivity
-- `npm run prisma:generate` regenerates Prisma Client
-- `npm run prisma:migrate` applies schema migrations during development
-- `npm run prisma:studio` opens Prisma Studio
-- `npm run prisma:seed` seeds development data from `prisma/seed.ts`
+- Search supports clubs and players
+- Leaderboards support club and player ranking views with filters and sorting
+- Compare supports club-vs-club and player-vs-player workflows
+- Club and player profile pages include analytics beyond the default EA presentation
+- The UI is responsive and designed to work cleanly on mobile as well as larger screens
 
-## Attribution and disclaimer
+## Production Readiness
 
-This project is licensed under the MIT License. However, all data, names, logos, and trademarks related to EA Sports and EA FC are the property of their respective owners.
+Before deploying:
 
-This project is for educational and non-commercial purposes only and is not affiliated with or endorsed by Electronic Arts.
+- provide real database environment variables
+- run `npm run build`
+- verify live EA connectivity for the target environment
+- confirm route coverage for homepage, search, club, player, leaderboards, compare, and patches
+
+## Disclaimer
+
+ProClubsHQ is an independent project and is not affiliated with or endorsed by Electronic Arts. EA Sports FC names, assets, and related trademarks belong to their respective owners.

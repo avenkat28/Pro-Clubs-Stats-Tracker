@@ -6,7 +6,7 @@ export default function CompareHeader() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300/75">
             Compare
           </p>
-          <h1 className="mt-2 text-3xl font-semibold text-white md:text-5xl">
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
             Performance matchup
           </h1>
         </div>
