@@ -95,14 +95,14 @@ export default function LeaderboardsClient({
   return (
     <>
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">
+        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+          <p className="text-sm text-white/45">
             <StatLabel label="Top Player" />
           </p>
           <p className="mt-2 text-2xl font-black text-white">
             {featuredPlayer?.name ?? "Unavailable"}
           </p>
-          <p className="mt-1 text-sm font-semibold text-green-400">
+          <p className="mt-1 text-sm font-semibold text-emerald-300">
             <StatLabel
               label={
                 featuredPlayer
@@ -113,14 +113,14 @@ export default function LeaderboardsClient({
             />
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">
+        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+          <p className="text-sm text-white/45">
             <StatLabel label="Best Club" />
           </p>
           <p className="mt-2 text-2xl font-black text-white">
             {featuredClub?.name ?? "Unavailable"}
           </p>
-          <p className="mt-1 text-sm font-semibold text-blue-300">
+          <p className="mt-1 text-sm font-semibold text-emerald-300">
             <StatLabel
               label={
                 featuredClub
@@ -131,12 +131,12 @@ export default function LeaderboardsClient({
             />
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-          <p className="text-sm text-gray-400">Active View</p>
+        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+          <p className="text-sm text-white/45">Active View</p>
           <p className="mt-2 text-2xl font-black capitalize text-white">
             {activeTab}
           </p>
-          <p className="mt-1 text-sm font-semibold text-gray-400">
+          <p className="mt-1 text-sm font-semibold text-white/45">
             Sorted by {sortBy}
           </p>
         </div>

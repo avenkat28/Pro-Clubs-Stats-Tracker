@@ -67,40 +67,42 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   );
 
   return (
-    <main className="min-h-screen bg-black/35 text-white">
+    <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
-      <section className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10">
+      <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
         <div>
-          <p className="text-sm text-blue-400">Search Results</p>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300/80">
+            Search Results
+          </p>
 
-          <h1 className="mt-2 text-5xl font-bold">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">
             {query ? `Results for "${query}"` : "Search Clubs and Players"}
           </h1>
 
-          <p className="mt-3 max-w-2xl text-gray-400">
+          <p className="mt-3 max-w-2xl text-white/55">
             Search real FC 26 clubs from the live EA leaderboard data, or paste
             a club ID directly to open its live profile.
           </p>
         </div>
 
-        <form className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 md:flex-row">
+        <form className="flex flex-col gap-3 rounded-lg border border-white/10 bg-[#080b0a] p-4 md:flex-row">
           <input
             name="q"
             defaultValue={query}
             placeholder="Search club name, club ID, or player name"
-            className="flex-1 rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-gray-500"
+            className="flex-1 rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
           />
 
           <input type="hidden" name="type" value={filter} />
           <input type="hidden" name="platform" value={platform} />
 
-          <button className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-500">
+          <button className="rounded-md bg-white px-5 py-2.5 font-semibold text-black transition hover:bg-emerald-200">
             Search
           </button>
         </form>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
           {eaPlatforms.map((platformOption) => {
             const isActive = platformOption === platform;
 
@@ -108,10 +110,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <a
                 key={platformOption}
                 href={`/search?q=${encodeURIComponent(query)}&type=${filter}&platform=${platformOption}`}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-blue-600 text-white"
-                    : "border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                    ? "bg-white text-black"
+                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
                 }`}
               >
                 {eaPlatformLabels[platformOption]}
@@ -123,7 +125,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <SearchFilters activeFilter={filter} query={query} platform={platform} />
 
         {searchError ? (
-          <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-5 text-yellow-100">
+          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
             <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
               Live search fallback
             </p>
@@ -141,9 +143,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             filter={filter}
           />
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
-            <h2 className="text-2xl font-bold">Start searching</h2>
-            <p className="mt-2 text-gray-400">
+          <div className="rounded-lg border border-white/10 bg-[#080b0a] p-8">
+            <h2 className="text-2xl font-black">Start searching</h2>
+            <p className="mt-2 text-white/55">
               Try a real FC 26 club name from the rankings, or paste a club ID
               like “885419”.
             </p>

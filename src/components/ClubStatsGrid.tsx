@@ -265,9 +265,9 @@ export default function ClubStatsGrid({
     },
   ];
   const panelClassName =
-    "min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,0.22)] ring-1 ring-white/[0.03] sm:p-5";
+    "club-profile-panel min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,0.22)] ring-1 ring-white/[0.03] sm:p-5";
   const tileClassName =
-    "min-w-0 rounded-2xl border border-white/[0.06] bg-black/25 p-3 ring-1 ring-white/[0.02] sm:p-4";
+    "club-profile-tile min-w-0 rounded-2xl border border-white/[0.06] bg-black/25 p-3 ring-1 ring-white/[0.02] sm:p-4";
 
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.12fr_0.88fr_0.9fr]">
@@ -276,7 +276,7 @@ export default function ClubStatsGrid({
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
             Performance
           </p>
-          <div className="inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
+          <div className="club-segmented-control inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
             {[
               { label: "Overall", value: "overall" as const },
               { label: "Last 10", value: "last10" as const },
@@ -415,7 +415,7 @@ export default function ClubStatsGrid({
           Attack / Defense
         </p>
         <div className="mt-5 grid gap-3">
-          <div className="rounded-2xl bg-emerald-400/[0.06] p-4 ring-1 ring-emerald-300/10">
+          <div className="club-attack-card rounded-2xl bg-emerald-400/[0.06] p-4 ring-1 ring-emerald-300/10">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/50">
@@ -434,7 +434,7 @@ export default function ClubStatsGrid({
             </div>
           </div>
 
-          <div className="rounded-2xl bg-red-400/[0.055] p-4 ring-1 ring-red-300/10">
+          <div className="club-defense-card rounded-2xl bg-red-400/[0.055] p-4 ring-1 ring-red-300/10">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/50">
@@ -485,7 +485,7 @@ export default function ClubStatsGrid({
                   style={{ width: `${meter.value}%` }}
                 />
               </div>
-              <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-2xl border border-emerald-300/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
+              <div className="club-meter-tooltip pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-2xl border border-emerald-300/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
                 <p className="font-semibold text-white">{meter.label}</p>
                 <div className="mt-2 space-y-1">
                   {meter.details.map((detail) => (

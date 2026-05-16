@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CompareCard from "./CompareCard";
 import CompareRadarChart, { type RadarMetric } from "./CompareRadarChart";
 import CompareSearchBox from "./CompareSearchBox";
@@ -16,10 +16,14 @@ import type {
 type CompareClientProps = {
   players: ComparePlayer[];
   clubs: CompareClub[];
+  leftScopeClubId?: string;
+  rightScopeClubId?: string;
+  scopedToClubs?: boolean;
 };
 
 const emptyPlayer: ComparePlayer = {
   id: "",
+  clubId: "",
   name: "Unavailable",
   club: "No club",
   position: "N/A",
@@ -99,29 +103,111 @@ function clubRadar(left: CompareClub, right: CompareClub): RadarMetric[] {
   ];
 }
 
-export default function CompareClient({ players, clubs }: CompareClientProps) {
+function scopedPlayerOptions(
+  players: ComparePlayer[],
+  scopedToClubs: boolean,
+  primaryClubId?: string,
+  fallbackClubId?: string,
+) {
+  if (!scopedToClubs) {
+    return players;
+  }
+
+  const clubId = primaryClubId ?? fallbackClubId;
+
+  return clubId
+    ? players.filter((player) => player.clubId === clubId)
+    : players;
+}
+
+export default function CompareClient({
+  players,
+  clubs,
+  leftScopeClubId,
+  rightScopeClubId,
+  scopedToClubs = false,
+}: CompareClientProps) {
+  const leftPlayerOptions = useMemo(
+    () =>
+      scopedPlayerOptions(
+        players,
+        scopedToClubs,
+        leftScopeClubId,
+        rightScopeClubId,
+      ),
+    [leftScopeClubId, players, rightScopeClubId, scopedToClubs],
+  );
+  const rightPlayerOptions = useMemo(
+    () =>
+      scopedPlayerOptions(
+        players,
+        scopedToClubs,
+        rightScopeClubId,
+        leftScopeClubId,
+      ),
+    [leftScopeClubId, players, rightScopeClubId, scopedToClubs],
+  );
+  const usesSharedPlayerPool =
+    !scopedToClubs ||
+    !leftScopeClubId ||
+    !rightScopeClubId ||
+    leftScopeClubId === rightScopeClubId;
   const [mode, setMode] = useState<CompareMode>(
     players.length >= 2 ? "players" : "clubs",
   );
-  const [leftPlayerId, setLeftPlayerId] = useState(players[0]?.id ?? "");
-  const [rightPlayerId, setRightPlayerId] = useState(players[1]?.id ?? players[0]?.id ?? "");
+  const [leftPlayerId, setLeftPlayerId] = useState(leftPlayerOptions[0]?.id ?? "");
+  const [rightPlayerId, setRightPlayerId] = useState(
+    rightPlayerOptions[1]?.id ?? rightPlayerOptions[0]?.id ?? "",
+  );
   const [leftClubId, setLeftClubId] = useState(clubs[0]?.id ?? "");
   const [rightClubId, setRightClubId] = useState(clubs[1]?.id ?? clubs[0]?.id ?? "");
 
   const leftPlayer =
-    players.find((player) => player.id === leftPlayerId) ?? players[0] ?? emptyPlayer;
+    leftPlayerOptions.find((player) => player.id === leftPlayerId) ??
+    leftPlayerOptions[0] ??
+    emptyPlayer;
   const rightPlayer =
-    players.find((player) => player.id === rightPlayerId) ?? players[1] ?? players[0] ?? emptyPlayer;
+    rightPlayerOptions.find((player) => player.id === rightPlayerId) ??
+    rightPlayerOptions[1] ??
+    rightPlayerOptions[0] ??
+    emptyPlayer;
   const leftClub = clubs.find((club) => club.id === leftClubId) ?? clubs[0] ?? emptyClub;
   const rightClub =
     clubs.find((club) => club.id === rightClubId) ?? clubs[1] ?? clubs[0] ?? emptyClub;
 
-  const hasPlayerComparison = players.length >= 2;
+  const hasPlayerComparison =
+    leftPlayerOptions.length > 0 &&
+    rightPlayerOptions.length > 0 &&
+    (!usesSharedPlayerPool ||
+      leftPlayerOptions.length > 1 ||
+      rightPlayerOptions.length > 1 ||
+      leftPlayer.id !== rightPlayer.id);
   const hasClubComparison = clubs.length >= 2;
   const canCompare = mode === "players" ? hasPlayerComparison : hasClubComparison;
-  const options = mode === "players" ? players : clubs;
+  const leftOptions = mode === "players" ? leftPlayerOptions : clubs;
+  const rightOptions = mode === "players" ? rightPlayerOptions : clubs;
   const leftId = mode === "players" ? leftPlayerId : leftClubId;
   const rightId = mode === "players" ? rightPlayerId : rightClubId;
+
+  useEffect(() => {
+    if (
+      mode === "players" &&
+      leftPlayerOptions.length > 0 &&
+      !leftPlayerOptions.some((player) => player.id === leftPlayerId)
+    ) {
+      setLeftPlayerId(leftPlayerOptions[0].id);
+    }
+  }, [leftPlayerId, leftPlayerOptions, mode]);
+
+  useEffect(() => {
+    if (
+      mode === "players" &&
+      rightPlayerOptions.length > 0 &&
+      !rightPlayerOptions.some((player) => player.id === rightPlayerId)
+    ) {
+      setRightPlayerId(rightPlayerOptions[0].id);
+    }
+  }, [mode, rightPlayerId, rightPlayerOptions]);
 
   const radarMetrics = useMemo(() => {
     if (!canCompare) {
@@ -150,29 +236,29 @@ export default function CompareClient({ players, clubs }: CompareClientProps) {
   }
 
   function handleRandomPlayers() {
-    if (players.length < 2) {
+    if (!hasPlayerComparison) {
       return;
     }
 
-    const leftIndex = Math.floor(Math.random() * players.length);
-    let rightIndex = Math.floor(Math.random() * players.length);
+    const leftIndex = Math.floor(Math.random() * leftPlayerOptions.length);
+    let rightIndex = Math.floor(Math.random() * rightPlayerOptions.length);
 
-    if (players.length > 1) {
-      while (rightIndex === leftIndex) {
-        rightIndex = Math.floor(Math.random() * players.length);
+    if (usesSharedPlayerPool && rightPlayerOptions.length > 1) {
+      while (rightPlayerOptions[rightIndex].id === leftPlayerOptions[leftIndex].id) {
+        rightIndex = Math.floor(Math.random() * rightPlayerOptions.length);
       }
     }
 
     setMode("players");
-    setLeftPlayerId(players[leftIndex].id);
-    setRightPlayerId(players[rightIndex].id);
+    setLeftPlayerId(leftPlayerOptions[leftIndex].id);
+    setRightPlayerId(rightPlayerOptions[rightIndex].id);
   }
 
   return (
     <>
       <CompareTypeTabs activeMode={mode} onModeChange={setMode} />
 
-      {options.length > 0 ? (
+      {leftOptions.length > 0 || rightOptions.length > 0 ? (
         <div className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -181,14 +267,14 @@ export default function CompareClient({ players, clubs }: CompareClientProps) {
               </p>
               <p className="mt-1 text-sm text-white/50">
                 {mode === "players"
-                  ? `${players.length} player options loaded`
+                  ? `${leftPlayerOptions.length} left / ${rightPlayerOptions.length} right player options loaded`
                   : `${clubs.length} club options loaded`}
               </p>
             </div>
             <button
               type="button"
               onClick={handleRandomPlayers}
-              disabled={players.length < 2}
+              disabled={!hasPlayerComparison}
               className="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-white/75 transition hover:border-emerald-300/45 hover:text-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Random players
@@ -196,7 +282,8 @@ export default function CompareClient({ players, clubs }: CompareClientProps) {
           </div>
           <CompareSearchBox
             mode={mode}
-            options={options}
+            leftOptions={leftOptions}
+            rightOptions={rightOptions}
             leftId={leftId}
             rightId={rightId}
             onLeftChange={handleLeftChange}

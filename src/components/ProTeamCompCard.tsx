@@ -56,10 +56,10 @@ export default function ProTeamCompCard({ comp }: ProTeamCompCardProps) {
   })).filter((item) => item.value !== undefined);
 
   return (
-    <section className="min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
+    <section className="club-profile-panel min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 sm:h-32 sm:w-32">
+          <div className="club-comp-crest flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 sm:h-32 sm:w-32">
             <img
               src={CLUB_IMAGE_PATHS[comp.primaryComp]}
               alt={`${comp.primaryComp} crest`}
@@ -85,8 +85,8 @@ export default function ProTeamCompCard({ comp }: ProTeamCompCardProps) {
           </div>
         </div>
 
-        <div className="flex min-w-[220px] items-center gap-3 rounded-2xl border border-white/[0.07] bg-black/25 p-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] p-2">
+        <div className="club-profile-tile flex min-w-[220px] items-center gap-3 rounded-2xl border border-white/[0.07] bg-black/25 p-4">
+          <div className="club-comp-crest flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] p-2">
             <img
               src={CLUB_IMAGE_PATHS[comp.secondaryComp]}
               alt={`${comp.secondaryComp} crest`}
@@ -108,7 +108,7 @@ export default function ProTeamCompCard({ comp }: ProTeamCompCardProps) {
         {visibleScores.map((score) => (
           <div
             key={score.key}
-            className="rounded-2xl border border-white/[0.06] bg-black/24 p-4"
+            className="club-profile-tile rounded-2xl border border-white/[0.06] bg-black/24 p-4"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
@@ -137,7 +137,7 @@ export default function ProTeamCompCard({ comp }: ProTeamCompCardProps) {
         <p className="text-sm font-semibold text-white/55">Why this comp</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           {comp.reasons.map((reason) => (
-            <p key={reason} className="rounded-xl bg-white/[0.035] px-3 py-2 text-sm text-white/62">
+            <p key={reason} className="club-profile-tile rounded-xl bg-white/[0.035] px-3 py-2 text-sm text-white/62">
               {reason}
             </p>
           ))}

@@ -219,7 +219,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
   }
 
   return (
-    <section className="min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
+    <section className="club-profile-panel squad-table-panel min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
@@ -231,7 +231,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
         </div>
 
         <div className="flex flex-col gap-3 sm:items-end">
-          <div className="inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
+          <div className="club-segmented-control inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
             {[
               { label: "Overall Totals", value: "overall" as const },
               { label: "Per Match", value: "perMatch" as const },
@@ -264,7 +264,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
       </div>
 
       {!hasUsablePlayers ? (
-        <div className="mt-6 rounded-[1.5rem] border border-dashed border-white/12 bg-black/20 px-6 py-10 text-center">
+        <div className="club-profile-tile mt-6 rounded-[1.5rem] border border-dashed border-white/12 bg-black/20 px-6 py-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-2xl text-white/70">
             +
           </div>
@@ -279,7 +279,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
         </div>
       ) : null}
 
-      <div className="mt-6 overflow-x-auto overscroll-x-contain">
+      <div className="squad-table-scroll mt-6 overflow-x-auto overscroll-x-contain">
         <table className="w-full min-w-[1160px] table-fixed text-left text-sm">
           <colgroup>
             <col className="w-[18rem]" />
@@ -403,17 +403,17 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
               return (
                 <tr
                   key={player.id}
-                  className="border-b border-white/8 text-white transition hover:bg-white/[0.03]"
+                  className="squad-table-row border-b border-white/8 text-white transition hover:bg-white/[0.03]"
                 >
                   <td className="py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.45),_rgba(255,255,255,0.02))] text-xs font-black uppercase text-white/85">
+                      <div className="squad-avatar flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.45),_rgba(255,255,255,0.02))] text-xs font-black uppercase text-white/85">
                         {player.name.slice(0, 2)}
                       </div>
                       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-3">
                         <Link
                           href={playerHref}
-                          className="truncate font-semibold transition hover:text-blue-300"
+                          className="truncate font-semibold transition hover:text-emerald-300"
                         >
                           {player.name}
                         </Link>
@@ -460,10 +460,10 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
 
       {hasUsablePlayers ? (
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/40">
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+          <span className="club-profile-tile rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
             Totals view shows raw production and usage.
           </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+          <span className="club-profile-tile rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
             Per-match view normalizes scoring, creation, passing volume, tackles, and MOTM impact.
           </span>
         </div>

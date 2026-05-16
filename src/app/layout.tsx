@@ -13,6 +13,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+try {
+  var theme = localStorage.getItem("proclubshq-theme");
+  if (theme !== "light" && theme !== "dark") {
+    theme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  document.documentElement.classList.add(theme);
+  document.documentElement.style.colorScheme = theme;
+} catch (_) {
+  document.documentElement.classList.add("dark");
+}
+            `.trim(),
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

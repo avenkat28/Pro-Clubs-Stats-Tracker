@@ -49,6 +49,7 @@ function toCompareClub(club: EaLeaderboardClub): CompareClub {
 function toComparePlayer(player: EaLeaderboardPlayer): ComparePlayer {
   return {
     id: `${player.clubId}:${player.id}`,
+    clubId: player.clubId,
     name: player.name,
     club: player.club,
     position: player.position,
@@ -89,6 +90,7 @@ function squadMemberToComparePlayer(
 ): ComparePlayer {
   return {
     id: `${profile.club.id}:${member.id}`,
+    clubId: profile.club.id,
     name: member.name,
     club: profile.club.name,
     position: member.position,
@@ -151,10 +153,13 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
   let clubs: CompareClub[] = [];
   let compareError = "";
   const selectedProfiles: EaClubProfile[] = [];
+  const hasClubScope = Boolean(leftClubInput || rightClubInput);
 
   try {
     const [leaderboards, leftProfileResult, rightProfileResult] = await Promise.all([
-      getEaLeaderboards(platform, 30, 20),
+      hasClubScope
+        ? Promise.resolve({ players: [], clubs: [] })
+        : getEaLeaderboards(platform, 30, 20),
       getOptionalClubProfile(leftClubInput, platform).then(
         (profile) => ({ status: "fulfilled" as const, value: profile }),
         (error) => ({ status: "rejected" as const, reason: error }),
@@ -176,14 +181,14 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
     );
     const selectedClubs = selectedProfiles.map(profileToCompareClub);
 
-    players = dedupeById([
-      ...selectedPlayers,
-      ...leaderboards.players.map(toComparePlayer),
-    ]).filter(isRelevantComparePlayer);
-    clubs = dedupeById([
-      ...selectedClubs,
-      ...leaderboards.clubs.map(toCompareClub),
-    ]);
+    players = dedupeById(
+      hasClubScope
+        ? selectedPlayers
+        : leaderboards.players.map(toComparePlayer),
+    ).filter(isRelevantComparePlayer);
+    clubs = dedupeById(
+      hasClubScope ? selectedClubs : leaderboards.clubs.map(toCompareClub),
+    );
   } catch (error) {
     if (error instanceof EaRequestError) {
       compareError = `EA rejected the live compare request (${error.status}).`;
@@ -264,7 +269,13 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
           </div>
         ) : null}
 
-        <CompareClient players={players} clubs={clubs} />
+        <CompareClient
+          players={players}
+          clubs={clubs}
+          leftScopeClubId={selectedProfiles[0]?.club.id}
+          rightScopeClubId={selectedProfiles[1]?.club.id}
+          scopedToClubs={hasClubScope}
+        />
       </section>
     </main>
   );

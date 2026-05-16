@@ -98,20 +98,20 @@ export default function LeaderboardTable({
           </thead>
           <tbody>
             {isPlayers
-              ? players.map((player, index) => (
+              ? players.map((player) => (
                   <LeaderboardRow
                     key={player.id}
                     activeTab="players"
                     item={player}
-                    displayRank={index + 1}
+                    displayRank={player.rank}
                   />
                 ))
-              : clubs.map((club, index) => (
+              : clubs.map((club) => (
                   <LeaderboardRow
                     key={club.id}
                     activeTab="clubs"
                     item={club}
-                    displayRank={index + 1}
+                    displayRank={club.rank}
                   />
                 ))}
           </tbody>
@@ -119,12 +119,12 @@ export default function LeaderboardTable({
       </div>
 
       <div className="grid gap-3 p-4 md:hidden">
-        {items.map((item, index) => (
+        {items.map((item) => (
           <MobileLeaderboardCard
             key={item.id}
             activeTab={activeTab}
             item={item}
-            displayRank={index + 1}
+            displayRank={item.rank}
           />
         ))}
       </div>

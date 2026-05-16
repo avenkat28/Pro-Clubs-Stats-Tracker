@@ -17,14 +17,11 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
     "@tailwindcss/postcss": "^4.2.4",
-    "next": "^16.2.4",
+    "next": "^16.2.6",
     "postcss": "^8.5.12",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.2.4"
-  },
-  "overrides": {
-    "postcss": "$postcss"
   },
   "devDependencies": {
     "@types/node": "^20",

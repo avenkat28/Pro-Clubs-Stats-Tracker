@@ -2,6 +2,7 @@ export type CompareMode = "players" | "clubs";
 
 export type ComparePlayer = {
   id: string;
+  clubId: string;
   name: string;
   club: string;
   position: string;

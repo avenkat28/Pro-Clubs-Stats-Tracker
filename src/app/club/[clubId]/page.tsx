@@ -62,7 +62,7 @@ export default async function ClubPage({
         <Navbar />
 
         <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:py-10">
-          <div className="rounded-[1.25rem] border border-emerald-300/10 bg-[#07100c]/70 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.18)] ring-1 ring-white/[0.03]">
+          <div className="club-control-panel rounded-[1.25rem] border border-emerald-300/10 bg-[#07100c]/70 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.18)] ring-1 ring-white/[0.03]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-200/50">
@@ -72,7 +72,7 @@ export default async function ClubPage({
               </div>
             </div>
 
-            <div className="mt-4 flex w-full flex-wrap rounded-[1.25rem] border border-emerald-300/12 bg-black/35 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:inline-flex sm:w-auto sm:rounded-full">
+            <div className="club-platform-tabs mt-4 flex w-full flex-wrap rounded-[1.25rem] border border-emerald-300/12 bg-black/35 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:inline-flex sm:w-auto sm:rounded-full">
               {eaPlatforms.map((platformOption) => {
                 const isActive = platformOption === platform;
 

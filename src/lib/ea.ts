@@ -260,6 +260,10 @@ export type EaSquadMember = {
   assists: number;
   shots: number;
   shotSuccessRate: number;
+  saves: number;
+  saveSuccessRate: number;
+  goalsAgainst: number;
+  cleanSheets: number;
   rating: number;
   winRate: number;
   redCards: number;
@@ -840,36 +844,99 @@ function getClubBadgeUrl(info: PrimitiveRecord | null) {
   return `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${badgeId}.png`;
 }
 
-function getDivisionLabel(value: unknown) {
-  const division = getNumber(value, [
-    "currentDivision",
-    "division",
-    "curDivision",
-    "bestDivision",
-    "stats.currentDivision",
-    "stats.bestDivision",
-  ]);
-
-  if (division <= 0) {
-    return "Division Unavailable";
+function formatDivisionLabel(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return `Division ${value}`;
   }
 
-  return `Division ${division}`;
-}
-
-function getCurrentDivisionLabel(value: unknown) {
-  const division = getNumber(value, [
-    "currentDivision",
-    "division",
-    "curDivision",
-    "stats.currentDivision",
-  ]);
-
-  if (division <= 0) {
+  if (typeof value !== "string") {
     return "";
   }
 
-  return `Division ${division}`;
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  const numericValue = Number(normalizedValue);
+
+  if (Number.isFinite(numericValue) && numericValue > 0) {
+    return `Division ${numericValue}`;
+  }
+
+  const divisionMatch = normalizedValue.match(/\bdivision\s+(\d+)\b/i);
+
+  if (divisionMatch) {
+    return `Division ${divisionMatch[1]}`;
+  }
+
+  if (/elite/i.test(normalizedValue)) {
+    return "Elite Division";
+  }
+
+  return normalizedValue;
+}
+
+function getDivisionFromPaths(value: unknown, paths: string[]) {
+  for (const path of paths) {
+    const label = formatDivisionLabel(getByPath(value, path));
+
+    if (label) {
+      return label;
+    }
+  }
+
+  return "";
+}
+
+function getDivisionLabel(value: unknown) {
+  const division = getDivisionFromPaths(value, [
+    "currentDivision",
+    "division",
+    "curDivision",
+    "details.currentDivision",
+    "details.division",
+    "details.curDivision",
+    "record.currentDivision",
+    "record.division",
+    "stats.currentDivision",
+    "stats.division",
+    "season.currentDivision",
+    "season.division",
+  ]);
+
+  return division || "Division Unavailable";
+}
+
+function getBestDivisionLabel(value: unknown) {
+  return getDivisionFromPaths(value, [
+    "bestDivision",
+    "highestDivision",
+    "details.bestDivision",
+    "record.bestDivision",
+    "stats.bestDivision",
+  ]);
+}
+
+function getCurrentDivisionLabel(value: unknown) {
+  return getDivisionFromPaths(value, [
+    "currentDivision",
+    "curDivision",
+    "division",
+    "details.currentDivision",
+    "details.curDivision",
+    "details.division",
+    "record.currentDivision",
+    "record.curDivision",
+    "record.division",
+    "stats.currentDivision",
+    "stats.curDivision",
+    "stats.division",
+    "season.currentDivision",
+    "season.curDivision",
+    "season.division",
+  ]);
 }
 
 function getSkillRatingValue(value: unknown) {
@@ -1002,9 +1069,10 @@ function normalizeClub(
     badgeUrl: getClubBadgeUrl(info),
     division:
       getCurrentDivisionLabel(currentSeason) ||
-      getString(info, ["division", "currentDivision", "details.division"], "") ||
-      getString(overall, ["division", "currentDivision", "details.division"], "") ||
-      getDivisionLabel(overall ?? info),
+      getCurrentDivisionLabel(info) ||
+      getCurrentDivisionLabel(overall) ||
+      getBestDivisionLabel(overall ?? info) ||
+      "Division Unavailable",
     skillRating:
       getSkillRatingValue(overall) ||
       getSkillRatingValue(info) ||
@@ -1048,6 +1116,76 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "proStats.shotsTaken",
     "proStats.shotsAttempted",
     "proStats.totalShots",
+  ]);
+  const saves = getBestNumber(record, [
+    "saves",
+    "savesMade",
+    "keeperSaves",
+    "gkSaves",
+    "goalkeeperSaves",
+    "stats.saves",
+    "stats.savesMade",
+    "stats.keeperSaves",
+    "stats.gkSaves",
+    "proStats.saves",
+    "proStats.savesMade",
+    "proStats.keeperSaves",
+    "proStats.gkSaves",
+  ]);
+  const goalsAgainst = getBestNumber(record, [
+    "goalsAgainst",
+    "goalsConceded",
+    "goalsAllowed",
+    "keeperGoalsAgainst",
+    "gkGoalsAgainst",
+    "stats.goalsAgainst",
+    "stats.goalsConceded",
+    "stats.goalsAllowed",
+    "stats.keeperGoalsAgainst",
+    "stats.gkGoalsAgainst",
+    "proStats.goalsAgainst",
+    "proStats.goalsConceded",
+    "proStats.goalsAllowed",
+    "proStats.keeperGoalsAgainst",
+    "proStats.gkGoalsAgainst",
+  ]);
+  const directSaveSuccessRate = getNumber(
+    record,
+    [
+      "saveSuccessRate",
+      "savePercentage",
+      "savePct",
+      "keeperSaveSuccessRate",
+      "gkSaveSuccessRate",
+      "stats.saveSuccessRate",
+      "stats.savePercentage",
+      "stats.savePct",
+      "stats.keeperSaveSuccessRate",
+      "stats.gkSaveSuccessRate",
+      "proStats.saveSuccessRate",
+      "proStats.savePercentage",
+      "proStats.savePct",
+      "proStats.keeperSaveSuccessRate",
+      "proStats.gkSaveSuccessRate",
+    ],
+    Number.NaN,
+  );
+  const cleanSheets = getBestNumber(record, [
+    "cleanSheets",
+    "cleansheets",
+    "cleanSheet",
+    "keeperCleanSheets",
+    "gkCleanSheets",
+    "stats.cleanSheets",
+    "stats.cleansheets",
+    "stats.cleanSheet",
+    "stats.keeperCleanSheets",
+    "stats.gkCleanSheets",
+    "proStats.cleanSheets",
+    "proStats.cleansheets",
+    "proStats.cleanSheet",
+    "proStats.keeperCleanSheets",
+    "proStats.gkCleanSheets",
   ]);
   const directWinRate = getNumber(
     record,
@@ -1158,6 +1296,12 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     ]),
     shots,
     shotSuccessRate: getShotSuccessRate(record, goals, shots),
+    saves,
+    saveSuccessRate: Number.isFinite(directSaveSuccessRate)
+      ? Math.round(directSaveSuccessRate)
+      : getPercentage(saves, saves + goalsAgainst),
+    goalsAgainst,
+    cleanSheets,
     rating: getRoundedRating(record),
     winRate: Number.isFinite(directWinRate)
       ? Math.round(directWinRate)
@@ -1202,6 +1346,13 @@ function mergeSquadMembers(members: EaSquadMember[]) {
       goals: Math.max(existing.goals, member.goals),
       assists: Math.max(existing.assists, member.assists),
       shots: Math.max(existing.shots, member.shots),
+      saves: Math.max(existing.saves, member.saves),
+      saveSuccessRate:
+        member.matches >= existing.matches
+          ? member.saveSuccessRate
+          : existing.saveSuccessRate,
+      goalsAgainst: Math.max(existing.goalsAgainst, member.goalsAgainst),
+      cleanSheets: Math.max(existing.cleanSheets, member.cleanSheets),
       shotSuccessRate:
         member.shots >= existing.shots
           ? member.shotSuccessRate

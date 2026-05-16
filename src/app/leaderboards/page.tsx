@@ -42,7 +42,7 @@ export default async function LeaderboardsPage({
   }
 
   return (
-    <main className="min-h-screen bg-black/35 text-white">
+    <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
@@ -51,7 +51,7 @@ export default async function LeaderboardsPage({
           totalClubs={clubs.length}
         />
 
-        <div className="flex flex-wrap gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
           {eaPlatforms.map((platformOption) => {
             const isActive = platformOption === platform;
 
@@ -59,10 +59,10 @@ export default async function LeaderboardsPage({
               <a
                 key={platformOption}
                 href={`/leaderboards?platform=${platformOption}`}
-                className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-blue-600 text-white"
-                    : "border border-white/10 bg-black/35 text-gray-300 hover:border-blue-400/60 hover:text-white"
+                    ? "bg-white text-black"
+                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
                 }`}
               >
                 {eaPlatformLabels[platformOption]}
@@ -72,7 +72,7 @@ export default async function LeaderboardsPage({
         </div>
 
         {leaderboardError ? (
-          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-5 text-yellow-100">
+          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
             <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
               Live leaderboard unavailable
             </p>

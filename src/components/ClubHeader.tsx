@@ -47,9 +47,9 @@ export default function ClubHeader({
   const skillRatingValueTone = skillRatingTextClassName(skillRating);
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-[1.5rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_34%),linear-gradient(135deg,rgba(9,18,13,0.96),rgba(3,5,4,0.94))] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.03] sm:p-6">
+    <section className="club-hero-shell min-w-0 overflow-hidden rounded-[1.5rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_34%),linear-gradient(135deg,rgba(9,18,13,0.96),rgba(3,5,4,0.94))] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.03] sm:p-6">
       <div className="flex flex-wrap items-center gap-3 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-100/75">
-        <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5">
+        <span className="club-platform-badge rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5">
           {platform}
         </span>
         <span className="text-white/25">/</span>
@@ -58,7 +58,7 @@ export default function ClubHeader({
 
       <div className="mt-6 flex min-w-0 flex-col justify-between gap-6 lg:flex-row lg:items-end">
         <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.25rem] border border-white/[0.08] bg-black/30 p-2 ring-1 ring-emerald-300/10 sm:h-28 sm:w-28">
+          <div className="club-badge-shell flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.25rem] border border-white/[0.08] bg-black/30 p-2 ring-1 ring-emerald-300/10 sm:h-28 sm:w-28">
             {badgeUrl ? (
               <img
                 src={badgeUrl}
@@ -86,8 +86,8 @@ export default function ClubHeader({
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
           {proTeamComp ? (
-            <div className="flex min-w-48 items-center gap-3 rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] p-2">
+            <div className="club-comp-pill flex min-w-48 items-center gap-3 rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-4">
+              <div className="club-comp-crest flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] p-2">
                 <img
                   src={CLUB_COMP_IMAGE_PATHS[proTeamComp]}
                   alt={`${proTeamComp} crest`}
