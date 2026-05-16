@@ -61,7 +61,7 @@ export default async function ClubPage({
       <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
         <Navbar />
 
-        <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:py-10">
+        <section className="mx-auto flex max-w-[84rem] flex-col gap-5 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="club-control-panel rounded-[1.25rem] border border-emerald-300/10 bg-[#07100c]/70 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.18)] ring-1 ring-white/[0.03]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -125,11 +125,11 @@ export default async function ClubPage({
       <main className="min-h-screen overflow-x-hidden bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
-          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
+          <div className="app-banner-warning border-red-500/30 bg-red-500/10 text-red-100">
             <p className="text-sm font-semibold uppercase tracking-wide text-red-300">
               Live EA fetch failed
             </p>
-            <h1 className="mt-3 text-4xl font-bold">Club Profile</h1>
+            <h1 className="mt-3 text-4xl font-semibold">Club Profile</h1>
             <p className="mt-4 text-gray-300">Club ID: {clubId}</p>
             <p className="mt-2 text-gray-300">
               Platform: {eaPlatformLabels[platform]}

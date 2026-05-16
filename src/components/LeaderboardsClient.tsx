@@ -51,6 +51,17 @@ export default function LeaderboardsClient({
   players,
   clubs,
 }: LeaderboardsClientProps) {
+  if (players.length === 0 && clubs.length === 0) {
+    return (
+      <div className="app-empty-state text-white">
+        <h2 className="text-2xl font-semibold">Leaderboards unavailable</h2>
+        <p className="mt-2 text-white/55">
+          EA did not return leaderboard data for this view. Try another platform shortly.
+        </p>
+      </div>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("players");
   const [platform, setPlatform] = useState<PlatformFilter>("all");
   const [region, setRegion] = useState<RegionFilter>("all");
@@ -95,11 +106,11 @@ export default function LeaderboardsClient({
   return (
     <>
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+        <div className="app-surface p-5">
           <p className="text-sm text-white/45">
             <StatLabel label="Top Player" />
           </p>
-          <p className="mt-2 text-2xl font-black text-white">
+          <p className="mt-2 text-2xl font-semibold text-white">
             {featuredPlayer?.name ?? "Unavailable"}
           </p>
           <p className="mt-1 text-sm font-semibold text-emerald-300">
@@ -113,11 +124,11 @@ export default function LeaderboardsClient({
             />
           </p>
         </div>
-        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+        <div className="app-surface p-5">
           <p className="text-sm text-white/45">
             <StatLabel label="Best Club" />
           </p>
-          <p className="mt-2 text-2xl font-black text-white">
+          <p className="mt-2 text-2xl font-semibold text-white">
             {featuredClub?.name ?? "Unavailable"}
           </p>
           <p className="mt-1 text-sm font-semibold text-emerald-300">
@@ -131,9 +142,9 @@ export default function LeaderboardsClient({
             />
           </p>
         </div>
-        <div className="rounded-lg border border-white/10 bg-[#080b0a] p-5">
+        <div className="app-surface p-5">
           <p className="text-sm text-white/45">Active View</p>
-          <p className="mt-2 text-2xl font-black capitalize text-white">
+          <p className="mt-2 text-2xl font-semibold capitalize text-white">
             {activeTab}
           </p>
           <p className="mt-1 text-sm font-semibold text-white/45">

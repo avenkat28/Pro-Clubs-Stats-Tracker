@@ -51,15 +51,28 @@ export default function LeaderboardTable({
   const columns = isPlayers ? playerColumns : clubColumns;
   const items = isPlayers ? players : clubs;
 
+  if (items.length === 0) {
+    return (
+      <section className="app-empty-state text-white">
+        <h2 className="text-2xl font-semibold">
+          {isPlayers ? "No player leaderboard data" : "No club leaderboard data"}
+        </h2>
+        <p className="mt-2 text-white/55">
+          Try another platform or check again when EA live rankings are available.
+        </p>
+      </section>
+    );
+  }
+
   return (
-    <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-blue-950/10 backdrop-blur">
+    <section className="app-surface-soft overflow-hidden">
       <div className="border-b border-white/10 px-5 py-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">
               Live Rankings
             </p>
-            <h2 className="mt-1 text-2xl font-black text-white">
+            <h2 className="mt-1 text-2xl font-semibold text-white">
               {isPlayers ? "Player Leaderboard" : "Club Leaderboard"}
             </h2>
           </div>
@@ -74,7 +87,7 @@ export default function LeaderboardTable({
               {columns.map((column) => (
                 <th
                   key={column.label}
-                  className="px-4 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500"
+                  className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500"
                 >
                   {column.sortKey ? (
                     <button

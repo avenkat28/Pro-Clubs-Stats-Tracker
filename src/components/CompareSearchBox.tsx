@@ -72,7 +72,7 @@ function Selector({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-sm font-medium text-white outline-none transition hover:border-white/25 focus:border-emerald-300/70"
+        className="app-select text-sm font-medium"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>

@@ -11,6 +11,7 @@ export default function SearchFilters({
 }: SearchFiltersProps) {
   const filters = [
     { label: "All", value: "all" },
+    { label: "Players", value: "players" },
     { label: "Clubs", value: "clubs" },
   ];
 
@@ -23,10 +24,10 @@ export default function SearchFilters({
           <a
             key={filter.value}
             href={`/search?q=${encodeURIComponent(query)}&type=${filter.value}&platform=${platform}`}
-            className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+            className={`app-pill-link border ${
               isActive
-                ? "bg-white text-black"
-                : "border border-white/10 bg-[#080b0a] text-white/55 hover:bg-white/[0.06] hover:text-white"
+                ? "app-pill-link-active border-transparent"
+                : "border-white/10 bg-[#080b0a]"
             }`}
           >
             {filter.label}

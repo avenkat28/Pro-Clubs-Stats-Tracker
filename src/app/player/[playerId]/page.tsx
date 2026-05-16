@@ -4,7 +4,6 @@ import PlayerStatsGrid, {
   type PlayerAwardBadge,
 } from "../../../components/PlayerStatsGrid";
 import MatchHistory from "../../../components/MatchHistory";
-import PerformanceChart from "../../../components/PerformanceChart";
 import RecentPlayerSection from "../../../components/RecentPlayerSection";
 import {
   type EaSquadMember,
@@ -130,11 +129,11 @@ export default async function PlayerPage({
       <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+          <div className="app-empty-state">
             <p className="text-sm font-semibold uppercase tracking-wide text-blue-300">
               Live Player Lookup
             </p>
-            <h1 className="mt-3 text-4xl font-bold">Open from a club squad</h1>
+            <h1 className="mt-3 text-4xl font-semibold">Open from a club squad</h1>
             <p className="mt-4 text-gray-400">
               EA player stats are scoped to a club, so this page needs a club ID.
               Open a club profile first, then select a player from Squad Stats.
@@ -154,11 +153,11 @@ export default async function PlayerPage({
         <main className="min-h-screen bg-black/35 text-white">
           <Navbar />
           <section className="mx-auto max-w-4xl px-6 py-16">
-            <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-8">
+            <div className="app-banner-warning">
               <p className="text-sm font-semibold uppercase tracking-wide text-yellow-200">
                 Player not found
               </p>
-              <h1 className="mt-3 text-4xl font-bold">{profile.club.name}</h1>
+              <h1 className="mt-3 text-4xl font-semibold">{profile.club.name}</h1>
               <p className="mt-4 text-gray-300">Player ID: {playerId}</p>
               <p className="mt-2 text-gray-300">Club ID: {clubId}</p>
               <p className="mt-4 text-gray-400">
@@ -207,7 +206,7 @@ export default async function PlayerPage({
       <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
 
-        <section className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10">
+        <section className="mx-auto flex max-w-[84rem] flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
           <p className="text-sm text-gray-500">
             Player ID: {playerId} / Club ID: {clubId}
           </p>
@@ -276,11 +275,11 @@ export default async function PlayerPage({
       <main className="min-h-screen bg-black/35 text-white">
         <Navbar />
         <section className="mx-auto max-w-4xl px-6 py-16">
-          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
+          <div className="app-banner-warning border-red-500/30 bg-red-500/10 text-red-100">
             <p className="text-sm font-semibold uppercase tracking-wide text-red-300">
               Live EA fetch failed
             </p>
-            <h1 className="mt-3 text-4xl font-bold">Player Profile</h1>
+            <h1 className="mt-3 text-4xl font-semibold">Player Profile</h1>
             <p className="mt-4 text-gray-300">Player ID: {playerId}</p>
             <p className="mt-2 text-gray-300">Club ID: {clubId}</p>
             <p className="mt-4 text-gray-400">{message}</p>

@@ -203,10 +203,10 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
     <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
-      <section className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:py-8">
+      <section className="app-page-shell">
         <CompareHeader />
 
-        <form className="rounded-lg border border-white/10 bg-[#080b0a] p-4">
+        <form className="app-surface p-4">
           <input type="hidden" name="platform" value={platform} />
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
             <label className="space-y-2">
@@ -217,7 +217,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
                 name="leftClub"
                 defaultValue={leftClubInput}
                 placeholder="Club name or ID"
-                className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
+                className="app-input"
               />
             </label>
             <label className="space-y-2">
@@ -228,10 +228,10 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
                 name="rightClub"
                 defaultValue={rightClubInput}
                 placeholder="Club name or ID"
-                className="w-full rounded-md border border-white/10 bg-black/60 px-3 py-2.5 text-white outline-none placeholder:text-white/35 focus:border-emerald-300/70"
+                className="app-input"
               />
             </label>
-            <button className="rounded-md bg-white px-5 py-2.5 font-semibold text-black transition hover:bg-emerald-200">
+            <button type="submit" className="app-button-primary">
               Load clubs
             </button>
           </div>
@@ -240,7 +240,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
           </p>
         </form>
 
-        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
+        <div className="app-surface app-toolbar">
           {eaPlatforms.map((platformOption) => {
             const isActive = platformOption === platform;
 
@@ -248,11 +248,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
               <a
                 key={platformOption}
                 href={`/compare?platform=${platformOption}${clubQuery}`}
-                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "bg-white text-black"
-                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
-                }`}
+                className={`app-pill-link ${isActive ? "app-pill-link-active" : ""}`}
               >
                 {eaPlatformLabels[platformOption]}
               </a>
@@ -261,7 +257,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
         </div>
 
         {compareError ? (
-          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
+          <div className="app-banner-warning">
             <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
               Live compare unavailable
             </p>

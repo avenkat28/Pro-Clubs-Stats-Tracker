@@ -4,37 +4,44 @@ import SearchPanel from "../components/SearchPanel";
 import StatCard from "../components/StatCard";
 import FeatureCard from "../components/FeatureCard";
 import { features } from "../lib/mockData";
-import { getEaLeaderboards } from "../lib/ea";
+import { prisma } from "../lib/db";
 
 function formatStat(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
 async function getFeaturedStats() {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
+
   try {
-    const leaderboards = await getEaLeaderboards("common-gen5", 50, 20);
-    const matchesLogged = leaderboards.clubs.reduce(
-      (total, club) => total + club.games,
-      0,
-    );
-    const goalsLogged = leaderboards.clubs.reduce(
-      (total, club) => total + club.goalsFor,
-      0,
-    );
+    const [clubsLogged, playersLogged, matchAggregate] = await Promise.all([
+      prisma.club.count(),
+      prisma.player.count(),
+      prisma.match.aggregate({
+        _count: { id: true },
+        _sum: { goalsFor: true },
+      }),
+    ]);
+
+    if (
+      clubsLogged <= 0 &&
+      playersLogged <= 0 &&
+      (matchAggregate._count.id ?? 0) <= 0 &&
+      (matchAggregate._sum.goalsFor ?? 0) <= 0
+    ) {
+      return null;
+    }
 
     return [
-      { label: "Ranked Clubs", value: formatStat(leaderboards.clubs.length) },
-      { label: "Players Indexed", value: formatStat(leaderboards.players.length) },
-      { label: "Matches Logged", value: formatStat(matchesLogged) },
-      { label: "Goals Logged", value: formatStat(goalsLogged) },
+      { label: "Clubs Logged", value: formatStat(clubsLogged) },
+      { label: "Players Logged", value: formatStat(playersLogged) },
+      { label: "Matches Logged", value: formatStat(matchAggregate._count.id ?? 0) },
+      { label: "Goals Logged", value: formatStat(matchAggregate._sum.goalsFor ?? 0) },
     ];
   } catch {
-    return [
-      { label: "Ranked Clubs", value: "Live EA" },
-      { label: "Players Indexed", value: "Live EA" },
-      { label: "Matches Logged", value: "Live EA" },
-      { label: "Goals Logged", value: "Live EA" },
-    ];
+    return null;
   }
 }
 
@@ -78,11 +85,13 @@ export default async function Home() {
             </div>
           </div>
 
-          <section className="mt-8 flex flex-wrap gap-3 xl:gap-4">
-            {featuredStats.map((stat) => (
-              <StatCard key={stat.label} label={stat.label} value={stat.value} />
-            ))}
-          </section>
+          {featuredStats ? (
+            <section className="mt-8 flex flex-wrap gap-3 xl:gap-4">
+              {featuredStats.map((stat) => (
+                <StatCard key={stat.label} label={stat.label} value={stat.value} />
+              ))}
+            </section>
+          ) : null}
         </div>
       </section>
 

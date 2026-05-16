@@ -72,6 +72,15 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
             : ""
         }`
       : `/club/${props.item.id}?platform=${platformQueryValue(props.item.platform)}`;
+  const handleActivate = () => {
+    window.location.href = href;
+  };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleActivate();
+    }
+  };
 
   if (props.activeTab === "players") {
     const player = props.item;
@@ -79,17 +88,19 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
 
     return (
       <tr
-        onClick={() => {
-          window.location.href = href;
-        }}
-        className="group cursor-pointer border-b border-white/5 transition hover:bg-blue-600/10 hover:shadow-[0_0_28px_rgba(37,99,235,0.18)]"
+        role="link"
+        tabIndex={0}
+        aria-label={`Open ${player.name} player profile`}
+        onClick={handleActivate}
+        onKeyDown={handleKeyDown}
+        className="group cursor-pointer border-b border-white/5 transition hover:bg-blue-600/10 hover:shadow-[0_0_28px_rgba(37,99,235,0.18)] focus-visible:bg-blue-600/10"
       >
         <td className="px-4 py-4">
           <RankBadge rank={props.displayRank} />
         </td>
         <td className="px-4 py-4">
           <div>
-            <p className="font-bold text-white group-hover:text-blue-200">
+            <p className="font-semibold text-white group-hover:text-blue-200">
               {player.name}
             </p>
             <p className="text-xs text-gray-500">
@@ -99,9 +110,9 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
         </td>
         <td className="px-4 py-4 text-gray-300">{player.club}</td>
         <td className="px-4 py-4">
-          <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs font-bold text-blue-300">
-            {player.position}
-          </span>
+            <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs font-semibold text-blue-300">
+              {player.position}
+            </span>
         </td>
         <td className="px-4 py-4 text-gray-300">{player.games}</td>
         <td className="px-4 py-4 font-bold text-green-400">{player.goals}</td>
@@ -126,17 +137,19 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
 
   return (
     <tr
-      onClick={() => {
-        window.location.href = href;
-      }}
-      className="group cursor-pointer border-b border-white/5 transition hover:bg-blue-600/10 hover:shadow-[0_0_28px_rgba(37,99,235,0.18)]"
+      role="link"
+      tabIndex={0}
+      aria-label={`Open ${club.name} club profile`}
+      onClick={handleActivate}
+      onKeyDown={handleKeyDown}
+      className="group cursor-pointer border-b border-white/5 transition hover:bg-blue-600/10 hover:shadow-[0_0_28px_rgba(37,99,235,0.18)] focus-visible:bg-blue-600/10"
     >
       <td className="px-4 py-4">
         <RankBadge rank={props.displayRank} />
       </td>
       <td className="px-4 py-4">
         <div>
-          <p className="font-bold text-white group-hover:text-blue-200">
+          <p className="font-semibold text-white group-hover:text-blue-200">
             {club.name}
           </p>
           <p className="text-xs text-gray-500">

@@ -38,15 +38,15 @@ export default function PatchesPage() {
     <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
-      <section className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-        <div className="border-b border-white/10 pb-7">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300/80">
+      <section className="app-page-shell">
+        <div className="app-page-header border-b border-white/10 pb-7">
+          <p className="app-page-eyebrow">
             Patches
           </p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl">
+          <h1 className="app-page-title max-w-3xl">
             Updates and release notes
           </h1>
-          <p className="mt-4 max-w-2xl text-base text-white/55">
+          <p className="app-page-copy max-w-2xl">
             Follow improvements to ProClubsHQ, including data fixes, compare
             changes, security hardening, and quality-of-life updates.
           </p>
@@ -56,14 +56,14 @@ export default function PatchesPage() {
           {updates.map((update) => (
             <article
               key={update.version}
-              className="rounded-lg border border-white/10 bg-[#080b0a] p-5"
+              className="app-surface p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300/75">
                     Version {update.version}
                   </p>
-                  <h2 className="mt-2 text-2xl font-black text-white">
+                  <h2 className="mt-2 text-2xl font-semibold text-white">
                     {update.title}
                   </h2>
                 </div>

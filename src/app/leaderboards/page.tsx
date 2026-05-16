@@ -45,13 +45,13 @@ export default async function LeaderboardsPage({
     <main className="min-h-screen bg-[#050706] text-white">
       <Navbar />
 
-      <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
+      <section className="app-page-shell">
         <LeaderboardHeader
           totalPlayers={players.length}
           totalClubs={clubs.length}
         />
 
-        <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-[#080b0a] p-2">
+        <div className="app-surface app-toolbar">
           {eaPlatforms.map((platformOption) => {
             const isActive = platformOption === platform;
 
@@ -59,11 +59,7 @@ export default async function LeaderboardsPage({
               <a
                 key={platformOption}
                 href={`/leaderboards?platform=${platformOption}`}
-                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "bg-white text-black"
-                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
-                }`}
+                className={`app-pill-link ${isActive ? "app-pill-link-active" : ""}`}
               >
                 {eaPlatformLabels[platformOption]}
               </a>
@@ -72,7 +68,7 @@ export default async function LeaderboardsPage({
         </div>
 
         {leaderboardError ? (
-          <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-5 text-yellow-100">
+          <div className="app-banner-warning">
             <p className="text-sm font-semibold uppercase tracking-wide text-yellow-300">
               Live leaderboard unavailable
             </p>

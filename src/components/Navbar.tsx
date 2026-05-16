@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Theme = "dark" | "light";
 
@@ -12,6 +13,7 @@ function applyTheme(theme: Theme) {
 
 export default function Navbar() {
   const [theme, setTheme] = useState<Theme>("dark");
+  const pathname = usePathname();
   const links = [
     { label: "Home", href: "/" },
     { label: "Search", href: "/search" },
@@ -44,18 +46,35 @@ export default function Navbar() {
       aria-label="Primary navigation"
       className="sticky top-0 z-50 w-full border-b border-emerald-300/10 bg-black/90 text-white backdrop-blur"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <a href="/" className="text-2xl font-black tracking-tight text-white">
+      <div className="mx-auto flex max-w-[84rem] flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <a href="/" className="text-2xl font-semibold tracking-tight text-white">
           ProClubsHQ
         </a>
 
-        <div className="flex max-w-full flex-wrap items-center gap-1.5 text-sm font-semibold text-gray-300 sm:gap-2">
+        <div className="flex max-w-full flex-wrap items-center gap-2 text-sm font-semibold text-gray-300">
           <div className="flex flex-wrap gap-1.5">
             {links.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-xl px-3 py-2 transition hover:bg-emerald-300/10 hover:text-emerald-100"
+                aria-current={
+                  link.href === "/"
+                    ? pathname === "/"
+                      ? "page"
+                      : undefined
+                    : pathname?.startsWith(link.href)
+                      ? "page"
+                      : undefined
+                }
+                className={`app-pill-link ${
+                  link.href === "/"
+                    ? pathname === "/"
+                      ? "app-pill-link-active"
+                      : ""
+                    : pathname?.startsWith(link.href)
+                      ? "app-pill-link-active"
+                      : ""
+                }`}
               >
                 {link.label}
               </a>
@@ -70,7 +89,7 @@ export default function Navbar() {
               type="button"
               onClick={() => handleThemeChange("dark")}
               aria-pressed={theme === "dark"}
-              className={`rounded-lg px-3 py-1.5 text-xs font-black transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                 theme === "dark"
                   ? "bg-white text-black"
                   : "text-white/55 hover:bg-white/[0.06] hover:text-white"
@@ -82,7 +101,7 @@ export default function Navbar() {
               type="button"
               onClick={() => handleThemeChange("light")}
               aria-pressed={theme === "light"}
-              className={`rounded-lg px-3 py-1.5 text-xs font-black transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                 theme === "light"
                   ? "bg-emerald-300 text-black"
                   : "text-white/55 hover:bg-white/[0.06] hover:text-white"

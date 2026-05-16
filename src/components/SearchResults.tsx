@@ -6,6 +6,7 @@ import {
 
 type PlayerResult = {
   id: string;
+  clubId?: string;
   name: string;
   position: string;
   club: string;
@@ -43,10 +44,10 @@ export default function SearchResults({
 
   if (!hasResults) {
     return (
-      <div className="rounded-lg border border-white/10 bg-[#080b0a] p-8 text-white">
-        <h2 className="text-2xl font-black">No results found</h2>
+      <div className="app-empty-state text-white">
+        <h2 className="text-2xl font-semibold">No results found</h2>
         <p className="mt-2 text-white/55">
-          Try searching for a live club name from FC 26 rankings or paste a club ID.
+          Try a club name, player name, or a direct club ID from the live FC 26 data pool.
         </p>
       </div>
     );
@@ -54,9 +55,35 @@ export default function SearchResults({
 
   return (
     <div className="space-y-10">
+      {showPlayers && players.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-2xl font-semibold text-white">Players</h2>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {players.map((player) => (
+              <SearchResultCard
+                key={`${player.clubId ?? "club"}:${player.id}`}
+                type="player"
+                title={player.name}
+                subtitle={`${player.position} • ${player.club}`}
+                meta={`${player.platform} • ${player.goals}G / ${player.assists}A`}
+                href={`/player/${encodeURIComponent(player.id)}${
+                  player.clubId
+                    ? `?clubId=${encodeURIComponent(player.clubId)}&platform=${player.platform}`
+                    : ""
+                }`}
+                statLabel="Rating"
+                statValue={player.rating > 0 ? player.rating.toFixed(1) : "View"}
+                statClassName="text-blue-300"
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {showClubs && clubs.length > 0 && (
         <section>
-          <h2 className="mb-4 text-2xl font-black text-white">Live Clubs</h2>
+          <h2 className="mb-4 text-2xl font-semibold text-white">Clubs</h2>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {clubs.map((club) => (
