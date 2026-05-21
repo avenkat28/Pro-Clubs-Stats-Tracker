@@ -17,9 +17,11 @@ import {
 import {
   cacheEaClubProfile,
   getCachedEaPlayerProfile,
-  isCachedEaClubProfileFresh,
 } from "../../../lib/database/eaProfileCache";
 import { getPlayerStatComp } from "../../../lib/playerStatComp";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PlayerProfileData = {
   club: EaClubSummary;
@@ -268,23 +270,6 @@ export default async function PlayerPage({
       return null;
     },
   );
-  const hasFreshCache = cachedProfile?.player
-    ? await isCachedEaClubProfileFresh(clubId).catch((cacheError) => {
-        console.warn("Unable to check cached EA player profile age", cacheError);
-        return true;
-      })
-    : false;
-
-  if (cachedProfile?.player && hasFreshCache) {
-    return (
-      <PlayerProfileView
-        playerId={playerId}
-        clubId={clubId}
-        platform={platform}
-        profile={{ ...cachedProfile, player: cachedProfile.player }}
-      />
-    );
-  }
 
   try {
     const profile = await getEaPlayerProfile(clubId, playerId, platform);

@@ -17,6 +17,9 @@ import {
   searchCachedPlayers,
 } from "../../../../lib/database/searchCache";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const searchFilters = ["all", "players", "clubs"] as const;
 
 function normalizeSearchFilter(value: string | null) {
@@ -60,26 +63,9 @@ export async function GET(request: Request) {
     rating: number;
     goals: number;
     assists: number;
-  }> =
-    filter !== "clubs" ? await searchCachedPlayers(query, platform) : [];
-  let clubs: EaClubSearchResult[] =
-    filter !== "players" ? await searchCachedClubs(query, platform) : [];
+  }> = [];
+  let clubs: EaClubSearchResult[] = [];
   let searchError = "";
-
-  if (
-    (filter === "all" && (players.length > 0 || clubs.length > 0)) ||
-    (filter === "players" && players.length > 0) ||
-    (filter === "clubs" && clubs.length > 0)
-  ) {
-    return NextResponse.json({
-      query,
-      filter,
-      platform,
-      players,
-      clubs,
-      searchError,
-    });
-  }
 
   const [clubSearchResult, playerSearchResult] = await Promise.allSettled([
     filter !== "players" ? searchEaClubs(query, platform) : Promise.resolve([]),
@@ -120,6 +106,7 @@ export async function GET(request: Request) {
       console.warn("Unable to cache EA club search results", cacheError);
     });
   } else {
+    clubs = filter !== "players" ? await searchCachedClubs(query, platform) : [];
     const error = clubSearchResult.reason;
     if (error instanceof EaRequestError) {
       logEaProxyEvent("api/ea/search", {
@@ -143,6 +130,7 @@ export async function GET(request: Request) {
   if (playerSearchResult.status === "fulfilled") {
     players = playerSearchResult.value;
   } else {
+    players = filter !== "clubs" ? await searchCachedPlayers(query, platform) : [];
     const error = playerSearchResult.reason;
     if (error instanceof EaRequestError) {
       logEaProxyEvent("api/ea/search", {

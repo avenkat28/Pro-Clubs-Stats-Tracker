@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { refreshStatsCache } from "../../../../lib/database/statsRefresh";
 import { eaPlatforms, normalizeEaPlatform } from "../../../../lib/ea";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function isAuthorized(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
 

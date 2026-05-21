@@ -14,9 +14,11 @@ import {
 import {
   cacheEaClubProfile,
   getCachedEaClubProfile,
-  isCachedEaClubProfileFresh,
 } from "../../../lib/database/eaProfileCache";
 import { getProTeamComp } from "../../../lib/proTeamComp";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function getClubProfileComp(profile: EaClubProfile) {
   const matches = profile.club.wins + profile.club.draws + profile.club.losses;
@@ -143,18 +145,6 @@ export default async function ClubPage({
       return null;
     },
   );
-  const hasFreshCache = cachedProfile
-    ? await isCachedEaClubProfileFresh(clubId).catch((cacheError) => {
-        console.warn("Unable to check cached EA club profile age", cacheError);
-        return true;
-      })
-    : false;
-
-  if (cachedProfile && hasFreshCache) {
-    return (
-      <ClubProfileView clubId={clubId} platform={platform} profile={cachedProfile} />
-    );
-  }
 
   try {
     const profile = await getEaClubProfile(clubId, platform);

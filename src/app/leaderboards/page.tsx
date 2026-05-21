@@ -12,8 +12,10 @@ import {
 import {
   cacheEaLeaderboards,
   getCachedEaLeaderboards,
-  isCachedEaLeaderboardsFresh,
 } from "../../lib/database/leaderboardCache";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type LeaderboardsPageProps = {
   searchParams: Promise<{
@@ -34,35 +36,23 @@ export default async function LeaderboardsPage({
       return null;
     },
   );
-  const hasFreshCache = cachedLeaderboards
-    ? await isCachedEaLeaderboardsFresh(platform).catch((cacheError) => {
-        console.warn("Unable to check cached EA leaderboard age", cacheError);
-        return true;
-      })
-    : false;
+  try {
+    const leaderboards = await getEaLeaderboards(platform);
 
-  if (cachedLeaderboards && hasFreshCache) {
-    players = cachedLeaderboards.players;
-    clubs = cachedLeaderboards.clubs;
-  } else {
-    try {
-      const leaderboards = await getEaLeaderboards(platform);
-
-      players = leaderboards.players;
-      clubs = leaderboards.clubs;
-      await cacheEaLeaderboards({
-        platform,
-        clubLimit: 25,
-        playerClubScanLimit: 12,
-        leaderboards,
-      }).catch((cacheError) => {
-        console.warn("Unable to cache EA leaderboards", cacheError);
-      });
-    } catch (error) {
-      console.warn("Unable to load EA leaderboards", error);
-      players = cachedLeaderboards?.players ?? players;
-      clubs = cachedLeaderboards?.clubs ?? clubs;
-    }
+    players = leaderboards.players;
+    clubs = leaderboards.clubs;
+    await cacheEaLeaderboards({
+      platform,
+      clubLimit: 25,
+      playerClubScanLimit: 12,
+      leaderboards,
+    }).catch((cacheError) => {
+      console.warn("Unable to cache EA leaderboards", cacheError);
+    });
+  } catch (error) {
+    console.warn("Unable to load EA leaderboards", error);
+    players = cachedLeaderboards?.players ?? players;
+    clubs = cachedLeaderboards?.clubs ?? clubs;
   }
 
   return (

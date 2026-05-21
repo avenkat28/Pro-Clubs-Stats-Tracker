@@ -15,7 +15,6 @@ export const eaPlatformLabels: Record<EaPlatform, string> = {
 const DEFAULT_EA_PLATFORM = process.env.EA_PLATFORM ?? "common-gen5";
 const DEFAULT_EA_API_BASE_URL =
   process.env.EA_API_BASE_URL ?? "https://proclubs.ea.com/api/fc";
-const DEFAULT_REVALIDATE_SECONDS = 300;
 const RECENT_PLAYER_MATCH_COUNT = 10;
 const RECENT_CLUB_MATCH_SCAN_COUNT = 10;
 const DEFAULT_EA_API_HOST = "proclubs.ea.com";
@@ -436,6 +435,7 @@ function createEaUrl(pathname: string, searchParams: URLSearchParams) {
 async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
   const url = createEaUrl(pathname, searchParams);
   const response = await fetch(url, {
+    cache: "no-store",
     headers: {
       Accept: "application/json, text/plain, */*",
       "Accept-Language": "en-US,en;q=0.9",
@@ -443,9 +443,6 @@ async function fetchEaJson<T>(pathname: string, searchParams: URLSearchParams) {
       Referer: "https://www.ea.com/",
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    },
-    next: {
-      revalidate: DEFAULT_REVALIDATE_SECONDS,
     },
   });
 
