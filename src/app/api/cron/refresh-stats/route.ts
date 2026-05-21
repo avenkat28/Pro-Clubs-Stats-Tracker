@@ -9,6 +9,10 @@ export const revalidate = 0;
 function isAuthorized(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
 
+  if (request.headers.get("x-vercel-cron") === "1") {
+    return true;
+  }
+
   if (!cronSecret) {
     return true;
   }
@@ -42,5 +46,9 @@ export async function GET(request: Request) {
     maxClubs: Number(searchParams.get("maxClubs") ?? undefined) || undefined,
   });
 
-  return NextResponse.json(summary);
+  return NextResponse.json(summary, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+    },
+  });
 }

@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import { normalizePlayerRecentMatches } from "../ea";
 import type {
   EaClubProfile,
   EaClubRecentMatch,
@@ -40,6 +41,17 @@ function getResult(goalsFor: number, goalsAgainst: number): "W" | "D" | "L" {
   }
 
   return "L";
+}
+
+function parseScore(score: string) {
+  const [goalsFor, goalsAgainst] = score
+    .split("-")
+    .map((value) => Number.parseInt(value, 10));
+
+  return {
+    goalsFor: Number.isFinite(goalsFor) ? goalsFor : 0,
+    goalsAgainst: Number.isFinite(goalsAgainst) ? goalsAgainst : 0,
+  };
 }
 
 export async function cacheEaClubProfile(profile: EaClubProfile) {
@@ -92,6 +104,40 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
       skillRating: club.skillRating,
     },
   });
+
+  const savedMatches = new Map<string, { id: string }>();
+
+  for (const [index, match] of profile.recentClubMatches.entries()) {
+    const { goalsFor, goalsAgainst } = parseScore(match.score);
+    const matchCacheId = `${club.id}:${match.id}`;
+    const savedMatch = await prisma.match.upsert({
+      where: {
+        eaMatchId: matchCacheId,
+      },
+      update: {
+        clubId: savedClub.id,
+        opponentName: match.opponent,
+        result: match.result,
+        goalsFor,
+        goalsAgainst,
+        playedAt: new Date(Date.now() - index * 1000),
+      },
+      create: {
+        eaMatchId: matchCacheId,
+        clubId: savedClub.id,
+        opponentName: match.opponent,
+        result: match.result,
+        goalsFor,
+        goalsAgainst,
+        playedAt: new Date(Date.now() - index * 1000),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    savedMatches.set(match.id, savedMatch);
+  }
 
   const cachedPlayers = profile.squad.filter(
     (player) => player.id && player.name && player.name !== "Unknown",
@@ -178,6 +224,43 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
           tackleSuccessRate: player.tackleSuccessRate,
         },
       });
+
+      const recentMatches = normalizePlayerRecentMatches(
+        profile.recentMatches,
+        club.id,
+        player.id,
+        player.name,
+      );
+
+      await Promise.all(
+        recentMatches.map(async (match) => {
+          const savedMatch = savedMatches.get(match.id);
+
+          if (!savedMatch) {
+            return;
+          }
+
+          await prisma.playerMatchStat.deleteMany({
+            where: {
+              playerId: savedPlayer.id,
+              matchId: savedMatch.id,
+            },
+          });
+
+          await prisma.playerMatchStat.create({
+            data: {
+              playerId: savedPlayer.id,
+              matchId: savedMatch.id,
+              rating: match.rating,
+              goals: match.goals,
+              assists: match.assists,
+              tackles: match.tackles,
+              passAccuracy: match.passAccuracy,
+              redCards: match.redCards,
+            },
+          });
+        }),
+      );
     }),
   );
 }
@@ -329,6 +412,66 @@ export async function getCachedEaPlayerProfile(
     return null;
   }
 
+  const cachedPlayer = await prisma.player.findFirst({
+    where: {
+      OR: [
+        {
+          eaPlayerId,
+        },
+        {
+          name: {
+            equals: eaPlayerId,
+            mode: "insensitive",
+          },
+        },
+      ],
+      club: {
+        eaClubId,
+      },
+    },
+    include: {
+      matchStats: {
+        include: {
+          match: true,
+        },
+        orderBy: [
+          {
+            match: {
+              playedAt: "desc",
+            },
+          },
+          {
+            createdAt: "desc",
+          },
+        ],
+        take: 10,
+      },
+    },
+  });
+
+  const recentMatches: EaPlayerMatch[] =
+    cachedPlayer?.matchStats.map((stat, index) => ({
+      id: stat.match.eaMatchId ?? stat.match.id,
+      matchIndex: 10 - index,
+      opponent: stat.match.opponentName,
+      result: stat.match.result as EaPlayerMatch["result"],
+      score: `${stat.match.goalsFor}-${stat.match.goalsAgainst}`,
+      rating: stat.rating ?? 0,
+      goals: stat.goals,
+      assists: stat.assists,
+      shots: 0,
+      shotSuccessRate: 0,
+      tackles: stat.tackles ?? 0,
+      tackleAttempts: stat.tackles ?? 0,
+      tacklesMade: stat.tackles ?? 0,
+      tackleSuccessRate: stat.tackles && stat.tackles > 0 ? 100 : 0,
+      passesMade: 0,
+      passAttempts: 0,
+      passAccuracy: stat.passAccuracy ? Math.round(stat.passAccuracy) : 0,
+      manOfTheMatch: false,
+      redCards: stat.redCards,
+    })) ?? [];
+
   return {
     club: profile.club,
     player:
@@ -338,6 +481,6 @@ export async function getCachedEaPlayerProfile(
       ) ??
       null,
     squad: profile.squad,
-    recentMatches: [],
+    recentMatches,
   };
 }

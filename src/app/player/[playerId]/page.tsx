@@ -276,8 +276,8 @@ export default async function PlayerPage({
     await cacheEaClubProfile({
       club: profile.club,
       squad: profile.squad,
-      recentMatches: profile.recentMatches,
-      recentClubMatches: [],
+      recentMatches: profile.rawRecentMatches,
+      recentClubMatches: profile.recentClubMatches,
     }).catch((cacheError) => {
       console.warn("Unable to cache EA player profile club data", cacheError);
     });

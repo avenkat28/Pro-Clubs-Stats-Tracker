@@ -14,6 +14,7 @@
     "cache:club": "tsx scripts/cache-club.ts",
     "cache:leaderboards": "tsx scripts/cache-leaderboards.ts",
     "cache:refresh": "tsx scripts/refresh-stats-cache.ts",
+    "cache:watch": "tsx scripts/watch-stats-cache.ts",
     "db:summary": "tsx scripts/db-summary.ts",
     "db:test": "tsx scripts/test-db.ts"
   },

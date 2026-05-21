@@ -1414,7 +1414,7 @@ function normalizeSquad(...membersPayloads: unknown[]): EaSquadMember[] {
   });
 }
 
-function normalizePlayerRecentMatches(
+export function normalizePlayerRecentMatches(
   matchesPayload: unknown,
   clubId: string,
   playerId: string,
@@ -2261,6 +2261,8 @@ export async function getEaPlayerProfile(
     club: profile.club,
     player: player ?? null,
     squad: profile.squad,
+    rawRecentMatches: profile.recentMatches,
+    recentClubMatches: profile.recentClubMatches,
     recentMatches: player
       ? normalizePlayerRecentMatches(
           profile.recentMatches,

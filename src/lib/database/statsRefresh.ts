@@ -17,6 +17,11 @@ type RefreshStatsCacheOptions = {
   maxClubs?: number;
 };
 
+type ClubRefreshTarget = {
+  eaClubId: string;
+  platform: EaPlatform;
+};
+
 function positiveNumber(value: number | string | undefined, fallback: number) {
   const parsed = Number(value);
 
@@ -36,6 +41,7 @@ export async function refreshStatsCache({
   ),
   maxClubs = positiveNumber(process.env.EA_REFRESH_MAX_CLUBS, 25),
 }: RefreshStatsCacheOptions = {}) {
+  const totalClubRefreshLimit = maxClubs * platforms.length;
   const summary = {
     leaderboards: [] as Array<{
       platform: EaPlatform;
@@ -52,6 +58,7 @@ export async function refreshStatsCache({
       error?: string;
     }>,
   };
+  const leaderboardClubTargets = new Map<string, ClubRefreshTarget>();
 
   for (const platform of platforms) {
     try {
@@ -73,6 +80,13 @@ export async function refreshStatsCache({
         players: leaderboards.players.length,
         snapshotId,
       });
+
+      for (const club of leaderboards.clubs.slice(0, maxClubs)) {
+        leaderboardClubTargets.set(`${platform}:${club.id}`, {
+          eaClubId: club.id,
+          platform,
+        });
+      }
     } catch (error) {
       summary.leaderboards.push({
         platform,
@@ -82,18 +96,28 @@ export async function refreshStatsCache({
     }
   }
 
-  const clubs = await prisma.club.findMany({
+  const staleClubs = await prisma.club.findMany({
     orderBy: {
       updatedAt: "asc",
     },
-    take: maxClubs,
+    take: totalClubRefreshLimit,
     select: {
       eaClubId: true,
       platform: true,
     },
   });
+  const clubTargets = new Map(leaderboardClubTargets);
 
-  for (const club of clubs) {
+  for (const club of staleClubs) {
+    const platform = normalizeEaPlatform(club.platform);
+
+    clubTargets.set(`${platform}:${club.eaClubId}`, {
+      eaClubId: club.eaClubId,
+      platform,
+    });
+  }
+
+  for (const club of Array.from(clubTargets.values()).slice(0, totalClubRefreshLimit)) {
     const platform = normalizeEaPlatform(club.platform);
 
     try {
