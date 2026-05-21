@@ -14,7 +14,11 @@ import {
   getEaPlayerProfile,
   normalizeEaPlatform,
 } from "../../../lib/ea";
-import { getCachedEaPlayerProfile } from "../../../lib/database/eaProfileCache";
+import {
+  cacheEaClubProfile,
+  getCachedEaPlayerProfile,
+  isCachedEaClubProfileFresh,
+} from "../../../lib/database/eaProfileCache";
 import { getPlayerStatComp } from "../../../lib/playerStatComp";
 
 type PlayerProfileData = {
@@ -264,8 +268,14 @@ export default async function PlayerPage({
       return null;
     },
   );
+  const hasFreshCache = cachedProfile?.player
+    ? await isCachedEaClubProfileFresh(clubId).catch((cacheError) => {
+        console.warn("Unable to check cached EA player profile age", cacheError);
+        return true;
+      })
+    : false;
 
-  if (cachedProfile?.player) {
+  if (cachedProfile?.player && hasFreshCache) {
     return (
       <PlayerProfileView
         playerId={playerId}
@@ -278,6 +288,14 @@ export default async function PlayerPage({
 
   try {
     const profile = await getEaPlayerProfile(clubId, playerId, platform);
+    await cacheEaClubProfile({
+      club: profile.club,
+      squad: profile.squad,
+      recentMatches: profile.recentMatches,
+      recentClubMatches: [],
+    }).catch((cacheError) => {
+      console.warn("Unable to cache EA player profile club data", cacheError);
+    });
 
     if (!profile.player) {
       return (
@@ -310,6 +328,17 @@ export default async function PlayerPage({
       />
     );
   } catch (error) {
+    if (cachedProfile?.player) {
+      return (
+        <PlayerProfileView
+          playerId={playerId}
+          clubId={clubId}
+          platform={platform}
+          profile={{ ...cachedProfile, player: cachedProfile.player }}
+        />
+      );
+    }
+
     const message =
       error instanceof Error ? error.message : "Unable to load live EA player stats.";
 

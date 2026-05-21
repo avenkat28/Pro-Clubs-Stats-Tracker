@@ -12,6 +12,7 @@ import {
 import {
   cacheEaLeaderboards,
   getCachedEaLeaderboards,
+  isCachedEaLeaderboardsFresh,
 } from "../../lib/database/leaderboardCache";
 
 type LeaderboardsPageProps = {
@@ -33,8 +34,14 @@ export default async function LeaderboardsPage({
       return null;
     },
   );
+  const hasFreshCache = cachedLeaderboards
+    ? await isCachedEaLeaderboardsFresh(platform).catch((cacheError) => {
+        console.warn("Unable to check cached EA leaderboard age", cacheError);
+        return true;
+      })
+    : false;
 
-  if (cachedLeaderboards) {
+  if (cachedLeaderboards && hasFreshCache) {
     players = cachedLeaderboards.players;
     clubs = cachedLeaderboards.clubs;
   } else {
@@ -53,6 +60,8 @@ export default async function LeaderboardsPage({
       });
     } catch (error) {
       console.warn("Unable to load EA leaderboards", error);
+      players = cachedLeaderboards?.players ?? players;
+      clubs = cachedLeaderboards?.clubs ?? clubs;
     }
   }
 

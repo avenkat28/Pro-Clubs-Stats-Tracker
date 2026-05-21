@@ -14,6 +14,7 @@ import {
 import {
   cacheEaClubProfile,
   getCachedEaClubProfile,
+  isCachedEaClubProfileFresh,
 } from "../../../lib/database/eaProfileCache";
 import { getProTeamComp } from "../../../lib/proTeamComp";
 
@@ -142,8 +143,14 @@ export default async function ClubPage({
       return null;
     },
   );
+  const hasFreshCache = cachedProfile
+    ? await isCachedEaClubProfileFresh(clubId).catch((cacheError) => {
+        console.warn("Unable to check cached EA club profile age", cacheError);
+        return true;
+      })
+    : false;
 
-  if (cachedProfile) {
+  if (cachedProfile && hasFreshCache) {
     return (
       <ClubProfileView clubId={clubId} platform={platform} profile={cachedProfile} />
     );
@@ -157,6 +164,12 @@ export default async function ClubPage({
 
     return <ClubProfileView clubId={clubId} platform={platform} profile={profile} />;
   } catch (error) {
+    if (cachedProfile) {
+      return (
+        <ClubProfileView clubId={clubId} platform={platform} profile={cachedProfile} />
+      );
+    }
+
     const message =
       error instanceof EaRequestError && error.status === 403
         ? "EA is blocking this live profile request from Vercel. Search shortcuts can still open the right club ID, but the full profile needs EA to allow the server request or a cached database copy."

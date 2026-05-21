@@ -6,6 +6,18 @@ import type {
   EaSquadMember,
 } from "../ea";
 
+const DEFAULT_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function getCacheTtlMs(envKey: string, fallbackMs: number) {
+  const value = Number(process.env[envKey] ?? process.env.EA_CACHE_TTL_SECONDS);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    return fallbackMs;
+  }
+
+  return value * 1000;
+}
+
 function getTotalMatches(wins: number, draws: number, losses: number) {
   return wins + draws + losses;
 }
@@ -168,6 +180,28 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
       });
     }),
   );
+}
+
+export async function isCachedEaClubProfileFresh(eaClubId: string) {
+  const cachedClub = await prisma.club.findUnique({
+    where: {
+      eaClubId,
+    },
+    select: {
+      updatedAt: true,
+    },
+  });
+
+  if (!cachedClub) {
+    return false;
+  }
+
+  const ttlMs = getCacheTtlMs(
+    "EA_PROFILE_CACHE_TTL_SECONDS",
+    DEFAULT_PROFILE_CACHE_TTL_MS,
+  );
+
+  return Date.now() - cachedClub.updatedAt.getTime() < ttlMs;
 }
 
 export async function getCachedEaClubProfile(

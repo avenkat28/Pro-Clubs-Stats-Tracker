@@ -6,6 +6,18 @@ import type {
   EaPlatform,
 } from "../ea";
 
+const DEFAULT_LEADERBOARD_CACHE_TTL_MS = 10 * 60 * 1000;
+
+function getCacheTtlMs(envKey: string, fallbackMs: number) {
+  const value = Number(process.env[envKey] ?? process.env.EA_CACHE_TTL_SECONDS);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    return fallbackMs;
+  }
+
+  return value * 1000;
+}
+
 function leaderboardPlatformToEaPlatform(platform: string): EaPlatform {
   if (platform === "Old Gen") {
     return "common-gen4";
@@ -235,6 +247,31 @@ export async function getCachedEaLeaderboards(
       tackleRate: player.tackleRate,
     })),
   };
+}
+
+export async function isCachedEaLeaderboardsFresh(platform: EaPlatform) {
+  const snapshot = await prisma.leaderboardSnapshot.findFirst({
+    where: {
+      platform,
+    },
+    orderBy: {
+      capturedAt: "desc",
+    },
+    select: {
+      capturedAt: true,
+    },
+  });
+
+  if (!snapshot) {
+    return false;
+  }
+
+  const ttlMs = getCacheTtlMs(
+    "EA_LEADERBOARD_CACHE_TTL_SECONDS",
+    DEFAULT_LEADERBOARD_CACHE_TTL_MS,
+  );
+
+  return Date.now() - snapshot.capturedAt.getTime() < ttlMs;
 }
 
 export function getEaPlatformFromLeaderboardLabel(platform: string) {
