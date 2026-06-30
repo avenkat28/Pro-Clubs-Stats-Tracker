@@ -3,51 +3,9 @@ import HeroSection from "../components/HeroSection";
 import SearchPanel from "../components/SearchPanel";
 import StatCard from "../components/StatCard";
 import FeatureCard from "../components/FeatureCard";
-import { features } from "../lib/mockData";
-import { prisma } from "../lib/db";
+import { featuredStats, features } from "../lib/mockData";
 
-function formatStat(value: number) {
-  return new Intl.NumberFormat("en-US").format(value);
-}
-
-async function getFeaturedStats() {
-  if (!process.env.DATABASE_URL) {
-    return null;
-  }
-
-  try {
-    const [clubsLogged, playersLogged, matchAggregate] = await Promise.all([
-      prisma.club.count(),
-      prisma.player.count(),
-      prisma.match.aggregate({
-        _count: { id: true },
-        _sum: { goalsFor: true },
-      }),
-    ]);
-
-    if (
-      clubsLogged <= 0 &&
-      playersLogged <= 0 &&
-      (matchAggregate._count.id ?? 0) <= 0 &&
-      (matchAggregate._sum.goalsFor ?? 0) <= 0
-    ) {
-      return null;
-    }
-
-    return [
-      { label: "Clubs Logged", value: formatStat(clubsLogged) },
-      { label: "Players Logged", value: formatStat(playersLogged) },
-      { label: "Matches Logged", value: formatStat(matchAggregate._count.id ?? 0) },
-      { label: "Goals Logged", value: formatStat(matchAggregate._sum.goalsFor ?? 0) },
-    ];
-  } catch {
-    return null;
-  }
-}
-
-export default async function Home() {
-  const featuredStats = await getFeaturedStats();
-
+export default function Home() {
   return (
     <main className="home-page-background min-h-screen">
       <Navbar />
