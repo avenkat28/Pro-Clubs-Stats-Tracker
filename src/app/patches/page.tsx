@@ -2,6 +2,16 @@ import Navbar from "../../components/Navbar";
 
 const updates = [
   {
+    version: "1.3.1",
+    date: "June 30, 2026",
+    title: "Live stats resilience",
+    notes: [
+      "Added compatibility routes for live club data refreshes.",
+      "Made optional EA lookups less likely to block a club profile load.",
+      "Polished the club profile panels and squad table for easier scanning.",
+    ],
+  },
+  {
     version: "1.3.0",
     date: "May 16, 2026",
     title: "Club-scoped compare",
