@@ -1983,7 +1983,13 @@ async function getCurrentSeasonClubEntry(
     "/currentSeasonLeaderboard/search",
     platform,
     clubName,
-  );
+  ).catch((error) => {
+    if (error instanceof EaRequestError) {
+      return null;
+    }
+
+    throw error;
+  });
 
   return findClubById(payload, clubId);
 }
@@ -2324,8 +2330,8 @@ export async function getEaClubProfile(
   const clubInfo = findFirstRecord(infoPayload);
   const clubName = getString(clubInfo, ["name", "clubName", "details.name"], "");
   const currentSeasonPayload = await getCurrentSeasonClubEntry(
-    platform as EaPlatform,
-    clubId,
+    safePlatform,
+    safeClubId,
     clubName,
   );
 
