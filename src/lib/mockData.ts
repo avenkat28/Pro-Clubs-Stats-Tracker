@@ -2,7 +2,7 @@ export const featuredStats = [
   { label: "Clubs Tracked", value: "1,248" },
   { label: "Players Indexed", value: "18,932" },
   { label: "Matches Logged", value: "42,610" },
-  { label: "Live Updates", value: "Soon" },
+  { label: "EA Data Route", value: "Live" },
 ];
 
 export const features = [
