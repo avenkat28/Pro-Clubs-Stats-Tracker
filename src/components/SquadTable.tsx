@@ -219,19 +219,19 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
   }
 
   return (
-    <section className="club-profile-panel squad-table-panel min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 shadow-[0_22px_45px_rgba(0,0,0,0.2)] ring-1 ring-white/[0.03] sm:p-6">
+    <section className="club-profile-panel squad-table-panel min-w-0 rounded-lg border border-emerald-400/12 bg-[#07100c]/85 p-4 shadow-[0_16px_38px_rgba(0,0,0,0.24)] ring-1 ring-white/[0.04] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+          <p className="text-xs font-semibold uppercase text-white/45">
             Squad Overview
           </p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">
+          <h2 className="mt-2 text-3xl font-black text-white">
             Squad Stats
           </h2>
         </div>
 
         <div className="flex flex-col gap-3 sm:items-end">
-          <div className="club-segmented-control inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
+          <div className="club-segmented-control inline-flex w-fit rounded-lg border border-emerald-300/15 bg-black/35 p-1">
             {[
               { label: "Overall Totals", value: "overall" as const },
               { label: "Per Match", value: "perMatch" as const },
@@ -243,7 +243,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
                   key={tab.value}
                   type="button"
                   onClick={() => setStatMode(tab.value)}
-                  className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition ${
+                  className={`rounded-md px-4 py-2 text-[11px] font-black uppercase transition ${
                     isActive
                       ? "bg-emerald-300 text-black shadow-[0_0_24px_rgba(110,231,183,0.22)]"
                       : "text-white/45 hover:text-emerald-100"
@@ -264,8 +264,8 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
       </div>
 
       {!hasUsablePlayers ? (
-        <div className="club-profile-tile mt-6 rounded-[1.5rem] border border-dashed border-white/12 bg-black/20 px-6 py-10 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-2xl text-white/70">
+        <div className="club-profile-tile mt-6 rounded-lg border border-dashed border-white/12 bg-black/20 px-6 py-10 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-2xl text-white/70">
             +
           </div>
           <p className="mt-4 text-lg font-semibold text-white">Squad stats are warming up</p>
@@ -279,7 +279,7 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
         </div>
       ) : null}
 
-      <div className="squad-table-scroll mt-6 overflow-x-auto overscroll-x-contain">
+      <div className="squad-table-scroll mt-6 overflow-x-auto overscroll-x-contain rounded-lg border border-white/[0.08] bg-black/18">
         <table className="w-full min-w-[1160px] table-fixed text-left text-sm">
           <colgroup>
             <col className="w-[18rem]" />
@@ -296,69 +296,69 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
             <col className="w-[6rem]" />
             <col className="w-[6rem]" />
           </colgroup>
-          <thead className="text-white/45">
+          <thead className="bg-white/[0.035] text-white/45">
             <tr className="border-b border-white/10">
-              <th className="pb-4">
+              <th className="px-3 py-3">
                 <HeaderButton columnKey="name" label="Player" />
               </th>
-              <th className="pb-4">
+              <th className="px-3 py-3">
                 <HeaderButton columnKey="position" label="POS" />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton columnKey="overall" label="OVR" align="right" />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton columnKey="matches" label="Apps" align="right" />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="goals"
                   label={statMode === "overall" ? "Goals" : "G/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="assists"
                   label={statMode === "overall" ? "Assists" : "A/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="contributions"
                   label={statMode === "overall" ? "G+A" : "G+A/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton columnKey="rating" label="Rating" align="right" />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="manOfTheMatch"
                   label={statMode === "overall" ? "MOTM" : "MOTM %"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton columnKey="winRate" label="Win %" align="right" />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="shotSuccessRate"
                   label="Shot %"
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey="passing"
                   label={statMode === "overall" ? "Pass %" : "Pass/Match"}
                   align="right"
                 />
               </th>
-              <th className="pb-4 pr-2 text-right">
+              <th className="px-3 py-3 text-right">
                 <HeaderButton
                   columnKey={statMode === "overall" ? "tackleSuccessRate" : "tackles"}
                   label={statMode === "overall" ? "Tackle %" : "Tkl/Match"}
@@ -403,11 +403,11 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
               return (
                 <tr
                   key={player.id}
-                  className="squad-table-row border-b border-white/8 text-white transition hover:bg-white/[0.03]"
+                  className="squad-table-row border-b border-white/8 text-white transition hover:bg-emerald-300/[0.04]"
                 >
-                  <td className="py-4">
+                  <td className="px-3 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="squad-avatar flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.45),_rgba(255,255,255,0.02))] text-xs font-black uppercase text-white/85">
+                      <div className="squad-avatar flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[linear-gradient(135deg,_rgba(37,99,235,0.45),_rgba(255,255,255,0.04))] text-xs font-black uppercase text-white/85">
                         {player.name.slice(0, 2)}
                       </div>
                       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-3">
@@ -427,30 +427,30 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 text-white/55">
+                  <td className="px-3 py-4 text-white/55">
                     <span className="inline-block pl-1">{capitalizeWords(player.position)}</span>
                   </td>
-                  <td className="py-4 pr-2 text-right font-semibold tabular-nums text-blue-200">
+                  <td className="px-3 py-4 text-right font-semibold tabular-nums text-blue-200">
                     {player.overall > 0 ? player.overall : "--"}
                   </td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.matches)}</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{goalsValue}</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{assistsValue}</td>
-                  <td className="py-4 pr-2 text-right font-semibold tabular-nums text-emerald-200">
+                  <td className="px-3 py-4 text-right tabular-nums">{formatNumber(player.matches)}</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{goalsValue}</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{assistsValue}</td>
+                  <td className="px-3 py-4 text-right font-semibold tabular-nums text-emerald-200">
                     {contributionsValue}
                   </td>
-                  <td className="py-4 pr-2 text-right">
+                  <td className="px-3 py-4 text-right">
                     <span
-                      className={`inline-flex min-w-16 items-center justify-center rounded-full border px-2.5 py-1 font-bold ${ratingBadgeClassName(player.rating)}`}
+                      className={`inline-flex min-w-16 items-center justify-center rounded-md border px-2.5 py-1 font-bold ${ratingBadgeClassName(player.rating)}`}
                     >
                       {player.rating > 0 ? player.rating.toFixed(1) : "--"}
                     </span>
                   </td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{motmValue}</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.winRate)}%</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{formatNumber(player.shotSuccessRate)}%</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{passesValue}</td>
-                  <td className="py-4 pr-2 text-right tabular-nums">{tacklesValue}</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{motmValue}</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{formatNumber(player.winRate)}%</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{formatNumber(player.shotSuccessRate)}%</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{passesValue}</td>
+                  <td className="px-3 py-4 text-right tabular-nums">{tacklesValue}</td>
                 </tr>
               );
             })}
@@ -460,10 +460,10 @@ export default function SquadTable({ players, clubId, platform }: SquadTableProp
 
       {hasUsablePlayers ? (
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/40">
-          <span className="club-profile-tile rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+          <span className="club-profile-tile rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5">
             Totals view shows raw production and usage.
           </span>
-          <span className="club-profile-tile rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+          <span className="club-profile-tile rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5">
             Per-match view normalizes scoring, creation, passing volume, tackles, and MOTM impact.
           </span>
         </div>

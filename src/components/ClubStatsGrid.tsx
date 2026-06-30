@@ -265,18 +265,18 @@ export default function ClubStatsGrid({
     },
   ];
   const panelClassName =
-    "club-profile-panel min-w-0 rounded-[1.35rem] border border-emerald-400/10 bg-[#07100c]/80 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,0.22)] ring-1 ring-white/[0.03] sm:p-5";
+    "club-profile-panel min-w-0 rounded-lg border border-emerald-400/12 bg-[#07100c]/85 p-4 text-white shadow-[0_14px_36px_rgba(0,0,0,0.24)] ring-1 ring-white/[0.04] sm:p-5";
   const tileClassName =
-    "club-profile-tile min-w-0 rounded-2xl border border-white/[0.06] bg-black/25 p-3 ring-1 ring-white/[0.02] sm:p-4";
+    "club-profile-tile min-w-0 rounded-lg border border-white/[0.08] bg-black/28 p-3 ring-1 ring-white/[0.03] sm:p-4";
 
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.12fr_0.88fr_0.9fr]">
       <div className={panelClassName}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
+          <p className="text-[11px] font-bold uppercase text-emerald-200/55">
             Performance
           </p>
-          <div className="club-segmented-control inline-flex w-fit rounded-full border border-emerald-300/15 bg-black/35 p-1">
+          <div className="club-segmented-control inline-flex w-fit rounded-lg border border-emerald-300/15 bg-black/35 p-1">
             {[
               { label: "Overall", value: "overall" as const },
               { label: "Last 10", value: "last10" as const },
@@ -288,7 +288,7 @@ export default function ClubStatsGrid({
                   key={tab.value}
                   type="button"
                   onClick={() => setActivePerformanceTab(tab.value)}
-                  className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition ${
+                  className={`rounded-md px-4 py-2 text-[11px] font-black uppercase transition ${
                     isActive
                       ? "bg-emerald-300 text-black shadow-[0_0_24px_rgba(110,231,183,0.22)]"
                       : "text-white/45 hover:text-emerald-100"
@@ -325,7 +325,7 @@ export default function ClubStatsGrid({
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-bold uppercase text-white/45">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Wins {activeWinRate}%
@@ -345,13 +345,13 @@ export default function ClubStatsGrid({
             <p className="text-xs text-white/45">
               <StatLabel label="Matches" iconClassName="h-3.5 w-3.5" />
             </p>
-            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em]">{activeMatches}</p>
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black">{activeMatches}</p>
           </div>
           <div className={tileClassName}>
             <p className="text-xs text-white/45">
               <StatLabel label="GF" iconClassName="h-3.5 w-3.5" />
             </p>
-            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] text-emerald-300">
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black text-emerald-300">
               {activeStats.goalsFor}
             </p>
             <p className="mt-1 text-xs text-white/35">{activeGoalsForPerMatch}/match</p>
@@ -360,7 +360,7 @@ export default function ClubStatsGrid({
             <p className="text-xs text-white/45">
               <StatLabel label="GA" iconClassName="h-3.5 w-3.5" />
             </p>
-            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] text-red-300">
+            <p className="mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black text-red-300">
               {activeStats.goalsAgainst}
             </p>
             <p className="mt-1 text-xs text-white/35">{activeGoalsAgainstPerMatch}/match</p>
@@ -370,7 +370,7 @@ export default function ClubStatsGrid({
               <StatLabel label="GD" iconClassName="h-3.5 w-3.5" />
             </p>
             <p
-              className={`mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black tracking-[-0.04em] ${
+              className={`mt-2 text-[clamp(1.35rem,6vw,1.5rem)] font-black ${
                 activeStats.goalDifference >= 0 ? "text-emerald-300" : "text-red-300"
               }`}
             >
@@ -383,13 +383,13 @@ export default function ClubStatsGrid({
           <div className="mt-5 grid gap-3 border-t border-white/[0.07] pt-4 sm:grid-cols-3">
             <div>
               <p className="text-xs text-white/40">League Apps</p>
-              <p className="mt-1 text-2xl font-black tracking-[-0.04em]">
+              <p className="mt-1 text-2xl font-black">
                 {appearanceBreakdown.league}
               </p>
             </div>
             <div>
               <p className="text-xs text-white/40">Playoff Apps</p>
-              <p className="mt-1 text-2xl font-black tracking-[-0.04em]">
+              <p className="mt-1 text-2xl font-black">
                 {appearanceBreakdown.playoff}
               </p>
             </div>
@@ -397,11 +397,11 @@ export default function ClubStatsGrid({
               <p className="text-xs text-white/40">Best Finish</p>
               <div className="mt-1 flex items-center gap-2">
                 {appearanceBreakdown.bestPlayoffFinish.badgeLevel ? (
-                  <span className="flex h-8 w-7 items-center justify-center rounded-lg border border-lime-200/30 bg-lime-300/15 text-sm font-black text-lime-100">
+                  <span className="flex h-8 w-7 items-center justify-center rounded-md border border-lime-200/30 bg-lime-300/15 text-sm font-black text-lime-100">
                     {appearanceBreakdown.bestPlayoffFinish.badgeLevel}
                   </span>
                 ) : null}
-                <p className="min-w-0 text-base font-black tracking-[-0.04em] text-white sm:text-lg">
+                <p className="min-w-0 text-base font-black text-white sm:text-lg">
                   {appearanceBreakdown.bestPlayoffFinish.label}
                 </p>
               </div>
@@ -411,22 +411,22 @@ export default function ClubStatsGrid({
       </div>
 
       <div className={panelClassName}>
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
+        <p className="text-[11px] font-bold uppercase text-emerald-200/55">
           Attack / Defense
         </p>
         <div className="mt-5 grid gap-3">
-          <div className="club-attack-card rounded-2xl bg-emerald-400/[0.06] p-4 ring-1 ring-emerald-300/10">
+          <div className="club-attack-card rounded-lg border border-emerald-300/10 bg-emerald-400/[0.06] p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/50">
                   <StatLabel label="Goals For" />
                 </p>
-                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black tracking-[-0.07em] text-emerald-300">
+                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black text-emerald-300">
                   {goalsFor}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-200/70">
+                <p className="text-[11px] font-black uppercase text-emerald-200/70">
                   Attack
                 </p>
                 <p className="mt-2 text-sm font-semibold text-white/45">{goalsPerMatch}/match</p>
@@ -434,18 +434,18 @@ export default function ClubStatsGrid({
             </div>
           </div>
 
-          <div className="club-defense-card rounded-2xl bg-red-400/[0.055] p-4 ring-1 ring-red-300/10">
+          <div className="club-defense-card rounded-lg border border-red-300/10 bg-red-400/[0.055] p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/50">
                   <StatLabel label="Goals Against" />
                 </p>
-                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black tracking-[-0.07em] text-red-300">
+                <p className="mt-2 text-[clamp(2.6rem,11vw,3rem)] font-black text-red-300">
                   {goalsAgainst}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-red-200/70">
+                <p className="text-[11px] font-black uppercase text-red-200/70">
                   Defense
                 </p>
                 <p className="mt-2 text-sm font-semibold text-white/45">{concededPerMatch}/match</p>
@@ -458,7 +458,7 @@ export default function ClubStatsGrid({
               <p className="text-xs text-white/45">
                 <StatLabel label="Goal Difference" iconClassName="h-3.5 w-3.5" />
               </p>
-              <p className={`mt-2 text-3xl font-black tracking-[-0.06em] ${goalDifferenceTone}`}>
+              <p className={`mt-2 text-3xl font-black ${goalDifferenceTone}`}>
                 {formattedGoalDifference}
               </p>
             </div>
@@ -467,7 +467,7 @@ export default function ClubStatsGrid({
       </div>
 
       <div className={panelClassName}>
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200/55">
+        <p className="text-[11px] font-bold uppercase text-emerald-200/55">
           Team Strength
         </p>
         <div className="mt-5 space-y-4">
@@ -485,7 +485,7 @@ export default function ClubStatsGrid({
                   style={{ width: `${meter.value}%` }}
                 />
               </div>
-              <div className="club-meter-tooltip pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-2xl border border-emerald-300/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
+              <div className="club-meter-tooltip pointer-events-none absolute bottom-full left-0 z-20 mb-3 w-64 rounded-lg border border-emerald-300/10 bg-black/95 px-4 py-3 text-xs text-white/75 opacity-0 shadow-[0_16px_40px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
                 <p className="font-semibold text-white">{meter.label}</p>
                 <div className="mt-2 space-y-1">
                   {meter.details.map((detail) => (
