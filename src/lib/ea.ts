@@ -311,6 +311,22 @@ export type EaClubProfile = {
   recentClubMatches: EaClubRecentMatch[];
 };
 
+export type EaFullClubData = {
+  clubId: string;
+  platform: EaPlatform;
+  overallStats: unknown;
+  memberStats: {
+    members: unknown[];
+    positionCount: Record<"goalkeeper" | "defender" | "midfielder" | "forward", number>;
+  };
+  matches: {
+    league: unknown[];
+    playoff: unknown[];
+    friendly: unknown[];
+  };
+  clubInfoData: Record<string, unknown>;
+};
+
 export function isEaPlatform(value: string | undefined | null): value is EaPlatform {
   return Boolean(value && eaPlatforms.includes(value as EaPlatform));
 }
@@ -1987,6 +2003,111 @@ async function getClubOverallStatsEntry(
   return findFirstRecord(payload);
 }
 
+function countMemberPositions(members: unknown[]) {
+  const positionCount = {
+    goalkeeper: 0,
+    defender: 0,
+    midfielder: 0,
+    forward: 0,
+  };
+
+  for (const member of members) {
+    const record = asRecord(member);
+    const position = getString(
+      record,
+      ["favoritePosition", "position", "pos"],
+      "",
+    ).toLowerCase();
+
+    if (position === "goalkeeper") {
+      positionCount.goalkeeper += 1;
+    } else if (position === "defender") {
+      positionCount.defender += 1;
+    } else if (position === "midfielder") {
+      positionCount.midfielder += 1;
+    } else if (position === "forward") {
+      positionCount.forward += 1;
+    }
+  }
+
+  return positionCount;
+}
+
+export async function getEaFullClubData(
+  clubId: string,
+  platform = DEFAULT_EA_PLATFORM,
+): Promise<EaFullClubData> {
+  const safeClubId = normalizeEaClubId(clubId);
+  const safePlatform = normalizeEaPlatform(platform);
+  const params = {
+    platform: safePlatform,
+  };
+
+  const [
+    infoPayload,
+    overallPayload,
+    membersPayload,
+    careerMembersPayload,
+    leagueMatchesPayload,
+    playoffMatchesPayload,
+    friendlyMatchesPayload,
+  ] = await Promise.all([
+    fetchEaJson("/clubs/info", new URLSearchParams({
+      ...params,
+      clubIds: safeClubId,
+    })),
+    fetchEaJson("/clubs/overallStats", new URLSearchParams({
+      ...params,
+      clubIds: safeClubId,
+    })),
+    fetchOptionalEaJson("/members/stats", new URLSearchParams({
+      ...params,
+      clubId: safeClubId,
+    })),
+    fetchOptionalEaJson("/members/career/stats", new URLSearchParams({
+      ...params,
+      clubId: safeClubId,
+    })),
+    fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
+      ...params,
+      clubIds: safeClubId,
+      matchType: "leagueMatch",
+      maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
+    })),
+    fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
+      ...params,
+      clubIds: safeClubId,
+      matchType: "playoffMatch",
+      maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
+    })),
+    fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
+      ...params,
+      clubIds: safeClubId,
+      matchType: "friendlyMatch",
+      maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
+    })),
+  ]);
+  const members = normalizeSquad(careerMembersPayload, membersPayload);
+
+  return {
+    clubId: safeClubId,
+    platform: safePlatform,
+    overallStats: findFirstRecord(overallPayload) ?? {},
+    memberStats: {
+      members: asArray(membersPayload).length > 0 ? asArray(membersPayload) : members,
+      positionCount: countMemberPositions(members),
+    },
+    matches: {
+      league: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
+      playoff: asArray(playoffMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
+      friendly: asArray(friendlyMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
+    },
+    clubInfoData: {
+      [safeClubId]: findFirstRecord(infoPayload) ?? {},
+    },
+  };
+}
+
 function dedupeClubSearchResults(results: EaClubSearchResult[]) {
   return Array.from(
     new Map(results.map((entry) => [`${entry.platform}:${entry.id}`, entry])).values(),
@@ -2184,45 +2305,21 @@ export async function getEaClubProfile(
 ): Promise<EaClubProfile> {
   const safeClubId = normalizeEaClubId(clubId);
   const safePlatform = normalizeEaPlatform(platform);
-  const baseParams = new URLSearchParams({
-    platform: safePlatform,
-  });
-
-  const [
-    infoPayload,
-    overallPayload,
-    membersPayload,
-    careerMembersPayload,
-    leagueMatchesPayload,
-    playoffPayload,
-  ] = await Promise.all([
-    fetchEaJson("/clubs/info", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
-      clubIds: safeClubId,
-    })),
-    fetchEaJson("/clubs/overallStats", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
-      clubIds: safeClubId,
-    })),
-    fetchOptionalEaJson("/members/stats", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
-      clubId: safeClubId,
-    })),
+  const [fullClubData, careerMembersPayload, playoffPayload] = await Promise.all([
+    getEaFullClubData(safeClubId, safePlatform),
     fetchOptionalEaJson("/members/career/stats", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
+      platform: safePlatform,
       clubId: safeClubId,
-    })),
-    fetchOptionalEaJson("/clubs/matches", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
-      clubIds: safeClubId,
-      matchType: "leagueMatch",
-      maxResultCount: String(RECENT_CLUB_MATCH_SCAN_COUNT),
     })),
     fetchOptionalEaJson("/club/playoffAchievements", new URLSearchParams({
-      ...Object.fromEntries(baseParams.entries()),
+      platform: safePlatform,
       clubId: safeClubId,
     })),
   ]);
+  const infoPayload = fullClubData.clubInfoData;
+  const overallPayload = fullClubData.overallStats;
+  const membersPayload = fullClubData.memberStats.members;
+  const leagueMatchesPayload = fullClubData.matches.league;
 
   const clubInfo = findFirstRecord(infoPayload);
   const clubName = getString(clubInfo, ["name", "clubName", "details.name"], "");
