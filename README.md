@@ -120,6 +120,7 @@ Useful scripts:
 
 ```bash
 npm run build
+npm run render:migrate
 npm run preview
 npm run db:test
 npm run prisma:generate
@@ -165,6 +166,48 @@ Before deploying:
 - run `npm run build`
 - verify live EA connectivity for the target environment
 - confirm route coverage for homepage, search, club, player, leaderboards, compare, and patches
+
+## Deploying to Render
+
+This repo includes a `render.yaml` Blueprint for Render.
+
+The Blueprint creates:
+
+- a Node web service for the Next.js app
+- a Render Postgres database
+- a cron job that refreshes cached stats every 30 minutes
+
+Render settings:
+
+- Service type: `Web Service`
+- Runtime: `Node`
+- Build command: `npm ci && npm run render:build`
+- Pre-deploy command: `npm run render:migrate`
+- Start command: `npm run start`
+- Health check path: `/`
+- Node version: `22.22.0`
+
+Required environment variables:
+
+- `DATABASE_URL` - Render Postgres connection string
+- `DIRECT_URL` - Render Postgres connection string for Prisma migrations
+- `CRON_SECRET` - generated automatically by the Blueprint, or set manually
+
+Optional environment variables:
+
+- `EA_PLATFORM` - defaults to `common-gen5`
+- `EA_API_BASE_URL` - defaults to `https://proclubs.ea.com/api/fc`
+- `EA_CACHE_TTL_SECONDS`
+- `EA_LEADERBOARD_CACHE_TTL_SECONDS`
+- `EA_PROFILE_CACHE_TTL_SECONDS`
+
+Manual deployment:
+
+1. Create a Render Postgres database in the same region as the web service.
+2. Create a Render Web Service from this repository.
+3. Add the environment variables above.
+4. Set the build, pre-deploy, and start commands shown above.
+5. Deploy.
 
 ## Deploying to Vercel
 
