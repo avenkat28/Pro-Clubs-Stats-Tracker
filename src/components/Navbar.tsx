@@ -13,6 +13,7 @@ function applyTheme(theme: Theme) {
 
 export default function Navbar() {
   const [theme, setTheme] = useState<Theme>("dark");
+  const [logoFailed, setLogoFailed] = useState(false);
   const pathname = usePathname();
   const links = [
     { label: "Home", href: "/" },
@@ -47,8 +48,23 @@ export default function Navbar() {
       className="sticky top-0 z-50 w-full border-b border-emerald-300/10 bg-black/90 text-white backdrop-blur"
     >
       <div className="mx-auto flex max-w-[84rem] flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-        <a href="/" className="text-2xl font-semibold tracking-tight text-white">
-          ProClubsHQ
+        <a
+          href="/"
+          aria-label="ProClubsHQ home"
+          className="flex min-w-0 items-center"
+        >
+          {logoFailed ? (
+            <span className="text-2xl font-semibold tracking-tight text-white">
+              ProClubsHQ
+            </span>
+          ) : (
+            <img
+              src="/proclubshq-logo.png"
+              alt="ProClubsHQ"
+              onError={() => setLogoFailed(true)}
+              className="h-10 w-auto max-w-[13rem] object-contain sm:h-11 sm:max-w-[16rem]"
+            />
+          )}
         </a>
 
         <div className="flex max-w-full flex-wrap items-center gap-2 text-sm font-semibold text-gray-300">

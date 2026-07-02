@@ -70,6 +70,7 @@ prisma/
   migrations/              Prisma migrations
   seed.ts                  Seed script
 public/
+  proclubshq-logo.png     Brand logo used by the navbar and metadata
   club-comps/              Club comparison assets
   player-comps/            Player comparison assets
 ```

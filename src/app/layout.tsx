@@ -4,6 +4,15 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "ProClubsHQ",
   description: "Live EA FC Pro Clubs stats, leaderboards, and comparisons.",
+  icons: {
+    icon: "/proclubshq-logo.png",
+    apple: "/proclubshq-logo.png",
+  },
+  openGraph: {
+    title: "ProClubsHQ",
+    description: "Live EA FC Pro Clubs stats, leaderboards, and comparisons.",
+    images: ["/proclubshq-logo.png"],
+  },
 };
 
 export default function RootLayout({
