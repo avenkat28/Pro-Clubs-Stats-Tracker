@@ -3,6 +3,11 @@ import "dotenv/config";
 import { prisma } from "../src/lib/db";
 
 async function main() {
+  if (!prisma) {
+    console.log("Database is disabled. Set DATABASE_URL to view a DB summary.");
+    return;
+  }
+
   const [
     clubs,
     players,
@@ -39,5 +44,5 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
   });

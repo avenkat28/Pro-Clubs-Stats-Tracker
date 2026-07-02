@@ -7,6 +7,10 @@ export function searchPlayers(query: string, limit = 10) {
     return Promise.resolve([]);
   }
 
+  if (!prisma) {
+    return Promise.resolve([]);
+  }
+
   return prisma.player.findMany({
     where: {
       OR: [
@@ -28,6 +32,10 @@ export function searchClubs(query: string, limit = 10) {
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
+    return Promise.resolve([]);
+  }
+
+  if (!prisma) {
     return Promise.resolve([]);
   }
 

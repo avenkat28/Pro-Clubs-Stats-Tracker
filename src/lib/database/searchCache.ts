@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { isDatabaseEnabled, prisma } from "../db";
 import type {
   EaClubSearchResult,
   EaLeaderboardPlayer,
@@ -37,6 +37,10 @@ export async function searchCachedClubs(
   query: string,
   platform: EaPlatform,
 ): Promise<CachedClubResult[]> {
+  if (!isDatabaseEnabled || !prisma) {
+    return [];
+  }
+
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
@@ -90,6 +94,10 @@ export async function searchCachedPlayers(
   query: string,
   platform: EaPlatform,
 ): Promise<CachedPlayerResult[]> {
+  if (!isDatabaseEnabled || !prisma) {
+    return [];
+  }
+
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
@@ -166,6 +174,10 @@ export async function cacheSearchClubs(
   clubs: EaClubSearchResult[],
   platform: EaPlatform,
 ) {
+  if (!isDatabaseEnabled || !prisma) {
+    return;
+  }
+
   await Promise.all(
     clubs.map((club) =>
       prisma.club.upsert({

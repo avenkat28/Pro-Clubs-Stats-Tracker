@@ -44,7 +44,7 @@ async function main() {
 
   const shutdown = async () => {
     clearInterval(interval);
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
     process.exit(0);
   };
 
@@ -54,6 +54,6 @@ async function main() {
 
 main().catch(async (error) => {
   console.error(error instanceof Error ? error.message : error);
-  await prisma.$disconnect();
+  await prisma?.$disconnect();
   process.exitCode = 1;
 });

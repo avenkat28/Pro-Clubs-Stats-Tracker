@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { isDatabaseEnabled, prisma } from "../db";
 import { normalizePlayerRecentMatches } from "../ea";
 import type {
   EaClubProfile,
@@ -55,6 +55,10 @@ function parseScore(score: string) {
 }
 
 export async function cacheEaClubProfile(profile: EaClubProfile) {
+  if (!isDatabaseEnabled || !prisma) {
+    return;
+  }
+
   const { club } = profile;
   const savedClub = await prisma.club.upsert({
     where: {
@@ -266,6 +270,10 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
 }
 
 export async function isCachedEaClubProfileFresh(eaClubId: string) {
+  if (!isDatabaseEnabled || !prisma) {
+    return false;
+  }
+
   const cachedClub = await prisma.club.findUnique({
     where: {
       eaClubId,
@@ -290,6 +298,10 @@ export async function isCachedEaClubProfileFresh(eaClubId: string) {
 export async function getCachedEaClubProfile(
   eaClubId: string,
 ): Promise<EaClubProfile | null> {
+  if (!isDatabaseEnabled || !prisma) {
+    return null;
+  }
+
   const cachedClub = await prisma.club.findUnique({
     where: {
       eaClubId,
@@ -406,6 +418,10 @@ export async function getCachedEaPlayerProfile(
   squad: EaSquadMember[];
   recentMatches: EaPlayerMatch[];
 } | null> {
+  if (!isDatabaseEnabled || !prisma) {
+    return null;
+  }
+
   const profile = await getCachedEaClubProfile(eaClubId);
 
   if (!profile) {

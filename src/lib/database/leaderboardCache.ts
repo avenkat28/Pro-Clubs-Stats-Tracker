@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { isDatabaseEnabled, prisma } from "../db";
 import type {
   EaLeaderboardClub,
   EaLeaderboardPlayer,
@@ -41,6 +41,10 @@ export async function cacheEaLeaderboards({
   playerClubScanLimit: number;
   leaderboards: EaLeaderboards;
 }) {
+  if (!isDatabaseEnabled || !prisma) {
+    return null;
+  }
+
   const snapshot = await prisma.leaderboardSnapshot.create({
     data: {
       platform,
@@ -186,6 +190,10 @@ export async function cacheEaLeaderboards({
 export async function getCachedEaLeaderboards(
   platform: EaPlatform,
 ): Promise<EaLeaderboards | null> {
+  if (!isDatabaseEnabled || !prisma) {
+    return null;
+  }
+
   const snapshot = await prisma.leaderboardSnapshot.findFirst({
     where: {
       platform,
@@ -250,6 +258,10 @@ export async function getCachedEaLeaderboards(
 }
 
 export async function isCachedEaLeaderboardsFresh(platform: EaPlatform) {
+  if (!isDatabaseEnabled || !prisma) {
+    return false;
+  }
+
   const snapshot = await prisma.leaderboardSnapshot.findFirst({
     where: {
       platform,

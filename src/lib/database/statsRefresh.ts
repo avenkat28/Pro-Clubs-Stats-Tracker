@@ -6,7 +6,7 @@ import {
   normalizeEaPlatform,
   type EaPlatform,
 } from "../ea";
-import { prisma } from "../db";
+import { isDatabaseEnabled, prisma } from "../db";
 import { cacheEaClubProfile } from "./eaProfileCache";
 import { cacheEaLeaderboards } from "./leaderboardCache";
 
@@ -41,6 +41,15 @@ export async function refreshStatsCache({
   ),
   maxClubs = positiveNumber(process.env.EA_REFRESH_MAX_CLUBS, 25),
 }: RefreshStatsCacheOptions = {}) {
+  if (!isDatabaseEnabled || !prisma) {
+    return {
+      leaderboards: [],
+      clubs: [],
+      message: "Database is disabled; live-only mode does not run cache refreshes.",
+      platforms: platforms.map((platform) => eaPlatformLabels[platform]),
+    };
+  }
+
   const totalClubRefreshLimit = maxClubs * platforms.length;
   const summary = {
     leaderboards: [] as Array<{

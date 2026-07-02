@@ -1,18 +1,30 @@
 import { prisma } from "../db";
 
 export function getPlayerByEaId(eaPlayerId: string) {
+  if (!prisma) {
+    return Promise.resolve(null);
+  }
+
   return prisma.player.findUnique({
     where: { eaPlayerId },
   });
 }
 
 export function getPlayerById(id: string) {
+  if (!prisma) {
+    return Promise.resolve(null);
+  }
+
   return prisma.player.findUnique({
     where: { id },
   });
 }
 
 export function getTopPlayers(limit = 10) {
+  if (!prisma) {
+    return Promise.resolve([]);
+  }
+
   return prisma.player.findMany({
     include: {
       club: true,
@@ -23,6 +35,10 @@ export function getTopPlayers(limit = 10) {
 }
 
 export function getPlayerWithClub(eaPlayerId: string) {
+  if (!prisma) {
+    return Promise.resolve(null);
+  }
+
   return prisma.player.findUnique({
     where: { eaPlayerId },
     include: {
@@ -32,6 +48,10 @@ export function getPlayerWithClub(eaPlayerId: string) {
 }
 
 export function getPlayerRecentMatchStats(playerId: string) {
+  if (!prisma) {
+    return Promise.resolve([]);
+  }
+
   return prisma.playerMatchStat.findMany({
     where: { playerId },
     include: {

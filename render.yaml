@@ -2,67 +2,17 @@ services:
   - type: web
     name: proclubshq
     runtime: node
-    plan: starter
-    region: oregon
+    plan: free
+    region: virginia
     buildCommand: npm ci && npm run render:build
-    preDeployCommand: npm run render:migrate
     startCommand: npm run start
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
-      - key: DATABASE_URL
-        fromDatabase:
-          name: proclubshq-db
-          property: connectionString
-      - key: DIRECT_URL
-        fromDatabase:
-          name: proclubshq-db
-          property: connectionString
+      - key: DISABLE_DATABASE
+        value: true
       - key: EA_API_BASE_URL
         value: https://proclubs.ea.com/api/fc
       - key: EA_PLATFORM
         value: common-gen5
-      - key: EA_CACHE_TTL_SECONDS
-        value: 600
-      - key: EA_LEADERBOARD_CACHE_TTL_SECONDS
-        value: 600
-      - key: EA_PROFILE_CACHE_TTL_SECONDS
-        value: 600
-      - key: CRON_SECRET
-        generateValue: true
-
-  - type: cron
-    name: proclubshq-refresh-stats
-    runtime: node
-    plan: starter
-    region: oregon
-    schedule: "*/30 * * * *"
-    buildCommand: npm ci && npm run prisma:generate
-    startCommand: npm run cache:refresh
-    envVars:
-      - key: NODE_VERSION
-        value: 22.22.0
-      - key: DATABASE_URL
-        fromDatabase:
-          name: proclubshq-db
-          property: connectionString
-      - key: DIRECT_URL
-        fromDatabase:
-          name: proclubshq-db
-          property: connectionString
-      - key: EA_API_BASE_URL
-        value: https://proclubs.ea.com/api/fc
-      - key: EA_PLATFORM
-        value: common-gen5
-      - key: EA_CACHE_TTL_SECONDS
-        value: 600
-      - key: EA_LEADERBOARD_CACHE_TTL_SECONDS
-        value: 600
-      - key: EA_PROFILE_CACHE_TTL_SECONDS
-        value: 600
-
-databases:
-  - name: proclubshq-db
-    region: oregon
-    plan: basic-256mb

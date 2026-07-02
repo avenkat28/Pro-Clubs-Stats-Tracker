@@ -76,17 +76,19 @@ public/
 
 ## Environment Variables
 
-Copy `.env.example` and provide real database credentials.
+Copy `.env.example` to configure the app. The default deployment mode is
+live-only and does not require a database.
 
 Required:
 
-- `DATABASE_URL` - pooled PostgreSQL connection for Prisma Client
-- `DIRECT_URL` - direct PostgreSQL connection for Prisma migrations
+- `DISABLE_DATABASE=true` - disables Prisma reads/writes for live-only hosting
 
 Optional:
 
 - `EA_PLATFORM` - default EA platform, defaults to `common-gen5`
 - `EA_API_BASE_URL` - override for the EA Pro Clubs API base URL
+- `DATABASE_URL` - pooled PostgreSQL connection, only for optional DB caching
+- `DIRECT_URL` - direct PostgreSQL connection, only for optional migrations
 
 Recommended local setup:
 
@@ -94,7 +96,8 @@ Recommended local setup:
 cp .env.example .env
 ```
 
-Then replace the placeholder values with your real PostgreSQL credentials.
+Leave `DISABLE_DATABASE=true` unless you intentionally want Postgres-backed
+caching and history.
 
 ## Installation
 
@@ -120,7 +123,6 @@ Useful scripts:
 
 ```bash
 npm run build
-npm run render:migrate
 npm run preview
 npm run db:test
 npm run prisma:generate
@@ -131,7 +133,10 @@ npm run prisma:seed
 
 ## Database Setup
 
-1. Add `DATABASE_URL` and `DIRECT_URL`
+Database setup is optional. The app can run live-only without Postgres.
+
+1. Set `DISABLE_DATABASE=false`
+2. Add `DATABASE_URL` and `DIRECT_URL`
 2. Generate the Prisma client:
 
 ```bash
@@ -162,7 +167,7 @@ npm run db:test
 
 Before deploying:
 
-- provide real database environment variables
+- set `DISABLE_DATABASE=true` for live-only hosting
 - run `npm run build`
 - verify live EA connectivity for the target environment
 - confirm route coverage for homepage, search, club, player, leaderboards, compare, and patches
@@ -171,43 +176,42 @@ Before deploying:
 
 This repo includes a `render.yaml` Blueprint for Render.
 
-The Blueprint creates:
-
-- a Node web service for the Next.js app
-- a Render Postgres database
-- a cron job that refreshes cached stats every 30 minutes
+The Blueprint creates a Node web service for the Next.js app in live-only mode.
+It does not provision Postgres by default because EA is the live source of truth.
 
 Render settings:
 
 - Service type: `Web Service`
 - Runtime: `Node`
 - Build command: `npm ci && npm run render:build`
-- Pre-deploy command: `npm run render:migrate`
 - Start command: `npm run start`
 - Health check path: `/`
 - Node version: `22.22.0`
 
 Required environment variables:
 
-- `DATABASE_URL` - Render Postgres connection string
-- `DIRECT_URL` - Render Postgres connection string for Prisma migrations
-- `CRON_SECRET` - generated automatically by the Blueprint, or set manually
+- `DISABLE_DATABASE` - set to `true`
 
 Optional environment variables:
 
 - `EA_PLATFORM` - defaults to `common-gen5`
 - `EA_API_BASE_URL` - defaults to `https://proclubs.ea.com/api/fc`
-- `EA_CACHE_TTL_SECONDS`
-- `EA_LEADERBOARD_CACHE_TTL_SECONDS`
-- `EA_PROFILE_CACHE_TTL_SECONDS`
+- `DATABASE_URL` - only needed if you later turn DB caching back on
+- `DIRECT_URL` - only needed if you later run Prisma migrations
+- `CRON_SECRET` - only needed if you later expose cache refreshes
 
 Manual deployment:
 
-1. Create a Render Postgres database in the same region as the web service.
-2. Create a Render Web Service from this repository.
-3. Add the environment variables above.
-4. Set the build, pre-deploy, and start commands shown above.
-5. Deploy.
+1. Create a Render Web Service from this repository.
+2. Add `DISABLE_DATABASE=true`.
+3. Set the build and start commands shown above.
+4. Deploy.
+
+Live-only tradeoffs:
+
+- club pages, search, compare, and leaderboards fetch from EA directly
+- cached fallback, historical snapshots, and scheduled refreshes are disabled
+- if EA blocks or rate-limits a live request, the app cannot fall back to stored data
 
 ## Deploying to Vercel
 
@@ -224,7 +228,8 @@ Notes:
 - Do not configure this project as a Vite static build
 - Do not set `dist` as the output directory
 - No SPA rewrite `vercel.json` is needed for route refreshes because Next.js handles routing natively
-- Add `DATABASE_URL` and `DIRECT_URL` in the Vercel project environment variables before deploying
+- Set `DISABLE_DATABASE=true` for live-only hosting
+- Add `DATABASE_URL` and `DIRECT_URL` only if you want optional DB caching
 
 ## Disclaimer
 
