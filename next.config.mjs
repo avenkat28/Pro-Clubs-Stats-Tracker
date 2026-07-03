@@ -11,7 +11,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "img-src 'self' data: https://eafc24.content.easports.com",
+  "img-src 'self' data: blob: https://eafc24.content.easports.com",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   isDevelopment

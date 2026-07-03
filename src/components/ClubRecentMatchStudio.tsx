@@ -301,7 +301,7 @@ function createMatchSvg(clubName: string, match: EaClubRecentMatch) {
 function downloadMatchImage(clubName: string, match: EaClubRecentMatch) {
   const svg = createMatchSvg(clubName, match);
   const image = new Image();
-  const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
   image.onload = () => {
     const canvas = document.createElement("canvas");
@@ -310,7 +310,6 @@ function downloadMatchImage(clubName: string, match: EaClubRecentMatch) {
     canvas.width = 1080;
     canvas.height = 1350;
     context?.drawImage(image, 0, 0);
-    URL.revokeObjectURL(svgUrl);
     canvas.toBlob((blob) => {
       if (!blob) return;
 
@@ -324,11 +323,17 @@ function downloadMatchImage(clubName: string, match: EaClubRecentMatch) {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(pngUrl);
+      window.setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
     }, "image/png");
   };
 
-  image.onerror = () => URL.revokeObjectURL(svgUrl);
+  image.onerror = () => {
+    const fallbackWindow = window.open(svgUrl, "_blank", "noopener,noreferrer");
+
+    if (!fallbackWindow) {
+      console.warn("Unable to render match report image for download.");
+    }
+  };
   image.src = svgUrl;
 }
 
