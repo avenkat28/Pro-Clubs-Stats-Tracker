@@ -62,7 +62,7 @@ export default function Navbar() {
               src="/proclubshq-logo.png"
               alt="ProClubsHQ"
               onError={() => setLogoFailed(true)}
-              className="h-10 w-auto max-w-[13rem] object-contain sm:h-11 sm:max-w-[16rem]"
+              className="h-8 w-auto max-w-[11.5rem] object-contain sm:h-9 sm:max-w-[13.5rem] lg:h-10"
             />
           )}
         </a>
