@@ -1,4 +1,5 @@
 import ClubHeader from "../../../components/ClubHeader";
+import ClubRecentMatchStudio from "../../../components/ClubRecentMatchStudio";
 import ClubStatsGrid from "../../../components/ClubStatsGrid";
 import Navbar from "../../../components/Navbar";
 import SquadTable from "../../../components/SquadTable";
@@ -119,6 +120,11 @@ function ClubProfileView({
           goalsAgainst={profile.club.goalsAgainst}
           recentMatches={profile.recentClubMatches}
           appearanceBreakdown={profile.club.appearanceBreakdown}
+        />
+
+        <ClubRecentMatchStudio
+          clubName={profile.club.name}
+          matches={profile.recentClubMatches}
         />
 
         <SquadTable players={profile.squad} clubId={clubId} platform={platform} />

@@ -1,6 +1,8 @@
 import { isDatabaseEnabled, prisma } from "../db";
 import { normalizePlayerRecentMatches } from "../ea";
 import type {
+  EaClubFormation,
+  EaClubMatchStats,
   EaClubProfile,
   EaClubRecentMatch,
   EaPlayerMatch,
@@ -41,6 +43,33 @@ function getResult(goalsFor: number, goalsAgainst: number): "W" | "D" | "L" {
   }
 
   return "L";
+}
+
+function emptyMatchStats(goals = 0): EaClubMatchStats {
+  return {
+    goals,
+    shots: 0,
+    shotAccuracy: 0,
+    passesMade: 0,
+    passAttempts: 0,
+    passAccuracy: 0,
+    tacklesMade: 0,
+    tackleAttempts: 0,
+    tackleSuccessRate: 0,
+    saves: 0,
+    redCards: 0,
+    averageRating: 0,
+  };
+}
+
+function emptyFormation(): EaClubFormation {
+  return {
+    label: "Unavailable",
+    goalkeeper: 0,
+    defender: 0,
+    midfielder: 0,
+    forward: 0,
+  };
 }
 
 function parseScore(score: string) {
@@ -349,6 +378,14 @@ export async function getCachedEaClubProfile(
       result: getResult(match.goalsFor, match.goalsAgainst),
       score: `${match.goalsFor}-${match.goalsAgainst}`,
       opponent: match.opponentName,
+      goalsFor: match.goalsFor,
+      goalsAgainst: match.goalsAgainst,
+      players: [],
+      opponentPlayers: [],
+      stats: emptyMatchStats(match.goalsFor),
+      opponentStats: emptyMatchStats(match.goalsAgainst),
+      formation: emptyFormation(),
+      opponentFormation: emptyFormation(),
     }),
   );
   const squad: EaSquadMember[] = cachedClub.players.map((player) => ({
