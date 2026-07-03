@@ -275,18 +275,36 @@ function createMatchSvg(clubName: string, match: EaClubRecentMatch) {
 
 function downloadMatchImage(clubName: string, match: EaClubRecentMatch) {
   const svg = createMatchSvg(clubName, match);
-  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const image = new Image();
+  const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
 
-  link.href = url;
-  link.download = `${clubName}-${match.opponent}-match-report.svg`
-    .toLowerCase()
-    .replace(/[^a-z0-9.]+/g, "-");
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  image.onload = () => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    canvas.width = 1080;
+    canvas.height = 1350;
+    context?.drawImage(image, 0, 0);
+    URL.revokeObjectURL(svgUrl);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const pngUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = pngUrl;
+      link.download = `${clubName}-${match.opponent}-match-report.png`
+        .toLowerCase()
+        .replace(/[^a-z0-9.]+/g, "-");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(pngUrl);
+    }, "image/png");
+  };
+
+  image.onerror = () => URL.revokeObjectURL(svgUrl);
+  image.src = svgUrl;
 }
 
 function StatCompareRow({
@@ -308,17 +326,17 @@ function StatCompareRow({
 
   return (
     <div className="grid grid-cols-[4.25rem_1fr_7rem_1fr_4.25rem] items-center gap-3">
-      <p className={`text-right text-sm font-bold tabular-nums ${homeWins ? "text-emerald-300" : "text-white/62"}`}>
+      <p className={`text-right text-sm font-bold tabular-nums ${homeWins ? "text-emerald-500" : "match-report-muted"}`}>
         {formatValue(home, suffix)}
       </p>
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
         <div className="ml-auto h-full rounded-full bg-emerald-400" style={{ width: `${Math.max(4, (home / max) * 100)}%` }} />
       </div>
-      <p className="text-center text-[11px] font-black uppercase tracking-[0.18em] text-white/42">{label}</p>
+      <p className="match-report-subtle text-center text-[11px] font-black uppercase tracking-[0.18em]">{label}</p>
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
         <div className="h-full rounded-full bg-sky-400" style={{ width: `${Math.max(4, (away / max) * 100)}%` }} />
       </div>
-      <p className={`text-sm font-bold tabular-nums ${awayWins ? "text-sky-300" : "text-white/62"}`}>
+      <p className={`text-sm font-bold tabular-nums ${awayWins ? "text-sky-500" : "match-report-muted"}`}>
         {formatValue(away, suffix)}
       </p>
     </div>
@@ -337,9 +355,9 @@ function FormationBoard({
   const rows = formationRows(players, formation);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#132018] p-4">
+    <div className="match-report-field-card rounded-2xl border p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h4 className="font-bold text-white">{title}</h4>
+        <h4 className="font-bold">{title}</h4>
         <span className="rounded-full bg-black/35 px-3 py-1 text-xs font-black text-emerald-200">
           {formation.label}
         </span>
@@ -387,14 +405,14 @@ export default function ClubRecentMatchStudio({
   const assisters = selectedMatch?.players.filter((player) => player.assists > 0).sort((a, b) => b.assists - a.assists) ?? [];
 
   return (
-    <section className="rounded-[1.25rem] border border-white/10 bg-[#0b1116]/86 p-4 text-white shadow-[0_18px_44px_rgba(0,0,0,0.2)] sm:p-6">
+    <section className="match-report-studio rounded-[1.25rem] border p-4 shadow-[0_18px_44px_rgba(0,0,0,0.16)] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-200/55">
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-500/75">
             Last 10 Club Matches
           </p>
           <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Match Report Studio</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-white/55">
+          <p className="match-report-muted mt-2 max-w-3xl text-sm leading-6">
             Review the last 10 live EA matches, export a match image, and scan result trends, box scores, player impact, and formations.
           </p>
         </div>
@@ -405,13 +423,13 @@ export default function ClubRecentMatchStudio({
             onClick={() => downloadMatchImage(clubName, selectedMatch)}
             className="app-button-primary min-w-[11rem]"
           >
-            Download Image
+            Download PNG
           </button>
         ) : null}
       </div>
 
       {recentMatches.length === 0 || !selectedMatch ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-white/12 bg-black/30 p-8 text-center text-white/60">
+        <div className="match-report-panel match-report-muted mt-6 rounded-2xl border border-dashed p-8 text-center">
           EA did not return recent club matches for this club.
         </div>
       ) : (
@@ -424,11 +442,11 @@ export default function ClubRecentMatchStudio({
                 onClick={() => setSelectedMatchId(match.id)}
                 className={`min-w-[10rem] rounded-xl border px-3 py-2 text-left transition ${
                   selectedMatch.id === match.id
-                    ? "border-emerald-300/50 bg-emerald-300/12"
-                    : "border-white/10 bg-white/[0.04] hover:border-white/20"
+                    ? "border-emerald-400/50 bg-emerald-400/12"
+                    : "match-report-card hover:border-emerald-400/30"
                 }`}
               >
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-white/42">
+                <p className="match-report-subtle text-xs font-black uppercase tracking-[0.16em]">
                   {resultLabel(match.result)}
                 </p>
                 <p className="mt-1 truncate text-sm font-bold">
@@ -439,10 +457,10 @@ export default function ClubRecentMatchStudio({
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1.05fr]">
-            <div className="rounded-2xl border border-white/10 bg-[#171116] p-5">
+            <div className="match-report-card rounded-2xl border p-5">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-white/38">
+                  <p className="match-report-subtle text-xs font-black uppercase tracking-[0.22em]">
                     Share Card
                   </p>
                   <h3 className="mt-3 text-2xl font-black">{clubName}</h3>
@@ -453,7 +471,7 @@ export default function ClubRecentMatchStudio({
               </div>
 
               <div className="my-8 text-center">
-                <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/42">
+                <p className="match-report-subtle text-sm font-bold uppercase tracking-[0.18em]">
                   vs {selectedMatch.opponent}
                 </p>
                 <p className="mt-4 text-6xl font-black tracking-tight">
@@ -461,22 +479,22 @@ export default function ClubRecentMatchStudio({
                 </p>
               </div>
 
-              <div className="space-y-4 border-t border-white/10 pt-5">
+              <div className="match-report-divider space-y-4 border-t pt-5">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-white/38">
+                  <p className="match-report-subtle text-xs font-black uppercase tracking-[0.18em]">
                     Goal Scorers
                   </p>
-                  <p className="mt-2 text-sm text-white/72">
+                  <p className="match-report-muted mt-2 text-sm">
                     {scorers.length > 0
                       ? scorers.map((player) => `${player.name} (${player.goals})`).join(", ")
                       : "No scorer data from EA"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-white/38">
+                  <p className="match-report-subtle text-xs font-black uppercase tracking-[0.18em]">
                     Assists
                   </p>
-                  <p className="mt-2 text-sm text-white/72">
+                  <p className="match-report-muted mt-2 text-sm">
                     {assisters.length > 0
                       ? assisters.map((player) => `${player.name} (${player.assists})`).join(", ")
                       : "No assist data from EA"}
@@ -494,20 +512,20 @@ export default function ClubRecentMatchStudio({
                       ? "border-emerald-300/16 bg-emerald-300/[0.06]"
                       : trend.tone === "bad"
                         ? "border-red-300/16 bg-red-400/[0.06]"
-                        : "border-white/10 bg-white/[0.04]"
+                        : "match-report-card"
                   }`}
                 >
                   <p className="font-bold">{trend.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-white/58">{trend.detail}</p>
+                  <p className="match-report-muted mt-1 text-sm leading-6">{trend.detail}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+          <div className="match-report-panel mt-6 rounded-2xl border p-4">
             <div className="mb-5 flex items-center justify-between gap-4">
               <h3 className="text-xl font-bold">Box Score</h3>
-              <p className="text-sm font-semibold text-white/45">
+              <p className="match-report-muted text-sm font-semibold">
                 {clubName} vs {selectedMatch.opponent}
               </p>
             </div>
@@ -538,11 +556,11 @@ export default function ClubRecentMatchStudio({
             />
           </div>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+          <div className="match-report-panel mt-6 rounded-2xl border p-4">
             <h3 className="text-xl font-bold">Player Box Score</h3>
             <div className="mt-4 overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="text-left text-xs uppercase tracking-[0.16em] text-white/38">
+                <thead className="match-report-subtle text-left text-xs uppercase tracking-[0.16em]">
                   <tr>
                     <th className="py-3 pr-4">Player</th>
                     <th className="px-3 py-3">Pos</th>
@@ -557,15 +575,15 @@ export default function ClubRecentMatchStudio({
                 <tbody>
                   {topPlayers.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-6 text-center text-white/50">
+                      <td colSpan={8} className="match-report-muted py-6 text-center">
                         EA did not return player-level box-score data for this match.
                       </td>
                     </tr>
                   ) : (
                     topPlayers.map((player) => (
-                      <tr key={player.id} className="border-t border-white/8">
+                      <tr key={player.id} className="match-report-divider border-t">
                         <td className="py-3 pr-4 font-semibold">{player.name}</td>
-                        <td className="px-3 py-3 text-white/55">{player.position}</td>
+                        <td className="match-report-muted px-3 py-3">{player.position}</td>
                         <td className="px-3 py-3 text-right font-bold tabular-nums">{player.rating.toFixed(1)}</td>
                         <td className="px-3 py-3 text-right tabular-nums text-emerald-300">{player.goals}</td>
                         <td className="px-3 py-3 text-right tabular-nums text-sky-300">{player.assists}</td>

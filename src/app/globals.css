@@ -18,6 +18,66 @@ html.light {
   --tracker-green: #047857;
 }
 
+.match-report-studio {
+  border-color: var(--tracker-border);
+  background:
+    linear-gradient(180deg, rgba(11, 17, 22, 0.92), rgba(8, 13, 18, 0.88));
+  color: var(--tracker-text);
+}
+
+.match-report-card {
+  border-color: var(--tracker-border);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.match-report-panel {
+  border-color: var(--tracker-border);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.match-report-muted {
+  color: var(--tracker-muted);
+}
+
+.match-report-subtle {
+  color: rgba(245, 247, 251, 0.42);
+}
+
+.match-report-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.match-report-field-card {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #132018;
+}
+
+html.light .match-report-studio {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.93), rgba(242, 247, 244, 0.88));
+}
+
+html.light .match-report-card {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+html.light .match-report-panel {
+  background: rgba(10, 34, 25, 0.045);
+}
+
+html.light .match-report-subtle {
+  color: rgba(11, 17, 16, 0.42);
+}
+
+html.light .match-report-divider {
+  border-color: rgba(16, 43, 32, 0.12);
+}
+
+html.light .match-report-field-card {
+  border-color: rgba(16, 43, 32, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 html,
 body {
   margin: 0;

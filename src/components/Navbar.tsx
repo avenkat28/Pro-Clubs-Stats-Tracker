@@ -59,7 +59,7 @@ export default function Navbar() {
             </span>
           ) : (
             <img
-              src="/proclubshq-logo.png"
+              src={theme === "dark" ? "/proclubshq-logo-dark.png" : "/proclubshq-logo.png"}
               alt="ProClubsHQ"
               onError={() => setLogoFailed(true)}
               className="h-8 w-auto max-w-[11.5rem] object-contain sm:h-9 sm:max-w-[13.5rem] lg:h-10"
