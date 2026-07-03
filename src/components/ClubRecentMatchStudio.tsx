@@ -176,15 +176,17 @@ function getTrends(matches: EaClubRecentMatch[]): Trend[] {
     });
   }
 
-  const playerMap = new Map<string, { name: string; apps: number; nonWins: number; rating: number; redCards: number; ga: number }>();
+  const playerMap = new Map<string, { name: string; apps: number; wins: number; losses: number; nonWins: number; rating: number; redCards: number; ga: number }>();
 
   for (const match of lastTen) {
     for (const player of match.players) {
       const current =
         playerMap.get(player.id) ??
-        { name: player.name, apps: 0, nonWins: 0, rating: 0, redCards: 0, ga: 0 };
+        { name: player.name, apps: 0, wins: 0, losses: 0, nonWins: 0, rating: 0, redCards: 0, ga: 0 };
 
       current.apps += 1;
+      current.wins += match.result === "W" ? 1 : 0;
+      current.losses += match.result === "L" ? 1 : 0;
       current.nonWins += match.result === "W" ? 0 : 1;
       current.rating += player.rating;
       current.redCards += player.redCards;
@@ -198,6 +200,21 @@ function getTrends(matches: EaClubRecentMatch[]): Trend[] {
     .map((player) => ({ ...player, averageRating: player.rating / player.apps }))
     .filter((player) => player.nonWins / player.apps >= 0.6 && (player.averageRating < 6.8 || player.redCards > 0))
     .sort((left, right) => right.nonWins / right.apps - left.nonWins / left.apps)[0];
+  const lowWinPlayers = players
+    .map((player) => ({
+      ...player,
+      averageRating: player.rating / player.apps,
+      winRate: player.wins / player.apps,
+    }))
+    .filter((player) => player.apps >= Math.min(4, games) && player.winRate <= 0.4)
+    .sort(
+      (left, right) =>
+        left.winRate - right.winRate ||
+        right.losses - left.losses ||
+        left.averageRating - right.averageRating,
+    )
+    .filter((player) => player.name !== concern?.name)
+    .slice(0, 2);
   const standout = players
     .map((player) => ({ ...player, averageRating: player.rating / player.apps }))
     .filter((player) => player.averageRating >= 8 || player.ga >= 3)
@@ -208,6 +225,14 @@ function getTrends(matches: EaClubRecentMatch[]): Trend[] {
       tone: "bad",
       title: `${concern.name} is tied to low-result games`,
       detail: `${concern.nonWins}/${concern.apps} recent appearances were not wins, with a ${concern.averageRating.toFixed(1)} average rating.`,
+    });
+  }
+
+  for (const player of lowWinPlayers) {
+    trends.push({
+      tone: "bad",
+      title: `${player.name} has a low recent win rate`,
+      detail: `${player.wins}/${player.apps} wins (${Math.round(player.winRate * 100)}%) with ${player.losses} loss${player.losses === 1 ? "" : "es"} in their recent appearances.`,
     });
   }
 
@@ -227,7 +252,7 @@ function getTrends(matches: EaClubRecentMatch[]): Trend[] {
     });
   }
 
-  return trends.slice(0, 6);
+  return trends.slice(0, 8);
 }
 
 function escapeXml(value: string) {
