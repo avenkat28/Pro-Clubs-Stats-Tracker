@@ -972,6 +972,7 @@ const FAMOUS_PLAYER_COMP_NAMES = new Set<PlayerCompName>([
   "João Cancelo",
   "João Pedro",
   "Julián Álvarez",
+  "Nico O’Reilly",
   "Omar Marmoush",
   "Rayan Cherki",
   "Viktor Gyökeres",
@@ -2643,6 +2644,44 @@ function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | n
     }
 
     return ["André Onana", "Gianluigi Donnarumma", "Ederson"];
+  }
+
+  // EA sometimes supplies only "Midfielder" instead of CAM/CM/CDM. Infer a
+  // comparison lane from the player's actual production so generic labels do
+  // not make height the deciding factor for otherwise very different players.
+  if (player.positionGroup === "midfielder" && player.playerRole === "unknown") {
+    const isLowImpact =
+      player.averageRating < 7 || player.goalContributionsPerGame < 0.3;
+    const isHighOutput =
+      player.goalContributionsPerGame >= 0.9 ||
+      player.goalsPerGame >= 0.55 ||
+      player.assistsPerGame >= 0.6;
+    const isDefensive =
+      (player.tacklesPerGame ?? 0) >= 1.8 || (player.tacklePercent ?? 0) >= 50;
+    const isStrongPasser =
+      (player.passAccuracy ?? 0) >= 80 || (player.passesMadePerGame ?? 0) >= 20;
+
+    if (isLowImpact) {
+      return ["Nico O’Reilly", "N’Golo Kanté", "Federico Valverde", "Declan Rice"];
+    }
+
+    if (isHighOutput) {
+      return player.goalBias >= 0.52
+        ? ["Cole Palmer", "Bruno Fernandes", "Jude Bellingham", "Florian Wirtz", "Rayan Cherki"]
+        : ["Kevin De Bruyne", "Martin Ødegaard", "Bruno Fernandes", "Florian Wirtz", "Rayan Cherki"];
+    }
+
+    if (isDefensive) {
+      return player.heightCm !== undefined && player.heightCm >= 184
+        ? ["Declan Rice", "Rodri", "Casemiro", "Federico Valverde"]
+        : ["N’Golo Kanté", "Federico Valverde", "Casemiro", "Declan Rice"];
+    }
+
+    if (isStrongPasser) {
+      return ["Martin Ødegaard", "Kevin De Bruyne", "Federico Valverde", "Rodri"];
+    }
+
+    return ["Federico Valverde", "Nico O’Reilly", "Declan Rice", "N’Golo Kanté"];
   }
 
   if (player.playerRole === "rightWinger") {
