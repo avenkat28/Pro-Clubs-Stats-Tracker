@@ -242,6 +242,7 @@ export const PLAYER_COMP_IMAGES = {
   rodri: "/player-comps/rodri.png",
   casemiro: "/player-comps/casemiro.png",
   virgilVanDijk: "/player-comps/virgil-van-dijk.png",
+  rubenDias: "/player-comps/fallback.png",
   sergioRamos: "/player-comps/sergio-ramos.png",
   federicoValverde: "/player-comps/federico-valverde.png",
   stevenGerrard: "/player-comps/steven-gerrard.png",
@@ -747,6 +748,19 @@ const PLAYER_PROFILES: PlayerProfile[] = [
       player.winRate >= 0.55,
       player.tacklePercent !== undefined ? player.tacklePercent >= 55 : undefined,
       scores.discipline >= 80,
+    ],
+  },
+  {
+    key: "rubenDias",
+    name: "Rúben Dias",
+    styleLabel: "Front-Foot Defensive Organizer",
+    positionGroups: ["defender", "unknown"],
+    ideal: { scoring: 10, creation: 16, output: 20, influence: 76, defense: 84, discipline: 86, teamSuccess: 70, passing: 68 },
+    thresholds: ({ player, scores }) => [
+      scores.defense !== undefined ? scores.defense >= 72 : undefined,
+      player.tacklePercent !== undefined ? player.tacklePercent >= 58 : undefined,
+      player.averageRating >= 8,
+      scores.discipline >= 75,
     ],
   },
   {
@@ -2104,7 +2118,13 @@ function passesHardProfileGate(profile: PlayerProfile, context: ScoreContext) {
     return false;
   }
 
-  if (player.heightCm !== undefined) {
+  // Forward body types keep the strict one-way height gate. For midfielders,
+  // defenders and keepers, height remains heavily weighted by the fit score and
+  // modifiers, but does not collapse a role-specific comparison pool to one name.
+  if (
+    player.heightCm !== undefined &&
+    (player.positionGroup === "forward" || player.positionGroup === "unknown")
+  ) {
     if (profileHeight < player.heightCm) {
       return false;
     }
@@ -2480,6 +2500,34 @@ function getWingerModifier(
 
 function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | null {
   if (player.playerRole === "attackingMidfielder") {
+    const isGoalThreat =
+      player.goalsPerGame >= 0.55 ||
+      (player.goalContributionsPerGame >= 1 && player.goalBias >= 0.52);
+    const isCreator =
+      player.assistsPerGame >= 0.6 ||
+      (player.passAccuracy ?? 0) >= 82 ||
+      (player.passesMadePerGame ?? 0) >= 20;
+
+    if (isGoalThreat && !isCreator) {
+      return [
+        "Jude Bellingham",
+        "Cole Palmer",
+        "Bruno Fernandes",
+        "Florian Wirtz",
+        "Rayan Cherki",
+      ];
+    }
+
+    if (isCreator && !isGoalThreat) {
+      return [
+        "Martin Ødegaard",
+        "Kevin De Bruyne",
+        "Florian Wirtz",
+        "Rayan Cherki",
+        "Bruno Fernandes",
+      ];
+    }
+
     return [
       "Rayan Cherki",
       "Florian Wirtz",
@@ -2492,6 +2540,109 @@ function getRoleCandidateNames(player: DerivedPlayerStats): PlayerCompName[] | n
       "Jude Bellingham",
       "Federico Valverde",
     ];
+  }
+
+  if (player.playerRole === "centralMidfielder") {
+    const defense = player.tacklesPerGame !== undefined || player.tacklePercent !== undefined;
+    const isDefensive =
+      defense &&
+      ((player.tacklesPerGame ?? 0) >= 1.6 || (player.tacklePercent ?? 0) >= 55);
+    const isAttackMinded =
+      player.goalContributionsPerGame >= 0.85 || player.assistsPerGame >= 0.55;
+
+    if (isDefensive && !isAttackMinded) {
+      return player.heightCm !== undefined && player.heightCm >= 184
+        ? ["Declan Rice", "Rodri", "Casemiro", "Federico Valverde", "Jude Bellingham"]
+        : ["N’Golo Kanté", "Federico Valverde", "Declan Rice", "Casemiro", "Rodri"];
+    }
+
+    if (isAttackMinded) {
+      return [
+        "Kevin De Bruyne",
+        "Jude Bellingham",
+        "Bruno Fernandes",
+        "Martin Ødegaard",
+        "Federico Valverde",
+        "Declan Rice",
+      ];
+    }
+
+    return [
+      "Federico Valverde",
+      "Jude Bellingham",
+      "Declan Rice",
+      "Rodri",
+      "Kevin De Bruyne",
+      "N’Golo Kanté",
+    ];
+  }
+
+  if (player.playerRole === "defensiveMidfielder") {
+    const isTall = player.heightCm !== undefined && player.heightCm >= 184;
+    const isProgressive =
+      (player.passesMadePerGame ?? 0) >= 18 ||
+      (player.passAccuracy ?? 0) >= 82 ||
+      player.assistsPerGame >= 0.28;
+    const isAggressive =
+      (player.tacklesPerGame ?? 0) >= 2.2 ||
+      (player.tacklePercent ?? 0) >= 62 ||
+      player.redCardsPerGame >= 0.025;
+
+    if (isTall && isProgressive) {
+      return ["Declan Rice", "Rodri", "Federico Valverde", "Casemiro", "Jude Bellingham"];
+    }
+
+    if (isAggressive) {
+      return ["Casemiro", "N’Golo Kanté", "Declan Rice", "Federico Valverde", "Rodri"];
+    }
+
+    return isTall
+      ? ["Declan Rice", "Rodri", "Casemiro", "Federico Valverde"]
+      : ["N’Golo Kanté", "Casemiro", "Federico Valverde", "Declan Rice", "Rodri"];
+  }
+
+  if (player.playerRole === "centerBack") {
+    const isBallPlaying =
+      (player.passesMadePerGame ?? 0) >= 16 || (player.passAccuracy ?? 0) >= 80;
+    const isAggressive =
+      (player.tacklesPerGame ?? 0) >= 2.1 ||
+      (player.tacklePercent ?? 0) >= 62 ||
+      player.redCardsPerGame >= 0.02;
+
+    if (isAggressive && !isBallPlaying) {
+      return ["Sergio Ramos", "Rúben Dias", "Virgil van Dijk"];
+    }
+
+    if (isBallPlaying) {
+      return ["Virgil van Dijk", "Rúben Dias", "Sergio Ramos"];
+    }
+
+    return player.heightCm !== undefined && player.heightCm >= 188
+      ? ["Virgil van Dijk", "Rúben Dias", "Sergio Ramos"]
+      : ["Rúben Dias", "Sergio Ramos", "Virgil van Dijk"];
+  }
+
+  if (player.playerRole === "goalkeeper") {
+    const goodPassing =
+      (player.passAccuracy ?? 0) >= 78 || (player.passesMadePerGame ?? 0) >= 16;
+    const strongShotStopping =
+      player.saveSuccessRate !== undefined
+        ? player.saveSuccessRate >= 70
+        : player.averageRating >= 8;
+
+    if (goodPassing && strongShotStopping) {
+      return ["Alisson", "Ederson", "Gianluigi Donnarumma", "André Onana"];
+    }
+
+    if (goodPassing) {
+      return ["Ederson", "Alisson", "André Onana"];
+    }
+
+    if (strongShotStopping) {
+      return ["Gianluigi Donnarumma", "Alisson", "André Onana"];
+    }
+
+    return ["André Onana", "Gianluigi Donnarumma", "Ederson"];
   }
 
   if (player.playerRole === "rightWinger") {

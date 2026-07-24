@@ -2,6 +2,16 @@ import Navbar from "../../components/Navbar";
 
 const updates = [
   {
+    version: "1.3.2",
+    date: "July 23, 2026",
+    title: "Sharper player comparisons",
+    notes: [
+      "Split midfielder comparisons into stat-based attacking, central, and defensive roles.",
+      "Improved center-back and goalkeeper comparisons using role, height, defending, passing, and shot-stopping profiles.",
+      "Softened the light-mode backgrounds, surfaces, text, and accent colors for more comfortable reading.",
+    ],
+  },
+  {
     version: "1.3.1",
     date: "June 30, 2026",
     title: "Live stats resilience",
