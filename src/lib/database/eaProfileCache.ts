@@ -1,5 +1,5 @@
 import { isDatabaseEnabled, prisma } from "../db";
-import { normalizePlayerRecentMatches } from "../ea";
+import { formatDivisionLabel, normalizePlayerRecentMatches } from "../ea";
 import type {
   EaClubFormation,
   EaClubMatchStats,
@@ -10,6 +10,15 @@ import type {
 } from "../ea";
 
 const DEFAULT_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function toRawEaDivision(division: string) {
+  if (/elite/i.test(division)) return "Division 1";
+
+  const divisionNumber = Number(division.match(/\d+/)?.[0]);
+  return Number.isFinite(divisionNumber) && divisionNumber >= 1 && divisionNumber <= 5
+    ? `Division ${divisionNumber + 1}`
+    : division;
+}
 
 function getCacheTtlMs(envKey: string, fallbackMs: number) {
   const value = Number(process.env[envKey] ?? process.env.EA_CACHE_TTL_SECONDS);
@@ -89,6 +98,7 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
   }
 
   const { club } = profile;
+  const rawDivision = toRawEaDivision(club.division);
   const savedClub = await prisma.club.upsert({
     where: {
       eaClubId: club.id,
@@ -97,7 +107,7 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
       name: club.name,
       platform: club.platform,
       badgeUrl: club.badgeUrl,
-      division: club.division,
+      division: rawDivision,
       skillRating: club.skillRating,
       wins: club.wins,
       draws: club.draws,
@@ -111,7 +121,7 @@ export async function cacheEaClubProfile(profile: EaClubProfile) {
       name: club.name,
       platform: club.platform,
       badgeUrl: club.badgeUrl,
-      division: club.division,
+      division: rawDivision,
       skillRating: club.skillRating,
       wins: club.wins,
       draws: club.draws,
@@ -423,7 +433,9 @@ export async function getCachedEaClubProfile(
       name: cachedClub.name,
       platform: cachedClub.platform,
       badgeUrl: cachedClub.badgeUrl,
-      division: cachedClub.division ?? "Club profile",
+      division: cachedClub.division
+        ? formatDivisionLabel(cachedClub.division)
+        : "Club profile",
       skillRating: cachedClub.skillRating ?? 0,
       wins: cachedClub.wins,
       draws: cachedClub.draws,

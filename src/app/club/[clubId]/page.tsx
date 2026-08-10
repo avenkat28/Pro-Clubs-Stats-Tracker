@@ -2,6 +2,7 @@ import ClubHeader from "../../../components/ClubHeader";
 import ClubRecentMatchStudio from "../../../components/ClubRecentMatchStudio";
 import ClubStatsGrid from "../../../components/ClubStatsGrid";
 import Navbar from "../../../components/Navbar";
+import PlayerBanter from "../../../components/PlayerBanter";
 import SquadTable from "../../../components/SquadTable";
 import {
   EaRequestError,
@@ -126,6 +127,8 @@ function ClubProfileView({
           clubName={profile.club.name}
           matches={profile.recentClubMatches}
         />
+
+        <PlayerBanter players={profile.squad} />
 
         <SquadTable players={profile.squad} clubId={clubId} platform={platform} />
       </section>

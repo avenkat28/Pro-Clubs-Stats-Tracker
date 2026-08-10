@@ -653,7 +653,7 @@ function getBestNumber(value: unknown, paths: string[], fallback = 0) {
       return bestValue;
     }
 
-    return Math.max(bestValue, candidate);
+    return Number.isFinite(bestValue) ? Math.max(bestValue, candidate) : candidate;
   }, fallback);
 }
 
@@ -912,7 +912,7 @@ function getClubBadgeUrl(info: PrimitiveRecord | null) {
   return `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${badgeId}.png`;
 }
 
-function formatDivisionLabel(value: unknown) {
+export function formatDivisionLabel(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
     return value === 1 ? "Elite Division" : value <= 6 ? `Division ${value - 1}` : `Division ${value}`;
   }
@@ -1145,9 +1145,9 @@ function normalizeClub(
     platform,
     badgeUrl: getClubBadgeUrl(info),
     division:
-      getCurrentDivisionLabel(currentSeason) ||
       getCurrentDivisionLabel(info) ||
       getCurrentDivisionLabel(overall) ||
+      getCurrentDivisionLabel(currentSeason) ||
       getBestDivisionLabel(overall ?? info) ||
       "Division Unavailable",
     skillRating:
@@ -1177,7 +1177,17 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "stats.gamesPlayed",
     "proStats.gamesPlayed",
   ]);
-  const wins = getNumber(record, ["wins", "stats.wins", "proStats.wins"]);
+  const wins = getBestNumber(record, [
+    "wins",
+    "gamesWon",
+    "matchesWon",
+    "stats.wins",
+    "stats.gamesWon",
+    "stats.matchesWon",
+    "proStats.wins",
+    "proStats.gamesWon",
+    "proStats.matchesWon",
+  ]);
   const goals = getBestNumber(record, ["goals", "stats.goals", "proStats.goals"]);
   const shots = getBestNumber(record, [
     "shots",
@@ -1264,11 +1274,28 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     "proStats.keeperCleanSheets",
     "proStats.gkCleanSheets",
   ]);
-  const directWinRate = getNumber(
+  const directWinRate = getBestNumber(
     record,
-    ["winRate", "stats.winRate", "proStats.winRate"],
+    [
+      "winRate",
+      "winPercentage",
+      "winPercent",
+      "winPct",
+      "stats.winRate",
+      "stats.winPercentage",
+      "stats.winPercent",
+      "stats.winPct",
+      "proStats.winRate",
+      "proStats.winPercentage",
+      "proStats.winPercent",
+      "proStats.winPct",
+    ],
     Number.NaN,
   );
+  const normalizedDirectWinRate =
+    Number.isFinite(directWinRate) && directWinRate > 0 && directWinRate <= 1
+      ? directWinRate * 100
+      : directWinRate;
   const tackles = getBestNumber(record, [
     "tackles",
     "tacklesMade",
@@ -1380,8 +1407,8 @@ function normalizeMember(record: PrimitiveRecord): EaSquadMember {
     goalsAgainst,
     cleanSheets,
     rating: getRoundedRating(record),
-    winRate: Number.isFinite(directWinRate)
-      ? Math.round(directWinRate)
+    winRate: Number.isFinite(normalizedDirectWinRate) && normalizedDirectWinRate > 0
+      ? Math.round(normalizedDirectWinRate)
       : getPercentage(wins, matches),
     redCards: getBestNumber(record, [
       "redCards",
@@ -1438,7 +1465,14 @@ function mergeSquadMembers(members: EaSquadMember[]) {
         member.matches >= existing.matches && member.rating > 0
           ? member.rating
           : existing.rating,
-      winRate: member.matches >= existing.matches ? member.winRate : existing.winRate,
+      winRate:
+        member.matches >= existing.matches
+          ? member.winRate > 0
+            ? member.winRate
+            : existing.winRate
+          : existing.winRate > 0
+            ? existing.winRate
+            : member.winRate,
       redCards: Math.max(existing.redCards, member.redCards),
       tackles: Math.max(existing.tackles, member.tackles),
       tackleSuccessRate:
