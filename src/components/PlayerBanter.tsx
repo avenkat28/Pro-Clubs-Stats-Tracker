@@ -76,6 +76,12 @@ function getCharacteristicOptions(player: EaSquadMember): Array<Characteristic &
       score: player.rating > 0 && player.rating < 6.2 ? (6.2 - player.rating) + 1 : 0,
     },
     {
+      badge: "Controller Inspection Required",
+      joke: `${player.rating.toFixed(1)} average rating. Please check for stick drift, missing buttons, or the controller being unplugged.`,
+      tone: "roast",
+      score: player.rating < 7 ? (7 - player.rating) / 1.4 + 0.8 : 0,
+    },
+    {
       badge: "Attendance Trophy",
       joke: `${player.matches} appearances. Availability is the best ability, especially when nobody else replies in the chat.`,
       tone: "chaos",
@@ -150,16 +156,71 @@ function assignCharacteristics(players: EaSquadMember[]) {
   const usedBadges = new Set<string>();
   const assignments = new Map<string, Characteristic>();
   const priorityOrder = players
-    .map((player) => ({ player, options: getCharacteristicOptions(player) }))
-    .sort((left, right) => right.options[0].score - left.options[0].score);
+    .map((player) => {
+      const isBadRating = player.rating < 7;
+      const desiredTone = isBadRating ? "roast" : "good";
+      const redCardRate = perMatch(player.redCards, player.matches);
+      const goalsPerMatch = perMatch(player.goals, player.matches);
+      const assistsPerMatch = perMatch(player.assists, player.matches);
+      const tacklesPerMatch = perMatch(player.tackles, player.matches);
+      const savesPerMatch = perMatch(player.saves, player.matches);
+      const allOptions = getCharacteristicOptions(player);
+      const preferredOptions = allOptions.filter(
+        (option) => option.tone === desiredTone && option.score > 0.15,
+      );
+      const exceptionOptions = allOptions
+        .filter((option) => {
+          if (isBadRating && option.tone === "good") {
+            if (option.badge === "Goal Merchant") return goalsPerMatch >= 1;
+            if (option.badge === "Assist Addict") return assistsPerMatch >= 0.85;
+            if (option.badge === "Midfield Hoover") return tacklesPerMatch >= 4.5;
+            if (option.badge === "Pass Button Enjoyer") return player.passAccuracy >= 92;
+            if (option.badge === "Sniper Scope") return player.shotSuccessRate >= 55;
+            if (option.badge === "Safe Hands Department") {
+              return savesPerMatch >= 3.5 && player.saveSuccessRate >= 78;
+            }
+            if (option.badge === "Win Magnet") return player.winRate >= 75;
+            return false;
+          }
 
-  for (const { player, options } of priorityOrder) {
+          if (!isBadRating && option.tone === "roast") {
+            if (option.badge === "Early Shower Specialist") return redCardRate >= 0.08;
+            if (option.badge === "Possession Donor") {
+              return player.passAccuracy > 0 && player.passAccuracy < 58;
+            }
+            if (option.badge === "Human Turnstile") return tacklesPerMatch < 0.15;
+            if (option.badge === "Passenger Princess") {
+              return player.matches >= 25 && goalsPerMatch + assistsPerMatch < 0.05;
+            }
+          }
+
+          return false;
+        })
+        .map((option) => ({ ...option, score: option.score + 1.25 }));
+      const options = [...preferredOptions, ...exceptionOptions].sort(
+        (left, right) => right.score - left.score,
+      );
+
+      return { player, options, isBadRating };
+    })
+    .sort(
+      (left, right) =>
+        (right.options[0]?.score ?? 0) - (left.options[0]?.score ?? 0),
+    );
+
+  for (const { player, options, isBadRating } of priorityOrder) {
     const selected = options.find((option) => !usedBadges.has(option.badge));
-    const characteristic = selected ?? {
-      badge: `One of One: ${player.name}`,
-      joke: `${player.name}'s numbers refuse to fit a normal label. Unique talent or statistical crime scene—the jury is out.`,
-      tone: "chaos" as const,
-    };
+    const characteristic = selected ?? (isBadRating
+      ? {
+          badge: `Needs a Firmware Update: ${player.name}`,
+          joke: `${player.rating.toFixed(1)} average rating. The performances are under 7 and currently being investigated by technical support.`,
+          tone: "roast" as const,
+        }
+      : {
+          badge: `Certified Baller: ${player.name}`,
+          joke: `${player.rating.toFixed(1)} average rating with ${player.goals + player.assists} contributions. The numbers say this one is actually good.`,
+          tone: "good" as const,
+        });
 
     usedBadges.add(characteristic.badge);
     assignments.set(player.id, characteristic);
