@@ -21,7 +21,7 @@ function perMatch(total: number, matches: number) {
   return matches > 0 ? total / matches : 0;
 }
 
-function getCharacteristic(player: EaSquadMember): Characteristic {
+function getCharacteristicOptions(player: EaSquadMember): Array<Characteristic & { score: number }> {
   const goalsPerMatch = perMatch(player.goals, player.matches);
   const assistsPerMatch = perMatch(player.assists, player.matches);
   const tacklesPerMatch = perMatch(player.tackles, player.matches);
@@ -58,38 +58,114 @@ function getCharacteristic(player: EaSquadMember): Characteristic {
       score: player.rating / 8.4 + perMatch(player.manOfTheMatch, player.matches),
     },
     {
+      badge: "Matchday Celebrity",
+      joke: `${player.manOfTheMatch} MOTM awards. Loves a performance with witnesses present.`,
+      tone: "good",
+      score: perMatch(player.manOfTheMatch, player.matches) / 0.12,
+    },
+    {
       badge: "Early Shower Specialist",
       joke: `${player.redCards} red card${player.redCards === 1 ? "" : "s"}. Elite pace when walking toward the tunnel.`,
       tone: "roast",
-      score: player.redCards > 0 ? 1.15 + perMatch(player.redCards, player.matches) * 5 : 0,
+      score: player.redCards > 0 ? perMatch(player.redCards, player.matches) / 0.08 : 0,
     },
-  ];
-
-  const strongest = options.sort((left, right) => right.score - left.score)[0];
-
-  if (player.rating > 0 && player.rating < 6.2) {
-    return {
+    {
       badge: "Shit Happens Award",
       joke: `${player.rating.toFixed(1)} average rating. Maybe it is lag. Maybe the controller is upside down.`,
       tone: "roast",
-    };
-  }
-
-  if (strongest.score >= 0.72) return strongest;
-
-  if (player.matches >= 50) {
-    return {
-      badge: "Reliable Session Merchant",
-      joke: `${player.matches} appearances. Not always spectacular, but somehow online every single night.`,
+      score: player.rating > 0 && player.rating < 6.2 ? (6.2 - player.rating) + 1 : 0,
+    },
+    {
+      badge: "Attendance Trophy",
+      joke: `${player.matches} appearances. Availability is the best ability, especially when nobody else replies in the chat.`,
       tone: "chaos",
+      score: player.matches / 250,
+    },
+    {
+      badge: "Sniper Scope",
+      joke: `${player.shotSuccessRate}% shot success. Apparently every shot comes with a risk assessment.`,
+      tone: "good",
+      score: player.shotSuccessRate / 45,
+    },
+    {
+      badge: "Human Turnstile",
+      joke: `${tacklesPerMatch.toFixed(1)} tackles per match. Opponents are being welcomed through with excellent hospitality.`,
+      tone: "roast",
+      score: tacklesPerMatch < 0.4 ? 1.05 - tacklesPerMatch : 0,
+    },
+    {
+      badge: "Possession Donor",
+      joke: `${player.passAccuracy}% pass accuracy. Generously makes sure the other team gets touches too.`,
+      tone: "roast",
+      score: player.passAccuracy > 0 && player.passAccuracy < 70 ? (70 - player.passAccuracy) / 18 + 0.7 : 0,
+    },
+    {
+      badge: "Safe Hands Department",
+      joke: `${player.saves} saves at a ${player.saveSuccessRate}% success rate. Somebody remembered goalkeepers have stats too.`,
+      tone: "good",
+      score: player.saves > 0 ? player.saveSuccessRate / 70 + perMatch(player.saves, player.matches) / 4 : 0,
+    },
+    {
+      badge: "Clean Sheet Collector",
+      joke: `${player.cleanSheets} clean sheets. Allergic to fishing the ball out of the net.`,
+      tone: "good",
+      score: perMatch(player.cleanSheets, player.matches) / 0.28,
+    },
+    {
+      badge: "Contribution Machine",
+      joke: `${player.goals + player.assists} combined goals and assists. Quietly doing two jobs while everyone argues over positions.`,
+      tone: "good",
+      score: (goalsPerMatch + assistsPerMatch) / 1.15,
+    },
+    {
+      badge: "Passenger Princess",
+      joke: `${player.goals + player.assists} contributions in ${player.matches} matches. Premium seating, limited driving.`,
+      tone: "roast",
+      score: player.matches >= 10 && goalsPerMatch + assistsPerMatch < 0.12 ? 1.05 : 0,
+    },
+    {
+      badge: "Win Magnet",
+      joke: `${player.winRate}% win rate. Either a difference-maker or extremely talented at joining the right lobby.`,
+      tone: "good",
+      score: player.winRate / 72,
+    },
+    {
+      badge: "Chaos Substitute",
+      joke: `${player.matches} appearances with a ${player.rating.toFixed(1)} rating. Small sample, maximum mystery.`,
+      tone: "chaos",
+      score: player.matches < 15 ? 0.9 + player.rating / 20 : 0,
+    },
+    {
+      badge: "Kit Room Captain",
+      joke: `No single stat explains ${player.name}. We can only assume the real contribution is immaculate kit selection.`,
+      tone: "chaos",
+      score: 0.2,
+    },
+  ];
+
+  return options.sort((left, right) => right.score - left.score);
+}
+
+function assignCharacteristics(players: EaSquadMember[]) {
+  const usedBadges = new Set<string>();
+  const assignments = new Map<string, Characteristic>();
+  const priorityOrder = players
+    .map((player) => ({ player, options: getCharacteristicOptions(player) }))
+    .sort((left, right) => right.options[0].score - left.options[0].score);
+
+  for (const { player, options } of priorityOrder) {
+    const selected = options.find((option) => !usedBadges.has(option.badge));
+    const characteristic = selected ?? {
+      badge: `One of One: ${player.name}`,
+      joke: `${player.name}'s numbers refuse to fit a normal label. Unique talent or statistical crime scene—the jury is out.`,
+      tone: "chaos" as const,
     };
+
+    usedBadges.add(characteristic.badge);
+    assignments.set(player.id, characteristic);
   }
 
-  return {
-    badge: "Mystery Box",
-    joke: `${player.matches} appearances and still no obvious specialty. Could be secretly brilliant; could be excellent at choosing kits.`,
-    tone: "chaos",
-  };
+  return assignments;
 }
 
 function getClubVerdict(club: PlayerBanterProps["club"]) {
@@ -118,6 +194,7 @@ export default function PlayerBanter({ players, club }: PlayerBanterProps) {
   );
 
   if (visiblePlayers.length === 0) return null;
+  const characteristics = assignCharacteristics(visiblePlayers);
 
   return (
     <section className="rounded-[1.25rem] border border-fuchsia-300/12 bg-[#100812]/80 p-5 text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)] sm:p-6">
@@ -132,7 +209,9 @@ export default function PlayerBanter({ players, club }: PlayerBanterProps) {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {visiblePlayers.map((player) => {
-          const characteristic = getCharacteristic(player);
+          const characteristic = characteristics.get(player.id);
+
+          if (!characteristic) return null;
 
           return (
             <article

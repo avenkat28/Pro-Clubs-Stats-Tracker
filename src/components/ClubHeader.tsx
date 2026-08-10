@@ -79,9 +79,18 @@ export default function ClubHeader({
               {name}
             </h1>
             {displayedDivision !== "Division Unavailable" ? (
-              <p className="mt-3 text-lg font-semibold text-emerald-100/55 sm:text-2xl">
-                {displayedDivision}
-              </p>
+              <div className="mt-3 flex items-center gap-2.5">
+                <p className="text-lg font-semibold text-emerald-100/55 sm:text-2xl">
+                  {displayedDivision}
+                </p>
+                {displayedDivision === "Elite Division" ? (
+                  <img
+                    src="/elite-division.png"
+                    alt="Elite Division"
+                    className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+                  />
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>
