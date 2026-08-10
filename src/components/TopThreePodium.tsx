@@ -1,6 +1,7 @@
 import type { TopClub, TopPlayer } from "../lib/mockData";
 import { skillRatingTextClassName } from "../lib/colorCoding";
 import type { LeaderboardTab } from "./LeaderboardTabs";
+import { formatDivisionLabel } from "../lib/ea";
 
 type TopThreePodiumProps = {
   activeTab: LeaderboardTab;
@@ -69,7 +70,7 @@ export default function TopThreePodium({
         const detail =
           activeTab === "players"
             ? `${(item as TopPlayer).position} / ${(item as TopPlayer).club}`
-            : (item as TopClub).division;
+            : formatDivisionLabel((item as TopClub).division);
         const primaryStat =
           activeTab === "players"
             ? `${(item as TopPlayer).rating.toFixed(1)} AVG`

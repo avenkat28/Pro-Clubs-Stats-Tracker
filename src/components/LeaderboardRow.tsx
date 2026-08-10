@@ -2,6 +2,7 @@ import type { TopClub, TopPlayer } from "../lib/mockData";
 import { skillRatingTextClassName } from "../lib/colorCoding";
 import type { LeaderboardTab } from "./LeaderboardTabs";
 import { StatLabel } from "./StatIcon";
+import { formatDivisionLabel } from "../lib/ea";
 
 type LeaderboardRowProps =
   | {
@@ -157,7 +158,7 @@ export default function LeaderboardRow(props: LeaderboardRowProps) {
           </p>
         </div>
       </td>
-      <td className="px-4 py-4 text-gray-300">{club.division}</td>
+      <td className="px-4 py-4 text-gray-300">{formatDivisionLabel(club.division)}</td>
       <td className="px-4 py-4 text-gray-300">{club.games}</td>
       <td className="px-4 py-4 font-bold text-green-400">{club.wins}</td>
       <td className="px-4 py-4 text-gray-300">{club.draws}</td>
@@ -246,7 +247,7 @@ export function MobileLeaderboardCard({
             <h3 className="font-black text-white group-hover:text-blue-200">
               {club.name}
             </h3>
-            <p className="text-sm text-gray-400">{club.division}</p>
+            <p className="text-sm text-gray-400">{formatDivisionLabel(club.division)}</p>
           </div>
         </div>
         <div className="text-right">

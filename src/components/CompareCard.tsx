@@ -7,6 +7,7 @@ import {
   skillRatingCardClassName,
   skillRatingTextClassName,
 } from "../lib/colorCoding";
+import { formatDivisionLabel } from "../lib/ea";
 
 type CompareCardProps = {
   mode: CompareMode;
@@ -57,6 +58,7 @@ export default function CompareCard({ mode, item, side }: CompareCardProps) {
   }
 
   const club = item as CompareClub;
+  const displayedDivision = formatDivisionLabel(club.division);
   const skillRatingCardTone = skillRatingCardClassName(club.skillRating);
   const skillRatingTextTone = skillRatingTextClassName(club.skillRating);
   const winRate =
@@ -73,7 +75,7 @@ export default function CompareCard({ mode, item, side }: CompareCardProps) {
           <h2 className="mt-3 text-2xl font-semibold text-white">
             {club.name}
           </h2>
-          <p className="mt-1 text-sm text-white/55">{club.division}</p>
+          <p className="mt-1 text-sm text-white/55">{displayedDivision}</p>
         </div>
         <div className="flex shrink-0 gap-2">
           <div className="rounded-md border border-white/10 bg-black/35 px-4 py-3 text-center">
@@ -90,7 +92,7 @@ export default function CompareCard({ mode, item, side }: CompareCardProps) {
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-2">
-        <MetaPill label="Division" value={club.division} />
+        <MetaPill label="Division" value={displayedDivision} />
         <MetaPill label="Platform" value={club.platform} />
         <MetaPill label="Games" value={club.games} />
         <MetaPill label="Win Rate" value={`${winRate}%`} />

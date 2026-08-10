@@ -3,6 +3,7 @@ import {
   skillRatingCardClassName,
   skillRatingTextClassName,
 } from "../lib/colorCoding";
+import { formatDivisionLabel } from "../lib/ea";
 
 type PlayerResult = {
   id: string;
@@ -91,7 +92,7 @@ export default function SearchResults({
                 key={club.id}
                 type="club"
                 title={club.name}
-                subtitle={`${club.division} • ${club.platform}`}
+                subtitle={`${formatDivisionLabel(club.division)} • ${club.platform}`}
                 meta={club.record}
                 href={`/club/${club.id}?platform=${club.platform}`}
                 statLabel="Skill Rating"

@@ -137,30 +137,26 @@ export function ratingBadgeClassName(rating: number) {
 }
 
 export function clubDivisionTone(division: string): HighlightTone {
-  if (/elite/i.test(division)) {
+  const divisionNumber = Number(division.match(/\d+/)?.[0] ?? 0);
+
+  if (/elite/i.test(division) || divisionNumber === 1) {
     return "darkBlue";
   }
 
-  const divisionNumber = Number(division.match(/\d+/)?.[0] ?? 0);
-
-  if (divisionNumber === 1) {
+  if (divisionNumber === 2) {
     return "green";
   }
 
-  if (divisionNumber === 2) {
+  if (divisionNumber === 3) {
     return "purple";
   }
 
-  if (divisionNumber === 3) {
+  if (divisionNumber === 4) {
     return "gold";
   }
 
-  if (divisionNumber === 4) {
-    return "silver";
-  }
-
   if (divisionNumber === 5) {
-    return "bronze";
+    return "silver";
   }
 
   return "bronze";

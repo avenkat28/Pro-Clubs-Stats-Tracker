@@ -128,7 +128,16 @@ function ClubProfileView({
           matches={profile.recentClubMatches}
         />
 
-        <PlayerBanter players={profile.squad} />
+        <PlayerBanter
+          players={profile.squad}
+          club={{
+            wins: profile.club.wins,
+            draws: profile.club.draws,
+            losses: profile.club.losses,
+            goalsFor: profile.club.goalsFor,
+            goalsAgainst: profile.club.goalsAgainst,
+          }}
+        />
 
         <SquadTable players={profile.squad} clubId={clubId} platform={platform} />
       </section>

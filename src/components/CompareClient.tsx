@@ -12,6 +12,7 @@ import type {
   CompareMode,
   ComparePlayer,
 } from "../lib/compareTypes";
+import { formatDivisionLabel } from "../lib/ea";
 
 type CompareClientProps = {
   players: ComparePlayer[];
@@ -446,7 +447,7 @@ function ComparisonTable({
                 <CompareStatRow label="Goals Against" leftValue={leftClub.goalsAgainst} rightValue={rightClub.goalsAgainst} leftScore={leftClub.goalsAgainst} rightScore={rightClub.goalsAgainst} lowerIsBetter />
                 <CompareStatRow label="Clean Sheets" leftValue={leftClub.cleanSheets} rightValue={rightClub.cleanSheets} leftScore={leftClub.cleanSheets} rightScore={rightClub.cleanSheets} />
                 <CompareStatRow label="Skill Rating" leftValue={leftClub.skillRating} rightValue={rightClub.skillRating} leftScore={leftClub.skillRating} rightScore={rightClub.skillRating} />
-                <CompareStatRow label="Division" leftValue={leftClub.division} rightValue={rightClub.division} leftScore={divisionRank(leftClub.division)} rightScore={divisionRank(rightClub.division)} lowerIsBetter />
+                <CompareStatRow label="Division" leftValue={formatDivisionLabel(leftClub.division)} rightValue={formatDivisionLabel(rightClub.division)} leftScore={divisionRank(leftClub.division)} rightScore={divisionRank(rightClub.division)} lowerIsBetter />
               </>
             )}
           </tbody>

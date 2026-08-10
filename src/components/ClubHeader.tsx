@@ -4,6 +4,7 @@ import {
   skillRatingTextClassName,
 } from "../lib/colorCoding";
 import type { ProTeamCompName } from "../lib/proTeamComp";
+import { formatDivisionLabel } from "../lib/ea";
 
 const CLUB_COMP_IMAGE_PATHS: Record<ProTeamCompName, string> = {
   "Manchester City": "/club-comps/manchester-city.png",
@@ -45,6 +46,7 @@ export default function ClubHeader({
   const skillRatingCardTone = skillRatingCardClassName(skillRating);
   const skillRatingLabelTone = skillRatingLabelClassName(skillRating);
   const skillRatingValueTone = skillRatingTextClassName(skillRating);
+  const displayedDivision = formatDivisionLabel(division);
 
   return (
     <section className="club-hero-shell min-w-0 overflow-hidden rounded-lg border border-emerald-300/15 bg-[linear-gradient(135deg,rgba(9,18,13,0.98),rgba(4,7,6,0.96))] p-4 text-white shadow-[0_18px_55px_rgba(0,0,0,0.3)] ring-1 ring-white/[0.04] sm:p-6">
@@ -76,9 +78,9 @@ export default function ClubHeader({
             <h1 className="max-w-4xl break-words text-[clamp(2.4rem,10vw,4.1rem)] font-black leading-[0.95] text-white">
               {name}
             </h1>
-            {division !== "Division Unavailable" ? (
+            {displayedDivision !== "Division Unavailable" ? (
               <p className="mt-3 text-lg font-semibold text-emerald-100/55 sm:text-2xl">
-                {division}
+                {displayedDivision}
               </p>
             ) : null}
           </div>

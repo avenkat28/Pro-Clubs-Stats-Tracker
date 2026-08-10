@@ -4,6 +4,7 @@ import {
   normalizeOverall,
   playerIconClassName,
 } from "../lib/colorCoding";
+import { formatDivisionLabel } from "../lib/ea";
 
 type EntityIconProps =
   | {
@@ -42,7 +43,7 @@ export default function EntityIcon(props: EntityIconProps) {
       title={
         props.type === "player"
           ? `${props.name} overall ${normalizeOverall(props.overall)}`
-          : `${props.name} ${props.division}`
+          : `${props.name} ${formatDivisionLabel(props.division)}`
       }
     >
       {label}

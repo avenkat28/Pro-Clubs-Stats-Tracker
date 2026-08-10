@@ -912,9 +912,9 @@ function getClubBadgeUrl(info: PrimitiveRecord | null) {
   return `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${badgeId}.png`;
 }
 
-export function formatDivisionLabel(value: unknown) {
+function normalizeRawDivisionLabel(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-    return value === 1 ? "Elite Division" : value <= 6 ? `Division ${value - 1}` : `Division ${value}`;
+    return `Division ${value}`;
   }
 
   if (typeof value !== "string") {
@@ -930,22 +930,13 @@ export function formatDivisionLabel(value: unknown) {
   const numericValue = Number(normalizedValue);
 
   if (Number.isFinite(numericValue) && numericValue > 0) {
-    return numericValue === 1
-      ? "Elite Division"
-      : numericValue <= 6
-        ? `Division ${numericValue - 1}`
-        : `Division ${numericValue}`;
+    return `Division ${numericValue}`;
   }
 
   const divisionMatch = normalizedValue.match(/\bdivision\s+(\d+)\b/i);
 
   if (divisionMatch) {
-    const divisionNumber = Number(divisionMatch[1]);
-    return divisionNumber === 1
-      ? "Elite Division"
-      : divisionNumber <= 6
-        ? `Division ${divisionNumber - 1}`
-        : `Division ${divisionNumber}`;
+    return `Division ${divisionMatch[1]}`;
   }
 
   if (/elite/i.test(normalizedValue)) {
@@ -955,9 +946,24 @@ export function formatDivisionLabel(value: unknown) {
   return normalizedValue;
 }
 
+export function formatDivisionLabel(value: unknown) {
+  const rawLabel = normalizeRawDivisionLabel(value);
+
+  if (/elite/i.test(rawLabel)) return "Elite Division";
+
+  const divisionNumber = Number(rawLabel.match(/\d+/)?.[0]);
+
+  if (divisionNumber === 1) return "Elite Division";
+  if (divisionNumber >= 2 && divisionNumber <= 6) {
+    return `Division ${divisionNumber - 1}`;
+  }
+
+  return rawLabel;
+}
+
 function getDivisionFromPaths(value: unknown, paths: string[]) {
   for (const path of paths) {
-    const label = formatDivisionLabel(getByPath(value, path));
+    const label = normalizeRawDivisionLabel(getByPath(value, path));
 
     if (label) {
       return label;
@@ -1145,10 +1151,11 @@ function normalizeClub(
     platform,
     badgeUrl: getClubBadgeUrl(info),
     division:
+      getBestDivisionLabel(overall) ||
+      getBestDivisionLabel(info) ||
       getCurrentDivisionLabel(info) ||
       getCurrentDivisionLabel(overall) ||
       getCurrentDivisionLabel(currentSeason) ||
-      getBestDivisionLabel(overall ?? info) ||
       "Division Unavailable",
     skillRating:
       getSkillRatingValue(overall) ||
