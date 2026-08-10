@@ -53,6 +53,13 @@ const emptyClub: CompareClub = {
   skillRating: 0,
 };
 
+function divisionRank(division: string) {
+  if (/elite/i.test(division)) return 0;
+
+  const rank = Number(division.match(/\d+/)?.[0]);
+  return Number.isFinite(rank) ? rank : 99;
+}
+
 function perGame(value: number, games: number) {
   return games > 0 ? Number((value / games).toFixed(2)) : 0;
 }
@@ -439,7 +446,7 @@ function ComparisonTable({
                 <CompareStatRow label="Goals Against" leftValue={leftClub.goalsAgainst} rightValue={rightClub.goalsAgainst} leftScore={leftClub.goalsAgainst} rightScore={rightClub.goalsAgainst} lowerIsBetter />
                 <CompareStatRow label="Clean Sheets" leftValue={leftClub.cleanSheets} rightValue={rightClub.cleanSheets} leftScore={leftClub.cleanSheets} rightScore={rightClub.cleanSheets} />
                 <CompareStatRow label="Skill Rating" leftValue={leftClub.skillRating} rightValue={rightClub.skillRating} leftScore={leftClub.skillRating} rightScore={rightClub.skillRating} />
-                <CompareStatRow label="Division" leftValue={leftClub.division} rightValue={rightClub.division} leftScore={Number(leftClub.division.replace(/\D/g, ""))} rightScore={Number(rightClub.division.replace(/\D/g, ""))} lowerIsBetter />
+                <CompareStatRow label="Division" leftValue={leftClub.division} rightValue={rightClub.division} leftScore={divisionRank(leftClub.division)} rightScore={divisionRank(rightClub.division)} lowerIsBetter />
               </>
             )}
           </tbody>

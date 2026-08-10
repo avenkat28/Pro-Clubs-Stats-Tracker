@@ -98,7 +98,7 @@ export const compareClubs: CompareClub[] = [
   {
     id: "3456623",
     name: "Elite XI",
-    division: "Division 1",
+    division: "Elite Division",
     platform: "Gen5",
     games: 134,
     wins: 98,
@@ -112,7 +112,7 @@ export const compareClubs: CompareClub[] = [
   {
     id: "2104421",
     name: "North London FC",
-    division: "Division 1",
+    division: "Elite Division",
     platform: "Gen5",
     games: 128,
     wins: 91,
@@ -126,7 +126,7 @@ export const compareClubs: CompareClub[] = [
   {
     id: "9087344",
     name: "Final Third FC",
-    division: "Division 1",
+    division: "Elite Division",
     platform: "Gen5",
     games: 121,
     wins: 84,
@@ -140,7 +140,7 @@ export const compareClubs: CompareClub[] = [
   {
     id: "6127804",
     name: "Top Bins FC",
-    division: "Division 2",
+    division: "Division 1",
     platform: "Old Gen",
     games: 108,
     wins: 69,

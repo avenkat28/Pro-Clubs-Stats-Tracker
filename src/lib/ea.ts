@@ -299,6 +299,7 @@ export type EaPlayerMatch = {
 
 export type EaClubRecentMatch = {
   id: string;
+  matchType: "league" | "playoff";
   result: "W" | "D" | "L";
   score: string;
   opponent: string;
@@ -913,7 +914,7 @@ function getClubBadgeUrl(info: PrimitiveRecord | null) {
 
 function formatDivisionLabel(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-    return `Division ${value}`;
+    return value === 1 ? "Elite Division" : value <= 6 ? `Division ${value - 1}` : `Division ${value}`;
   }
 
   if (typeof value !== "string") {
@@ -929,13 +930,22 @@ function formatDivisionLabel(value: unknown) {
   const numericValue = Number(normalizedValue);
 
   if (Number.isFinite(numericValue) && numericValue > 0) {
-    return `Division ${numericValue}`;
+    return numericValue === 1
+      ? "Elite Division"
+      : numericValue <= 6
+        ? `Division ${numericValue - 1}`
+        : `Division ${numericValue}`;
   }
 
   const divisionMatch = normalizedValue.match(/\bdivision\s+(\d+)\b/i);
 
   if (divisionMatch) {
-    return `Division ${divisionMatch[1]}`;
+    const divisionNumber = Number(divisionMatch[1]);
+    return divisionNumber === 1
+      ? "Elite Division"
+      : divisionNumber <= 6
+        ? `Division ${divisionNumber - 1}`
+        : `Division ${divisionNumber}`;
   }
 
   if (/elite/i.test(normalizedValue)) {
@@ -1994,6 +2004,7 @@ function getMatchPositionLabel(value: string) {
 function normalizeClubRecentMatches(
   matchesPayload: unknown,
   clubId: string,
+  matchType: EaClubRecentMatch["matchType"] = "league",
 ): EaClubRecentMatch[] {
   return asArray(matchesPayload)
     .slice(0, RECENT_CLUB_MATCH_SCAN_COUNT)
@@ -2028,6 +2039,7 @@ function normalizeClubRecentMatches(
 
       return {
         id: getString(record, ["matchId", "id", "timestamp"], crypto.randomUUID()),
+        matchType,
         result,
         score: `${ourScore}-${opponentScore}`,
         opponent: getString(opponent, ["details.name", "name", "clubName"], "Unknown Club"),
@@ -2644,6 +2656,23 @@ export async function getEaClubProfile(
   const overallPayload = fullClubData.overallStats;
   const membersPayload = fullClubData.memberStats.members;
   const leagueMatchesPayload = fullClubData.matches.league;
+  const playoffMatchesPayload = fullClubData.matches.playoff;
+  const leagueMatches = asArray(leagueMatchesPayload);
+  const playoffMatches = asArray(playoffMatchesPayload);
+  const competitiveMatchesPayload = Array.from(
+    { length: Math.max(leagueMatches.length, playoffMatches.length) },
+    (_, index) => [leagueMatches[index], playoffMatches[index]],
+  ).flat().filter((match) => match !== undefined);
+  const recentClubMatches = [
+    ...normalizeClubRecentMatches(leagueMatchesPayload, safeClubId, "league"),
+    ...normalizeClubRecentMatches(playoffMatchesPayload, safeClubId, "playoff"),
+  ]
+    .sort((left, right) => {
+      const leftId = Number(left.id);
+      const rightId = Number(right.id);
+      return Number.isFinite(leftId) && Number.isFinite(rightId) ? rightId - leftId : 0;
+    })
+    .slice(0, RECENT_CLUB_MATCH_SCAN_COUNT);
 
   const clubInfo = findFirstRecord(infoPayload);
   const clubName = getString(clubInfo, ["name", "clubName", "details.name"], "");
@@ -2663,8 +2692,8 @@ export async function getEaClubProfile(
       currentSeasonPayload,
     ),
     squad: normalizeSquad(careerMembersPayload, membersPayload),
-    recentMatches: asArray(leagueMatchesPayload).slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
-    recentClubMatches: normalizeClubRecentMatches(leagueMatchesPayload, safeClubId),
+    recentMatches: competitiveMatchesPayload.slice(0, RECENT_CLUB_MATCH_SCAN_COUNT),
+    recentClubMatches,
   };
 }
 

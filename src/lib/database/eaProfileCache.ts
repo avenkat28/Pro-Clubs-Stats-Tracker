@@ -375,6 +375,7 @@ export async function getCachedEaClubProfile(
   const recentClubMatches: EaClubRecentMatch[] = cachedClub.matches.map(
     (match) => ({
       id: match.eaMatchId ?? match.id,
+      matchType: "league",
       result: getResult(match.goalsFor, match.goalsAgainst),
       score: `${match.goalsFor}-${match.goalsAgainst}`,
       opponent: match.opponentName,

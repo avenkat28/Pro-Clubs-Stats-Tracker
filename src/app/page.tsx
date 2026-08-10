@@ -3,6 +3,7 @@ import HeroSection from "../components/HeroSection";
 import SearchPanel from "../components/SearchPanel";
 import StatCard from "../components/StatCard";
 import FeatureCard from "../components/FeatureCard";
+import HomeFunSections from "../components/HomeFunSections";
 import { featuredStats, features } from "../lib/mockData";
 
 export default function Home() {
@@ -77,6 +78,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <HomeFunSections />
     </main>
   );
 }

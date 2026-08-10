@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   EaClubFormation,
   EaClubMatchPlayer,
@@ -12,6 +12,8 @@ type ClubRecentMatchStudioProps = {
   clubName: string;
   matches: EaClubRecentMatch[];
 };
+
+type MatchFilter = "all" | EaClubRecentMatch["matchType"];
 
 type Trend = {
   tone: "good" | "bad" | "neutral";
@@ -425,7 +427,10 @@ export default function ClubRecentMatchStudio({
   clubName,
   matches,
 }: ClubRecentMatchStudioProps) {
-  const recentMatches = matches.slice(0, 10);
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>("all");
+  const recentMatches = matches
+    .filter((match) => matchFilter === "all" || match.matchType === matchFilter)
+    .slice(0, 10);
   const [selectedMatchId, setSelectedMatchId] = useState(recentMatches[0]?.id ?? "");
   const selectedMatch =
     recentMatches.find((match) => match.id === selectedMatchId) ?? recentMatches[0];
@@ -434,16 +439,22 @@ export default function ClubRecentMatchStudio({
   const scorers = selectedMatch?.players.filter((player) => player.goals > 0).sort((a, b) => b.goals - a.goals) ?? [];
   const assisters = selectedMatch?.players.filter((player) => player.assists > 0).sort((a, b) => b.assists - a.assists) ?? [];
 
+  useEffect(() => {
+    if (!recentMatches.some((match) => match.id === selectedMatchId)) {
+      setSelectedMatchId(recentMatches[0]?.id ?? "");
+    }
+  }, [recentMatches, selectedMatchId]);
+
   return (
     <section className="match-report-studio rounded-[1.25rem] border p-4 shadow-[0_18px_44px_rgba(0,0,0,0.16)] sm:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-500/75">
-            Last 10 Club Matches
+            Competitive Match Center
           </p>
           <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Match Report Studio</h2>
           <p className="match-report-muted mt-2 max-w-3xl text-sm leading-6">
-            Review the last 10 live EA matches, export a match image, and scan result trends, box scores, player impact, and formations.
+            Review league and playoff matches, export a match image, and scan result trends, box scores, player impact, and formations.
           </p>
         </div>
 
@@ -456,6 +467,27 @@ export default function ClubRecentMatchStudio({
             Download PNG
           </button>
         ) : null}
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {([
+          ["all", "All competitive"],
+          ["league", "League"],
+          ["playoff", "Playoffs"],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setMatchFilter(value)}
+            className={`rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition ${
+              matchFilter === value
+                ? "border-emerald-300/50 bg-emerald-300/15 text-emerald-100"
+                : "border-white/10 bg-black/20 text-white/55 hover:border-emerald-300/25"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {recentMatches.length === 0 || !selectedMatch ? (
@@ -477,7 +509,7 @@ export default function ClubRecentMatchStudio({
                 }`}
               >
                 <p className="match-report-subtle text-xs font-black uppercase tracking-[0.16em]">
-                  {resultLabel(match.result)}
+                  {match.matchType === "playoff" ? "Playoff" : "League"} · {resultLabel(match.result)}
                 </p>
                 <p className="mt-1 truncate text-sm font-bold">
                   {match.score} vs {match.opponent}
@@ -491,7 +523,7 @@ export default function ClubRecentMatchStudio({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="match-report-subtle text-xs font-black uppercase tracking-[0.22em]">
-                    Share Card
+                    {selectedMatch.matchType === "playoff" ? "Playoff Match" : "League Match"} · Share Card
                   </p>
                   <h3 className="mt-3 text-2xl font-black">{clubName}</h3>
                 </div>
